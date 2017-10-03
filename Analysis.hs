@@ -1,10 +1,13 @@
 module Analysis where
 
 import Ast
+import Interp (isPlain)
 import qualified Data.Set as S
 import Data.List((\\))
 
-makeSig f args = f++"/"++(show $length args)
+makeSig :: String -> [a] -> String
+makeSig f args = atom++"/"++(show $length args)
+  where atom = if isPlain f then f else "'" ++ f ++ "'"
 
 interface :: Program -> [String]
 interface prog = collect prog S.empty
@@ -15,7 +18,7 @@ interface prog = collect prog S.empty
           _           -> collect rest acc
 
 
-uses :: Program -> [String] 
+uses :: Program -> [String]
 uses prog = collect prog S.empty
   where collect [] acc = S.toList acc
         collect ((_, body) : rest) acc =

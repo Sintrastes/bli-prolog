@@ -90,8 +90,8 @@ instance Show Solution where
                                       return $ h:tt
       listTerm _                 = Nothing
 
-      isPlain (c:cs) = C.isLower c && all (\c -> c == '_' || C.isAlphaNum c) cs
-      isPlain _ = False
+isPlain (c:cs) = C.isLower c && all (\c -> c == '_' || C.isAlphaNum c) cs
+isPlain _ = False
 
 data SearchTree = Sol Solution
                 | Node Goal [SearchTree]
