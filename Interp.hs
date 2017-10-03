@@ -9,6 +9,7 @@ import Data.List (nub)
 import Control.Monad(liftM)
 import qualified Text.PrettyPrint as PP
 import Text.PrettyPrint ((<>),(<+>))
+import qualified Data.Char as C
 
 import Ast
 import Parser
@@ -72,12 +73,15 @@ instance Show Solution where
 
       renderBindings (var, term) = PP.text var <+> PP.equals <+> renderT term
 
+      renderAtom a = if isPlain a then PP.text a
+                     else PP.text "'" <> PP.text a <> PP.text "'"
+
       renderT (Var v) = PP.text v
-      renderT (Comp a []) = PP.text a
+      renderT (Comp a []) = renderAtom a
       renderT comp@(Comp f args) =
         case listTerm comp of
           Just tt -> PP.brackets $ renderTerms tt
-          Nothing -> PP.text f <> (PP.parens $ renderTerms args)
+          Nothing -> renderAtom f <> (PP.parens $ renderTerms args)
 
       renderTerms terms = PP.sep $ PP.punctuate PP.comma $ map renderT terms
 
@@ -85,6 +89,9 @@ instance Show Solution where
       listTerm (Comp "." [h, t]) = do tt <- listTerm t
                                       return $ h:tt
       listTerm _                 = Nothing
+
+      isPlain (c:cs) = C.isLower c && all (\c -> c == '_' || C.isAlphaNum c) cs
+      isPlain _ = False
 
 data SearchTree = Sol Solution
                 | Node Goal [SearchTree]
@@ -97,9 +104,9 @@ solve prog g@(t1 : ts) = return $ Node g trees
     where trees = do c <- prog
                      let (tc, tsc) = freshen (variables g) c
                      case unify tc t1 of
-                       Just u -> do 
+                       Just u -> do
                          let g' = map (subs u) $ tsc ++ ts
-                         solve prog g' 
+                         solve prog g'
                        Nothing -> []
 --solve _ _ = []
 
