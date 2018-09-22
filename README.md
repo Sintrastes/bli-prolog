@@ -10,7 +10,7 @@ Interface
 The help message you get by calling `pure-prolog -?`:
 
 ~~~
-Pure Prolog Interpreter v0.1, (C) Ken Friis Larsen 2012-2015
+Pure Prolog Interpreter v0.1, (C) Ken Friis Larsen 2012-2018
 
 options [OPTIONS] [GOALSTRING]
 
@@ -38,15 +38,5 @@ use the command:
 This will first print the interface (one predicate per line), then a
 blank line, and finally the uses (one predicate per line).
 
-If you just want which external (or build-in) predicates are used then
-use `-i external`.
-
-Use
----
-
-~~~
-  $ cabal build
-  $ cabal install
-~~~
-
-(Or just `stack install`.)
+If you just want a list of the external (or build-in) predicates that
+are used, then use `-i external`.
