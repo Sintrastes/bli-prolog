@@ -5,11 +5,14 @@
 -}
 module Interp where
 
+import Prelude hiding ((<>))
+
 import Data.List (nub)
 import Control.Monad(liftM)
 import qualified Text.PrettyPrint as PP
 import Text.PrettyPrint ((<>),(<+>))
 import qualified Data.Char as C
+
 
 import Ast
 import Parser
