@@ -151,30 +151,3 @@ limitedDfs :: Int -> SearchTree -> [Solution]
 limitedDfs _ (Sol sols)  = [sols]
 limitedDfs 0 _           = []
 limitedDfs n (Node _ st) = [ s | t <- st, s <- limitedDfs (n-1) t]
-
-
--- ----------------------------------------------------------------------
--- -- Testing
--- ----------------------------------------------------------------------
-
--- test filename goalString search =
---     do Right p <- clausesFromFile filename
---        let Right g = goalFromString goalString
---        let t = makeReportTree p g
---        return $ search t
-
--- tree filename goalString =
---     do Right p <- clausesFromFile filename
---        let Right g = goalFromString goalString
---        let t = makeReportTree p g
---        return $ t
-
-
--- siblings = test "./tests/siblings.pl" "?- sibling(homer, X)."
--- siblingsDFS = siblings dfs
--- siblingsBFS = siblings bfs
-
-
--- nats = test "nats.pl" "?- natlist(X)."
--- natsDFS = liftM (take 10) $ nats dfs
--- natsBFS = liftM (take 10) $ nats bfs
