@@ -45,7 +45,7 @@ startOptions =
           , info = def &= help "Don't interpret program, only analyse it"
           , goal = def &= args &= typ "GOALSTRING"
           }
-  &= summary "Pure Prolog Interpreter v0.1, (C) Ken Friis Larsen 2012-2015"
+  &= summary "Pure Prolog Interpreter v0.1, (C) Ken Friis Larsen 2012-2018"
 
 
 checkOptions = do
