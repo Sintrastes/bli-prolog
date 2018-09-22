@@ -1,3 +1,4 @@
-/dist
-/.stack-work
 *~
+/.stack-work
+/dist
+/pure-prolog.cabal
