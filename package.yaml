@@ -1,8 +1,6 @@
 name:                pure-prolog
-version:             0.1.2.0
+version:             0.1.2
 synopsis:            Pure Prolog interpreter
-license:             MIT
-license-file:        LICENSE
 author:              Ken Friis Larsen
 maintainer:          ken@friislarsen.net
 copyright:           Ken Friis Larsen, 2012-2018
@@ -10,11 +8,6 @@ extra-source-files:  README.md
 
 dependencies:
   - base < 5
-  - tasty
-  - pretty
-  - cmdargs
-  - parsec
-  - containers
 
 library:
   source-dirs: src
@@ -23,12 +16,17 @@ library:
     - Analysis
     - Parser
     - Interp
+  dependencies:
+    - pretty
+    - parsec
+    - containers
 
-# A simple command-line driver, that uses the library
+# A simple command-line driver that uses the library
 executable:
   main: Main.hs
   dependencies:
     - pure-prolog
+    - cmdargs
 
 # The test-suite
 # tests:
@@ -37,3 +35,4 @@ executable:
 #     source-dirs: tests
 #     dependencies:
 #     - pure-prolog
+#     - tasty
