@@ -1,5 +1,8 @@
 module Parser
-       (clausesFromFile, goalFromString)
+       ( clausesFromFile
+       , clausesFromString
+       , goalFromString
+       )
 where
 
 import Text.ParserCombinators.Parsec
@@ -11,6 +14,8 @@ import Ast
 ---------------------------------------------------------------------
 
 clausesFromFile filename = parseFromFile program filename
+
+clausesFromString = parse program "<clauses>"
 
 goalFromString string = parse goal "<goalstring>" string
 
