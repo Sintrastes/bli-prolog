@@ -15,7 +15,7 @@ import Ast
 
 clausesFromFile filename = parseFromFile program filename
 
-clausesFromString = parse program "<clauses>"
+clausesFromString context = parse program context
 
 goalFromString string = parse goal "<goalstring>" string
 
@@ -45,8 +45,9 @@ spacesOrComments = skipMany ((space >> return()) <|> comment)
 
 
 
--- TODO, it can't possible be need to skip spaces (and comments) both
--- before and after a token. What is Ken smoking?
+-- DISCLAIMER (aka TODO): If you are a student looking at this code,
+-- you should copy the following two functions, it shouldn't be needed
+-- to drop space both before and after a token.
 csymb c = (try(spacesOrComments >> char c) >> spacesOrComments)
 symb s = (try(spacesOrComments >> string s) >> spacesOrComments)
 
