@@ -40,3 +40,13 @@ blank line, and finally the uses (one predicate per line).
 
 If you just want a list of the external (or build-in) predicates that
 are used, then use `-i external`.
+
+
+How to install
+--------------
+
+~~~
+  $ git clone https://github.com/kfl/pure-prolog.git
+  $ cd pure-prolog
+  $ stack install
+~~~
