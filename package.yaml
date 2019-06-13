@@ -22,6 +22,7 @@ library:
     - pretty
     - parsec
     - containers
+    - th-lift
 
 # A simple command-line driver that uses the library
 executable:
