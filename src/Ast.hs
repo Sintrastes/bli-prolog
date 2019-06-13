@@ -4,6 +4,8 @@ module Ast where
 -- Abstract Syntax Tree
 ----------------------------------------------------------------------
 
+import Language.Haskell.TH.Lift
+
 type Goal = [Term]
 type Program = Clauses
 type Clauses = [Clause]
