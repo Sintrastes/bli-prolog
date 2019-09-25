@@ -13,8 +13,6 @@ module Data.Prolog.Ast where
 
 import Language.Haskell.TH.Lift
 
-
-
 data Term = Var Variable
           | Comp Atom Terms
           deriving (Eq, Show, Read, Lift)
@@ -39,8 +37,11 @@ type Clause = (Term, Terms) -- head and body
 --   person(nate) :- .
 --
 
-data BliCommand = QueryMode Clause 
-                | AssertionMode Clause
+data BliCommand = QueryMode Goal 
+                | AssertMode Goal
+                | AssertClause Clause
+                | LambdaQuery LambdaGoal
+  deriving(Show)
 
 type Program = Clauses
 type Clauses = [Clause]

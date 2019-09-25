@@ -1,11 +1,11 @@
 --
---
+-- 
 --
 
 module Prolog.Parser where
 
 import Text.ParserCombinators.Parsec
-
+import Control.Monad.Combinators (eitherP)
 import Data.Prolog.Ast
 
 ---------------------------------------------------------------------
@@ -48,6 +48,19 @@ spacesOrComments = skipMany ((space >> return()) <|> comment)
 csymb c = (try(spacesOrComments >> char c) >> spacesOrComments)
 symb s = (try(spacesOrComments >> string s) >> spacesOrComments)
 
+
+bliCommandParser :: Parser BliCommand
+bliCommandParser = do 
+  result <- (try lambdaGoal `eitherP` (try assertClause `eitherP` (try assertion `eitherP` goal))) 
+  case result of
+     Left x  -> return $ LambdaQuery x
+     Right x -> case x of 
+         Left y  -> return $ AssertClause y
+         Right y -> case y of 
+            Left  z -> return $ AssertMode z
+            Right z -> return $ QueryMode z
+    
+
 lambdaGoal :: Parser LambdaGoal
 lambdaGoal = do symb "?-"
                 skipMany (space >> return ())
@@ -64,6 +77,13 @@ goal = do symb "?-"
           csymb '.'
           return ts
 
+assertion :: Parser Goal
+assertion = do symb "?-"
+               ts <- terms
+               csymb '!'
+               return ts
+
+ 
 program :: Parser Program
 program = do spacesOrComments
              clauses <- many1 clause
@@ -75,6 +95,14 @@ clause = do t <- term
                     (symb ":-" >> terms)
             csymb '.'
             return (t, body)
+
+assertClause :: Parser Clause
+assertClause = do symb "?-"
+                  t <- term
+                  body <- option []
+                       (symb ":-" >> terms)
+                  csymb '!'
+                  return (t, body)
 
 term :: Parser Term
 term =  (variable >>= return . Var)
