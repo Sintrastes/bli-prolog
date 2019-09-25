@@ -7,9 +7,10 @@ import Data.Prolog.Ast
 import qualified Prolog.Parser as P
 import qualified Prolog.Interp as I
 import qualified Prolog.Analysis as A
-import Control.Monad(when)
-import Data.List(intersperse)
+import Control.Monad (when)
+import Data.List (intersperse)
 import System.Console.Readline
+import Data.List.Split
 
 data Search = DFS | BFS | Limited
             deriving (Show, Eq, Data, Typeable)
@@ -87,8 +88,14 @@ processGoalstring goalstring opts clauses = do
                    case solutions of
                       [] -> putStrLn "no solutions"
                       _  -> mapM_ print solutions
-             (Left err, _) -> error $ show err
-             (_, Left err) -> error $ show err
+             (Left err, _) -> do putStrLn "Error parsing file:" 
+                                 putStrLn $ foldr1 (\x -> \y -> x ++ "\n" ++ y) $
+                                                   (map (\x -> "  " ++ x)) $ 
+                                                   (splitOn "\n" $ show err)     
+             (_, Left err) -> do putStrLn "Error parsing query string:" 
+                                 putStrLn $ foldr1 (\x -> \y -> x ++ "\n" ++ y) $
+                                                   (map (\x -> "  " ++ x)) $ 
+                                                   (splitOn "\n" $ show err)
 
 repl opts clauses = do
   maybeLine <- readline "?- "
