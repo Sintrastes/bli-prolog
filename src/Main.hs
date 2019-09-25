@@ -54,26 +54,34 @@ startOptions =
   &= summary "bli-prolog interpreter v0.1, (C) Nathan Bedell 2019"
 
 processUserInput input opts clauses = do
-          let goal = P.goalFromString input
-          let limiting lst = case limit opts of
-                Nothing -> lst
-                Just n  -> take n lst
-          case (clauses, goal) of
-             (Right p, Right g) -> do
-                   let searchF = searchFunction (search opts) $ depth opts
-                   let t = I.makeReportTree p g
-                   let solutions = limiting $ searchF t
-                   case solutions of
-                      [] -> putStrLn "no solutions"
-                      _  -> mapM_ print solutions
-             (Left err, _) -> do putStrLn "Error parsing file:" 
-                                 putStrLn $ foldr1 (\x -> \y -> x ++ "\n" ++ y) $
-                                                   (map (\x -> "  " ++ x)) $ 
-                                                   (splitOn "\n" $ show err)     
-             (_, Left err) -> do putStrLn "Error parsing query string:" 
-                                 putStrLn $ foldr1 (\x -> \y -> x ++ "\n" ++ y) $
-                                                   (map (\x -> "  " ++ x)) $ 
-                                                   (splitOn "\n" $ show err)
+          let command = P.parseBliCommand input
+          case command of   
+              Right (AssertMode goal) -> do
+                 putStrLn "Assertions not yet implemented."
+              Right (AssertClause clause) -> do
+                 putStrLn "Assertions not yet implemented."
+              Right (LambdaQuery (vars,goal)) -> do
+                 putStrLn "Lambda queries not yet implemented."
+              Right (QueryMode goal) -> do
+                 let limiting lst = case limit opts of
+                       Nothing -> lst
+                       Just n  -> take n lst
+                 case (clauses, goal) of
+                    (Right p, g) -> do
+                          let searchF = searchFunction (search opts) $ depth opts
+                          let t = I.makeReportTree p g
+                          let solutions = limiting $ searchF t
+                          case solutions of
+                             [] -> putStrLn "no solutions"
+                             _  -> mapM_ print solutions
+                    (Left err, _) -> do putStrLn "Error parsing file:" 
+                                        putStrLn $ foldr1 (\x -> \y -> x ++ "\n" ++ y) $
+                                                          (map (\x -> "  " ++ x)) $ 
+                                                          (splitOn "\n" $ show err)     
+              Left err -> do putStrLn "Error parsing query string:" 
+                             putStrLn $ foldr1 (\x -> \y -> x ++ "\n" ++ y) $
+                                               (map (\x -> "  " ++ x)) $ 
+                                               (splitOn "\n" $ show err)
 
 repl opts clauses = do
   maybeLine <- readline "?- "

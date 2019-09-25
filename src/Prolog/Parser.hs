@@ -20,6 +20,8 @@ goalFromString string = parse goal "<goalstring>" string
 
 lambdaGoalFromString string = parse lambdaGoal "<goalstring>" string
 
+parseBliCommand string = parse bliCommand "" string
+
 ----------------------------------------------------------------------
 -- Parser
 ----------------------------------------------------------------------
@@ -49,8 +51,8 @@ csymb c = (try(spacesOrComments >> char c) >> spacesOrComments)
 symb s = (try(spacesOrComments >> string s) >> spacesOrComments)
 
 
-bliCommandParser :: Parser BliCommand
-bliCommandParser = do 
+bliCommand :: Parser BliCommand
+bliCommand = do 
   result <- (try lambdaGoal `eitherP` (try assertClause `eitherP` (try assertion `eitherP` goal))) 
   case result of
      Left x  -> return $ LambdaQuery x
