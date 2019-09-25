@@ -9,6 +9,7 @@ import qualified Prolog.Interp as I
 import qualified Prolog.Analysis as A
 import Control.Monad(when)
 import Data.List(intersperse)
+import System.Console.Readline
 
 data Search = DFS | BFS | Limited
             deriving (Show, Eq, Data, Typeable)
@@ -61,25 +62,38 @@ analyse prog Uses = do
 analyse prog External = do
   mapM_ putStrLn $ A.external prog
 
+processGoalstring goalstring opts clauses = do
+          let goal = P.goalFromString goalstring
+          let limiting lst = case limit opts of
+                Nothing -> lst
+                Just n  -> take n lst
+          case (clauses, goal) of
+             (Right p, Right g) -> do
+                   let searchF = searchFunction (search opts) $ depth opts
+                   let t = I.makeReportTree p g
+                   let solutions = limiting $ searchF t
+                   case solutions of
+                      [] -> putStrLn "no solutions"
+                      _  -> mapM_ print solutions
+             (Left err, _) -> error $ show err
+             (_, Left err) -> error $ show err
+
+repl opts clauses = do
+  maybeLine <- readline "?- "
+  case maybeLine of
+    Nothing -> repl opts clauses
+    Just line -> do
+      processGoalstring ("?- "++line) opts clauses
+      repl opts clauses
+
 main = do
   opts <- checkOptions
   p <- P.clausesFromFile $ program opts
   case info opts of
     [] -> do
-      let g = P.goalFromString $ goal opts
-      let limiting lst = case limit opts of
-            Nothing -> lst
-            Just n  -> take n lst
-      case (p, g) of
-        (Right p, Right g) -> do
-          let searchF = searchFunction (search opts) $ depth opts
-              t = I.makeReportTree p g
-              solutions = limiting $ searchF t
-          case solutions of
-            [] -> putStrLn "no solutions"
-            _  -> mapM_ print solutions
-        (Left err, _) -> error $ show err
-        (_, Left err) -> error $ show err
+      case goal opts of
+        "repl"     -> repl opts p
+        goalstring -> processGoalstring goalstring opts p
     analysis -> do
       case p of
         Right p  -> sequence_ $ intersperse (putStrLn "") $

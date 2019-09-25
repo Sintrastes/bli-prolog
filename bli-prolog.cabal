@@ -45,6 +45,7 @@ executable bli-prolog
   build-depends:
       base <5
     , cmdargs
+    , readline
     , bli-prolog
   default-language: Haskell2010
 
