@@ -20,6 +20,10 @@ searchFunction DFS _     = I.dfs
 searchFunction BFS _     = I.bfs
 searchFunction Limited n = I.limitedDfs n
 
+-- For JSON formatting
+-- solutionToJSON :: Solution -> JSON
+-- solutionToJSON = undefined
+
 data Analysis = Interface
               | Uses
               | External
@@ -27,12 +31,14 @@ data Analysis = Interface
 
 
 data Options =
-  Options { search   :: Search
-          , program  :: FilePath
-          , goal     :: String
-          , limit    :: Maybe Int
-          , depth    :: Int
-          , info     :: [Analysis]
+  Options { search    :: Search
+          , program   :: FilePath
+          , goal      :: String
+          , limit     :: Maybe Int
+          , depth     :: Int
+          , verbose   :: Bool
+          , json      :: Bool
+          , info      :: [Analysis]
           }
   deriving (Show, Data, Typeable)
 
@@ -43,6 +49,8 @@ startOptions =
           , depth = 100 &= help "Maximum depth to traverse when using limited search"
           , info = def &= help "Don't interpret program, only analyse it"
           , goal = def &= args &= typ "GOALSTRING"
+          , verbose = True &= help "Specify whether or not to use verbose output (on by default)"
+          , json = False &= help "Specify whether or not json output formatting is used for queries."
           }
   &= summary "bli-prolog interpreter v0.1, (C) Nathan Bedell 2019"
 
@@ -52,7 +60,7 @@ checkOptions = do
   case program opts of
     "" -> error "You must provide a clauses file with the -p flag"
     _ -> case goal opts ++ (concat $ map show $ info opts) of
-      "" -> error "You must provide a goal to prove or ask for an analysis"
+      "" -> return opts -- error "You must provide a goal to prove or ask for an analysis"
       _ -> return opts
 
 analyse prog Interface = do
@@ -83,16 +91,40 @@ repl opts clauses = do
   case maybeLine of
     Nothing -> repl opts clauses
     Just line -> do
-      processGoalstring ("?- "++line) opts clauses
-      repl opts clauses
+      case line of 
+        ":h"   -> do 
+          putStrLn "Help message"
+          repl opts clauses
+        "exit" -> return ()
+        otherwise -> do
+          processGoalstring ("?- "++line) opts clauses
+          repl opts clauses
 
 main = do
-  opts <- checkOptions
-  p <- P.clausesFromFile $ program opts
+  -- opts <- checkOptions
+  opts <- cmdArgs startOptions
+  -- If file not specified, start with an empty set of clauses.
+  p <- case program opts of
+    "" -> return $ Right []
+    _  -> P.clausesFromFile $ program opts
   case info opts of
     [] -> do
       case goal opts of
-        "repl"     -> repl opts p
+        "" -> do
+           if (verbose opts)
+           then do
+             putStrLn ""
+             putStrLn "  |      |            |"
+             putStrLn "  |      |  .         |"
+             putStrLn "  |---|  |     |---|  |"
+             putStrLn "  |   |  |  |  |   |  |"
+             putStrLn "  |---|  |  |  |---|  |"
+             putStrLn "               |"
+             putStrLn "               |"
+             putStrLn "bli-prolog interpreter v0.1, (C) Nathan Bedell 2019"
+             putStrLn "Type \":h\" for help, or \"exit\" to quit."
+           else return ()
+           repl opts p
         goalstring -> processGoalstring goalstring opts p
     analysis -> do
       case p of
