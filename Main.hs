@@ -84,7 +84,7 @@ repl opts clauses = do
         ":h"   -> do 
           putStrLn "Help message"
           repl opts clauses
-        "exit" -> return ()
+        ":exit" -> return ()
         otherwise -> do
           -- Note: If it starts with :load, we should load a 
           -- schema or a knowledge base.
@@ -111,7 +111,7 @@ main = do
          putStrLn "               |"
          putStrLn "               |"
          putStrLn "bli-prolog interpreter v0.1, (C) Nathan Bedell 2019"
-         putStrLn "Type \":h\" for help, or \"exit\" to quit."
+         putStrLn "Type \":h\" for help, or \":exit\" to quit."
        else return ()
        repl opts p
     goalstring -> processGoalstring goalstring opts p
