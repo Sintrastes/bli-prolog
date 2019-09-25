@@ -96,6 +96,7 @@ blank line, and finally the uses (one predicate per line).
 If you just want a list of the external (or build-in) predicates that
 are used, then use `-i external`.
 
+Note: To use the REPL, simply supply "repl" as the goalstring. 
 
 How to install
 ==============
@@ -110,4 +111,3 @@ Todo
 ====
 
   * Modify command line interface to suit my purposes
-  * Write a REPL.
