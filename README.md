@@ -10,8 +10,14 @@ Existential Quantification:
 
 TODO: Explain this feature.
 ~~~
-  \Y. programming_language(X), name_of(X,Y)    
+  \Y. programming_language(X), name_of(X,Y).   
 ~~~ 
+
+For the fans of unicode, we also offer some alternate syntax options for this:
+~~~
+  λY. programming_language(X), name_of(X,Y).   
+  ΛY. programming_language(X), name_of(X,Y).
+~~~
 Implicit Predication:
 --------------------
 
@@ -25,7 +31,7 @@ a predicate, the following
 ~~~
 is syntatic sugar for
 ~~~
-  programming_langugae(X).
+  programming_language(X).
 ~~~
 
 This also works for n-ary relations. For instace, using the binary predicate `name`
