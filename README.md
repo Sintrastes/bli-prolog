@@ -1,7 +1,38 @@
 What Is It?
 ===========
 
-An implementation of pure Prolog, based on the [pure-prolog](https://github.com/kfl/pure-prolog) implementation by Ken Friis Larsen. Created for use in [bedelibry](https://github.com/Chinchillord/Bedellibrary).
+An implementation of a dialect of pure prolog, called *bedelibry prolog* (or bli prolog), based on the [pure-prolog](https://github.com/kfl/pure-prolog) implementation by Ken Friis Larsen. Created for use in [bedelibry](https://github.com/Chinchillord/Bedellibrary).
+
+Bedelibry prolog has some features which differentiate it from pure prolog (i.e. prolog without any of its imperative features). We list some of these features below:
+
+  * Existential Quantification:
+    * TODO: Explain this feature.
+      ~~~
+          \Y. programming_language(X), name_of(X,Y)    
+      ~~~ 
+  * Implicit Predication:
+    * For many of the intended use cases of bedelibry, we wish to apply
+      (i.e. store as a fact) that some predicate holds of a given resource.
+      If it is clear from context what that resource is, when writing the predicate,
+      explicit arguments can be omitted. For example, if `programming_language` is
+      a predicate, the following
+      ~~~
+        programming_language.
+      ~~~
+      is syntatic sugar for
+      ~~~
+        programming_langugae(X).
+      ~~~
+      
+      This also works for n-ary relations. For instace, using the binary predicate `name`
+      ~~~
+        name("bob")
+      ~~~
+      is syntatic sugar for
+      ~~~
+        name(X, "bob")
+      ~~~
+
 
 Interface
 ---------
