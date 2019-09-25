@@ -38,6 +38,8 @@ data Options =
           , depth     :: Int
           , verbose   :: Bool
           , json      :: Bool
+          , server    :: Bool
+          , port      :: Maybe Int
           , info      :: [Analysis]
           }
   deriving (Show, Data, Typeable)
@@ -51,6 +53,8 @@ startOptions =
           , goal = def &= args &= typ "GOALSTRING"
           , verbose = True &= help "Specify whether or not to use verbose output (on by default)"
           , json = False &= help "Specify whether or not json output formatting is used for queries."
+          , server = False &= help "Starts a REST server for processing bli prolog queries if set."
+          , port = Nothing &= help "Port number to start the server."
           }
   &= summary "bli-prolog interpreter v0.1, (C) Nathan Bedell 2019"
 
@@ -97,6 +101,8 @@ repl opts clauses = do
           repl opts clauses
         "exit" -> return ()
         otherwise -> do
+          -- Note: If it starts with :load, we should load a 
+          -- schema or a knowledge base.
           processGoalstring ("?- "++line) opts clauses
           repl opts clauses
 
