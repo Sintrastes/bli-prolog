@@ -3,6 +3,26 @@ What Is It?
 
 An implementation of a dialect of pure prolog, called *bedelibry prolog* (or bli prolog), based on the [pure-prolog](https://github.com/kfl/pure-prolog) implementation by Ken Friis Larsen. Created for use in [bedelibry](https://github.com/Chinchillord/Bedellibrary).
 
+How to install
+==============
+
+bli-prolog requires that you have the relevant version of the haskell platform installed on your system. For instance, on Ubuntu, if you have not already done so, you should first run:
+
+~~~
+  $ sudo apt install ghc cabal-install
+~~~ 
+
+~~~
+  $ git clone https://github.com/Sintrastes/bli-prolog
+  $ cd bli-prolog
+  $ cabal install
+~~~
+
+optionally, bli-prolog may be installed with stack.
+
+Language Features
+=================
+
 Bedelibry prolog has some features which differentiate it from pure prolog (i.e. prolog without any of its imperative features). We list some of these features below:
 
 Existential Quantification:
@@ -139,15 +159,6 @@ If you just want a list of the external (or build-in) predicates that
 are used, then use `-i external`.
 
 Note: To use the REPL, simply supply "repl" as the goalstring. 
-
-How to install
-==============
-
-~~~
-  $ git clone https://github.com/Sintrastes/bli-prolog
-  $ cd bli-prolog
-  $ stack install
-~~~
 
 Todo
 ----
