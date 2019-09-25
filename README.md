@@ -59,6 +59,17 @@ Entity Management
 -----------------
 TODO: Explain this feature
 
+Assertions
+----------
+Assertions in bli prolog are made by terminating queries with a "!" instead of a ".". This works for both rules and simple facts.
+~~~
+?- siblings(X,Y) :- child(X,Z), child(Y,Z)!
+?- child(bob,  susan)!
+?- child(mark, susan)!
+?- siblings(bob, mark).
+true.
+~~~
+
 Interface
 =========
 
