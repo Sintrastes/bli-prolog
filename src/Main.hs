@@ -53,8 +53,8 @@ startOptions =
           }
   &= summary "bli-prolog interpreter v0.1, (C) Nathan Bedell 2019"
 
-processGoalstring goalstring opts clauses = do
-          let goal = P.goalFromString goalstring
+processUserInput input opts clauses = do
+          let goal = P.goalFromString input
           let limiting lst = case limit opts of
                 Nothing -> lst
                 Just n  -> take n lst
@@ -88,7 +88,7 @@ repl opts clauses = do
         otherwise -> do
           -- Note: If it starts with :load, we should load a 
           -- schema or a knowledge base.
-          processGoalstring ("?- "++line) opts clauses
+          processUserInput ("?- "++line) opts clauses
           repl opts clauses
 
 main = do
@@ -114,5 +114,5 @@ main = do
          putStrLn "Type \":h\" for help, or \":exit\" to quit."
        else return ()
        repl opts p
-    goalstring -> processGoalstring goalstring opts p
+    input -> processUserInput input opts p
     
