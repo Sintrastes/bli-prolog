@@ -5,7 +5,7 @@ import Parser
 import Interp
 import Ast
 import Data.List (sort)
-
+import System.IO.Unsafe
 
 main = defaultMain tests
 
@@ -25,7 +25,11 @@ queryFile filename goalString search = do
     (_, Left err) ->
       return $ Left err
 
-siblings = queryFile "./tests/siblings.pl" "?- sibling(homer, X)."
+fromRight (Right x) = x
+siblings = queryFile "./siblings.pl" "?- sibling(homer, X)."
+testGoal = goalFromString "?- sibing(homer, X)."
+clauses = unsafePerformIO $ clausesFromFile "./siblings.pl"
+result = bfs $ makeReportTree (fromRight clauses) (fromRight testGoal)
 
 extractSimples = map name . filter isSimple
   where name (Comp name _) = name

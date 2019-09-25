@@ -1,16 +1,15 @@
 What Is It?
 ===========
 
-Simple-minded implementation of pure Prolog.
-
+An implementation of pure Prolog, based on the [pure-prolog](https://github.com/kfl/pure-prolog) implementation by Ken Friis Larsen. Created for use in [bedelibry](https://github.com/Chinchillord/Bedellibrary).
 
 Interface
 ---------
 
-The help message you get by calling `pure-prolog -?`:
+The help message you get by calling `bli-prolog -?`:
 
 ~~~
-Pure Prolog Interpreter v0.1, (C) Ken Friis Larsen 2012-2018
+bli-prolog interpreter v0.1, (C) Nathan Bedell 2019
 
 options [OPTIONS] [GOALSTRING]
 
@@ -32,7 +31,7 @@ which predicates are called (the uses) in the file `myprolog.pl` then
 use the command:
 
 ~~~
-  $ pure-prolog -p myprolog.pl -i interface -i uses
+  $ bli-prolog -p myprolog.pl -i interface -i uses
 ~~~
 
 This will first print the interface (one predicate per line), then a
@@ -50,3 +49,9 @@ How to install
   $ cd pure-prolog
   $ stack install
 ~~~
+
+Todo
+----
+
+  * Modify command line interface to suit my purposes
+  * Write a REPL.

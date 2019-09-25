@@ -3,14 +3,12 @@ module Main where
 
 import System.Console.CmdArgs as CA hiding (program)
 
-import Ast
-import qualified Parser as P
-import qualified Interp as I
-import qualified Analysis as A
+import Data.Prolog.Ast
+import qualified Prolog.Parser as P
+import qualified Prolog.Interp as I
+import qualified Prolog.Analysis as A
 import Control.Monad(when)
 import Data.List(intersperse)
-
-
 
 data Search = DFS | BFS | Limited
             deriving (Show, Eq, Data, Typeable)
@@ -45,7 +43,7 @@ startOptions =
           , info = def &= help "Don't interpret program, only analyse it"
           , goal = def &= args &= typ "GOALSTRING"
           }
-  &= summary "Pure Prolog Interpreter v0.1, (C) Ken Friis Larsen 2012-2018"
+  &= summary "bli-prolog interpreter v0.1, (C) Nathan Bedell 2019"
 
 
 checkOptions = do
