@@ -99,6 +99,8 @@ However, if we try to assert this again:
   FAIL. Entity "nim" already exists in the configured server.
 ~~~
 
+Note however, that in bli prolog, the only side effects that can occur are when *asserting* predicates. However, it is possible that more side effects can occur than purely asserting some predicate. For example, asserting a new entity of a given type also has the side effect of storing this assertion on the bedelibry server, if it has been configured to run with bli prolog.
+
 Interface
 =========
 
@@ -148,6 +150,6 @@ How to install
 ~~~
 
 Todo
-====
+----
 
-  * Modify command line interface to suit my purposes
+See [todo list](todo.md).
