@@ -69,6 +69,35 @@ Assertions in bli prolog are made by terminating queries with a "!" instead of a
 ?- siblings(bob, mark).
 true.
 ~~~
+This should also work for declaring new predicates in the same format as a schema file.
+~~~
+?- programming_language: 1!
+~~~
+
+Side-effects
+------------
+
+Although bli prolog is built ontop on pure Prolog, not all of our predicates are side-effect free.
+
+In particular, when run in assertion mode (explained above), predicates declared in the schema as a 
+*type*, i.e.
+~~~
+  programming_language: type
+~~~
+will attempt to declare new entities of a given type, storing this entity data in the configured bedelibry server, if an entity with such an id does not already exist. For instance:
+~~~
+  ?- programming_language(nim).
+  false.
+  ?- programming_language(nim)!
+  OK. Added entity "nim" to list of programming languages.
+  ?- programming_language(nim).
+  true.
+~~~
+However, if we try to assert this again:
+~~~
+  ?- programming_language(nim).
+  FAIL. Entity "nim" already exists in the configured server.
+~~~
 
 Interface
 =========
