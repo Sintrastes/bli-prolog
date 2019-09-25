@@ -1,3 +1,7 @@
+--
+--
+--
+
 module Prolog.Parser where
 
 import Text.ParserCombinators.Parsec

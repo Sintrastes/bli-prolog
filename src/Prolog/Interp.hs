@@ -1,8 +1,4 @@
-{-
-  A basic parser and interpreter for a cut-down version of Prolog
 
-  Author: Ken Friis Larsen <kflarsen@diku.dk>
--}
 module Prolog.Interp where
 
 import Prelude hiding ((<>))

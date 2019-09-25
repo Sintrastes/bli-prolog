@@ -1,5 +1,10 @@
 {-# LANGUAGE DeriveLift #-}
 
+--
+-- Basic datatypes for the AST
+-- of our prolog terms
+--
+
 module Data.Prolog.Ast where
 
 ----------------------------------------------------------------------

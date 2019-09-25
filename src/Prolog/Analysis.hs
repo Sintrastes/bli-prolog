@@ -1,3 +1,9 @@
+
+--
+-- Utility functions for analyzing
+-- prolog terms.
+--
+
 module Prolog.Analysis where
 
 import Data.Prolog.Ast
