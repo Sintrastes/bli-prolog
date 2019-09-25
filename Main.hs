@@ -25,12 +25,6 @@ searchFunction Limited n = I.limitedDfs n
 -- solutionToJSON :: Solution -> JSON
 -- solutionToJSON = undefined
 
-data Analysis = Interface
-              | Uses
-              | External
-            deriving (Show, Eq, Data, Typeable)
-
-
 data Options =
   Options { search    :: Search
           , program   :: FilePath
@@ -42,7 +36,6 @@ data Options =
           , json      :: Bool
           , server    :: Bool
           , port      :: Maybe Int
-          , info      :: [Analysis]
           }
   deriving (Show, Data, Typeable)
 
@@ -52,7 +45,6 @@ startOptions =
           , schema = "" &= typFile &= help "Schema file"
           , limit = def &= help "Limit the number of solutions found"
           , depth = 100 &= help "Maximum depth to traverse when using limited search"
-          , info = def &= help "Don't interpret program, only analyse it"
           , goal = def &= args &= typ "GOALSTRING"
           , verbose = True &= help "Specify whether or not to use verbose output (on by default)"
           , json = False &= help "Specify whether or not json output formatting is used for queries."
@@ -60,22 +52,6 @@ startOptions =
           , port = Nothing &= help "Port number to start the server."
           }
   &= summary "bli-prolog interpreter v0.1, (C) Nathan Bedell 2019"
-
-
-checkOptions = do
-  opts <- cmdArgs startOptions
-  case program opts of
-    "" -> error "You must provide a clauses file with the -p flag"
-    _ -> case goal opts ++ (concat $ map show $ info opts) of
-      "" -> return opts -- error "You must provide a goal to prove or ask for an analysis"
-      _ -> return opts
-
-analyse prog Interface = do
-  mapM_ putStrLn $ A.interface prog
-analyse prog Uses = do
-  mapM_ putStrLn $ A.uses prog
-analyse prog External = do
-  mapM_ putStrLn $ A.external prog
 
 processGoalstring goalstring opts clauses = do
           let goal = P.goalFromString goalstring
@@ -122,27 +98,21 @@ main = do
   p <- case program opts of
     "" -> return $ Right []
     _  -> P.clausesFromFile $ program opts
-  case info opts of
-    [] -> do
-      case goal opts of
-        "" -> do
-           if (verbose opts)
-           then do
-             putStrLn ""
-             putStrLn "  |      |            |"
-             putStrLn "  |      |  .         |"
-             putStrLn "  |---|  |     |---|  |"
-             putStrLn "  |   |  |  |  |   |  |"
-             putStrLn "  |---|  |  |  |---|  |"
-             putStrLn "               |"
-             putStrLn "               |"
-             putStrLn "bli-prolog interpreter v0.1, (C) Nathan Bedell 2019"
-             putStrLn "Type \":h\" for help, or \"exit\" to quit."
-           else return ()
-           repl opts p
-        goalstring -> processGoalstring goalstring opts p
-    analysis -> do
-      case p of
-        Right p  -> sequence_ $ intersperse (putStrLn "") $
-                      map (analyse p) analysis
-        Left err -> error $ show err
+  case goal opts of
+    "" -> do
+       if (verbose opts)
+       then do
+         putStrLn ""
+         putStrLn "  |      |            |"
+         putStrLn "  |      |  .         |"
+         putStrLn "  |---|  |     |---|  |"
+         putStrLn "  |   |  |  |  |   |  |"
+         putStrLn "  |---|  |  |  |---|  |"
+         putStrLn "               |"
+         putStrLn "               |"
+         putStrLn "bli-prolog interpreter v0.1, (C) Nathan Bedell 2019"
+         putStrLn "Type \":h\" for help, or \"exit\" to quit."
+       else return ()
+       repl opts p
+    goalstring -> processGoalstring goalstring opts p
+    
