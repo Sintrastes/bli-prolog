@@ -8,3 +8,5 @@ Todo
     * Implement side-effects with asserting types. (first need to configure the entity server).
   * Integrate implicit predication with REPL.
   * Integrate existential quantification into REPL.
+  * Make sure bli prolog command parser does not allow the user to quantify over terms
+    with free variables not in the body. (e.x. dissallow \X -> P(Y))
