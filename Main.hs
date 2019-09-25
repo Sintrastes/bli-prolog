@@ -34,6 +34,7 @@ data Analysis = Interface
 data Options =
   Options { search    :: Search
           , program   :: FilePath
+          , schema    :: FilePath
           , goal      :: String
           , limit     :: Maybe Int
           , depth     :: Int
@@ -48,6 +49,7 @@ data Options =
 startOptions =
   Options { search = def &= help "Specify wether to use DFS, BFS, or Limited"
           , program = def &= typFile &= help "Prolog file with clauses"
+          , schema = "" &= typFile &= help "Schema file"
           , limit = def &= help "Limit the number of solutions found"
           , depth = 100 &= help "Maximum depth to traverse when using limited search"
           , info = def &= help "Don't interpret program, only analyse it"
