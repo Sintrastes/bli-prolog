@@ -6,6 +6,9 @@ import Data.Schema
 import Prolog.Parser
 import Control.Applicative ((<$>))
 
+schemaFromFile :: String -> IO (Either ParseError Schema)
+schemaFromFile filepath = parseFromFile schemaFile filepath 
+
 schemaFile :: Parser Schema
 schemaFile = many line
 
@@ -14,7 +17,7 @@ line = do
   id <- atomP
   csymb ':'
   arity <- read <$> many1 digit
-  _ <- oneOf "\n"
+  ((try $ oneOf "\n") >> return ()) <|> eof
   return (id, arity)
   
   

@@ -12,6 +12,7 @@ import Data.List (intersperse, isPrefixOf)
 import System.Console.Readline
 import Data.List.Split
 import Data.Schema
+import Schema.Parser
 
 data Search = DFS | BFS | Limited
             deriving (Show, Eq, Data, Typeable)
@@ -78,16 +79,20 @@ processUserInput input opts clauses schema = do
                      Right A.Ok -> do
                        putStrLn $ "\27[32m"++"OK."++"\27[37m"++" Assertion successful."
                        return $ Just $ Left goal
-                     Left _ -> do
+                     Left (A.AtomsNotInSchema atoms) -> do
                        putStrLn $ "\27[31m"++"Failure."++"\27[37m"++" Assertion unsuccessful."
+                       putStrLn $ "    The identifiers "++ show atoms
+                       putStrLn $ "    have not been declared in a schema."
                        return Nothing
               Right x@(AssertClause clause) -> do
                    case A.isBliCommandValid x schema of
                      Right A.Ok -> do
                        putStrLn $ "\27[32m"++"OK."++"\27[37m"++" Assertion successful."
                        return $ Just $ Right clause
-                     Left _ -> do
+                     Left (A.AtomsNotInSchema atoms) -> do
                        putStrLn $ "\27[31m"++"Failure."++"\27[37m"++" Assertion unsuccessful."
+                       putStrLn $ "    The identifiers "++ show atoms
+                       putStrLn $ "    have not been declared in a schema."
                        return Nothing
               Right x@(LambdaQuery (vars, goal)) -> do
                   case A.isBliCommandValid x schema of
@@ -98,8 +103,15 @@ processUserInput input opts clauses schema = do
                             -- Note: This is currently fixed to use bfs.
                             $ map (\(I.Solution x) -> x) $ I.bfs t
                       return Nothing
-                    Left _ -> do
-                      putStrLn $ "\27[31m"++"Failure."++"\27[37m"++" Assertion unsuccessful."
+                    Left (A.AtomsNotInSchema atoms) -> do
+                      putStrLn $ "\27[31m"++"Failure."++"\27[37m"++" Query unsuccessful."
+                      putStrLn $ "    The identifiers "++ show atoms
+                      putStrLn $ "    have not been declared in a schema."
+                      return Nothing
+                    Left (A.BoundVarNotInBody) -> do
+                      putStrLn $ "\27[31m"++"Failure."++"\27[37m"++" Query unsuccessful."
+                      putStrLn $ "    Variables bound by a lambda abstraction that do not appear"
+                      putStrLn $ "    In the body of a query."
                       return Nothing
               Right x@(QueryMode goal) -> do
                    case A.isBliCommandValid x schema of
@@ -164,12 +176,19 @@ main = do
   p <- case program opts of
     "" -> return $ Right []
     _  -> P.clausesFromFile $ program opts
-  case p of 
-    Left err -> do putStrLn ("\27[31m"++"Error"++"\27[37m"++" parsing file:") 
-                   putStrLn $ foldr1 (\x -> \y -> x ++ "\n" ++ y) $
-                                     (map (\x -> "  " ++ x)) $ 
-                                     (splitOn "\n" $ show err)
-    Right clauses ->
+  s <- case schema opts of
+    "" -> return $ Right []
+    _  -> schemaFromFile $ schema opts
+  case (p,s) of 
+    (Left err,_) -> do putStrLn ("\27[31m"++"Error"++"\27[37m"++" parsing prolog file:") 
+                       putStrLn $ foldr1 (\x -> \y -> x ++ "\n" ++ y) $
+                                         (map (\x -> "  " ++ x)) $ 
+                                         (splitOn "\n" $ show err)
+    (_,Left err) -> do putStrLn ("\27[31m"++"Error"++"\27[37m"++" parsing schema file:") 
+                       putStrLn $ foldr1 (\x -> \y -> x ++ "\n" ++ y) $
+                                         (map (\x -> "  " ++ x)) $ 
+                                         (splitOn "\n" $ show err)
+    (Right clauses, Right schema) ->
       case goal opts of
         "" -> do
            if (verbose opts)
@@ -185,5 +204,5 @@ main = do
              putStrLn "Welcome to the bli-prolog interpreter v0.3! (C) Nathan Bedell 2019"
              putStrLn "Type \27[36m:h\27[37m for help, or \27[36m:exit\27[37m to quit."
            else return ()
-           repl opts clauses []
-        input -> processUserInput input opts clauses [] >> return ()
+           repl opts clauses schema
+        input -> processUserInput input opts clauses schema >> return ()
