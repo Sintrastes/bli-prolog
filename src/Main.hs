@@ -8,7 +8,7 @@ import qualified Prolog.Parser as P
 import qualified Prolog.Interp as I
 import qualified Prolog.Analysis as A
 import Control.Monad (when)
-import Data.List (intersperse)
+import Data.List (intersperse, isPrefixOf)
 import System.Console.Readline
 import Data.List.Split
 
@@ -123,14 +123,18 @@ repl opts clauses = do
           putStrLn replHelpScreen
           repl opts clauses
         ":exit" -> return ()
-        otherwise -> do
-          -- Note: If it starts with :load, we should load a 
-          -- schema or a knowledge base.
-          response <- processUserInput ("?- "++line) opts clauses
-          case response of
-            Nothing -> repl opts clauses
-            Just (Left goal) -> (repl opts (clauses ++ (map (\term -> (term,[])) goal) ))
-            Just (Right clause) -> (repl opts (clauses ++ [clause]))
+        _ | isPrefixOf ":load" line -> do
+               putStrLn "\27[33mLoad command not implemented.\27[37m"
+               repl opts clauses
+          | isPrefixOf ":export" line -> do
+               putStrLn "\27[33mExport command not implemented.\27[37m"
+               repl opts clauses
+          | otherwise -> do
+                      response <- processUserInput ("?- "++line) opts clauses
+                      case response of
+                        Nothing -> repl opts clauses
+                        Just (Left goal) -> (repl opts (clauses ++ (map (\term -> (term,[])) goal) ))
+                        Just (Right clause) -> (repl opts (clauses ++ [clause]))
 
 main = do
   -- opts <- checkOptions

@@ -8,3 +8,4 @@ Todo
   * Integrate implicit predication with REPL.
   * Make sure bli prolog command parser does not allow the user to quantify over terms
     with free variables not in the body. (e.x. dissallow \X -> P(Y))
+  * Implement the :export and :load commands for the REPL.
