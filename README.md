@@ -133,41 +133,45 @@ Note however, that in bli prolog, the only side effects that can occur are when 
 Interface
 =========
 
-The help message you get by calling `bli-prolog -?`:
+Once installed, you may run `bli-prolog --help` to get a help screen explaining the usage of bli-prolog's command line arguments:
 
 ~~~
 bli-prolog interpreter v0.1, (C) Nathan Bedell 2019
 
 options [OPTIONS] [GOALSTRING]
 
-
 Common flags:
-  -s --search=SEARCH    Specify whether to use DFS, BFS, or Limited
-  -p --program=FILE     Prolog file with clauses
+     --search=SEARCH    Specify wether to use DFS, BFS, or Limited
+     --program=FILE     Prolog file with clauses
+     --schema=ITEM      Schema file
   -l --limit=INT        Limit the number of solutions found
   -d --depth=INT        Maximum depth to traverse when using limited search
-  -i --info=ANALYSIS    Don't interpret program, only analyse it
+  -v --verbose          Specify whether or not to use verbose output (on by
+                        default)
+  -j --json             Specify whether or not json output formatting is used
+                        for queries.
+     --server           Starts a REST server for processing bli prolog
+                        queries if set.
+     --port=INT         Port number to start the server.
   -? --help             Display help message
   -V --version          Print version information
      --numeric-version  Print just the version number
 ~~~
 
-Valid values for analysis are `External`, `Uses`, and `Interface`. If
-you want see both which predicates are declared (the interface) and
-which predicates are called (the uses) in the file `myprolog.pl` then
-use the command:
-
-~~~
-  $ bli-prolog -p myprolog.pl -i interface -i uses
+If no goalstring is supplied, bli-prolog will run as a REPL with the following prompt:
 ~~~
 
-This will first print the interface (one predicate per line), then a
-blank line, and finally the uses (one predicate per line).
-
-If you just want a list of the external (or build-in) predicates that
-are used, then use `-i external`.
-
-Note: To use the REPL, simply supply "repl" as the goalstring. 
+  |      |            |
+  |      |  .         |
+  |---|  |     |---|  |
+  |   |  |  |  |   |  |
+  |---|  |  |  |---|  |
+               |
+               |
+bli-prolog interpreter v0.1, (C) Nathan Bedell 2019
+Type ":h" for help, or ":exit" to quit.
+?- 
+~~~
 
 Todo
 ----
