@@ -4,7 +4,7 @@ module Data.Prolog.TemplateHaskell(
   goal
 ) where
 
-import Data.Prolog.AST
+import Data.Prolog.Ast
 import Prolog.Parser as P
 import Language.Haskell.TH
 import Language.Haskell.TH.Quote

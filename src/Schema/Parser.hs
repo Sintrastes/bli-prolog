@@ -11,7 +11,7 @@ schemaFile = many line
 
 line :: Parser (String, Int)
 line = do
-  id <- atom
+  id <- atomP
   csymb ':'
   arity <- read <$> many1 digit
   _ <- oneOf "\n"

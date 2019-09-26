@@ -51,8 +51,8 @@ csymb c = (try(spacesOrComments >> char c) >> spacesOrComments)
 symb s = (try(spacesOrComments >> string s) >> spacesOrComments)
 
 
-bliCommand :: Parser BliCommand
-bliCommand = do 
+bliCommandP :: Parser BliCommand
+bliCommandP = do 
   result <- (try lambdaGoalP `eitherP` (try assertClauseP `eitherP` (try assertionP `eitherP` goalP))) 
   case result of
      Left x  -> return $ LambdaQuery x
@@ -65,46 +65,46 @@ bliCommand = do
 
 lambdaGoalP :: Parser LambdaGoal
 lambdaGoalP = do symb "?-"
-                skipMany (space >> return ())
-                csymb '\\' <|> csymb 'λ' <|> csymb 'Λ'
-                vars <- variableP `sepBy` (csymb ',')
-                csymb '.'
-                ts <- termsP
-                csymb '.'
-                return (vars, ts)                
+                 skipMany (space >> return ())
+                 csymb '\\' <|> csymb 'λ' <|> csymb 'Λ'
+                 vars <- variableP `sepBy` (csymb ',')
+                 csymb '.'
+                 ts <- termsP
+                 csymb '.'
+                 return (vars, ts)                
                 
 goalP :: Parser Goal
 goalP = do symb "?-"
-          ts <- termsP
-          csymb '.'
-          return ts
+           ts <- termsP
+           csymb '.'
+           return ts
 
 assertionP :: Parser Goal
 assertionP = do symb "?-"
-               ts <- termsP
-               csymb '!'
-               return ts
+                ts <- termsP
+                csymb '!'
+                return ts
 
  
 programP :: Parser Program
 programP = do spacesOrComments
-             clauses <- many1 clauseP
-             return clauses
+              clauses <- many1 clauseP
+              return clauses
 
 clauseP :: Parser Clause
-clauseP = do t <- term
-            body <- option []
-                    (symb ":-" >> termsP)
-            csymb '.'
-            return (t, body)
+clauseP = do t <- termP
+             body <- option []
+                     (symb ":-" >> termsP)
+             csymb '.'
+             return (t, body)
 
 assertClauseP :: Parser Clause
 assertClauseP = do symb "?-"
-                  t <- termP
-                  body <- option []
-                       (symb ":-" >> termsP)
-                  csymb '!'
-                  return (t, body)
+                   t <- termP
+                   body <- option []
+                        (symb ":-" >> termsP)
+                   csymb '!'
+                   return (t, body)
 
 termP :: Parser Term
 termP =  (variableP >>= return . Var)
@@ -117,16 +117,16 @@ termsP = sepBy1 termP (csymb ',')
 
 literalP :: Parser Term
 literalP = do id <- atomP
-             option (Comp id [])
-                    (parens termsP >>= return . Comp id)
-          <|>
-          do ts <- parens termsP
-             return $ commas ts
-               where commas [a] = a
-                     commas (h:t) = Comp "," [h, commas t]
+              option (Comp id [])
+                     (parens termsP >>= return . Comp id)
+           <|>
+           do ts <- parens termsP
+              return $ commas ts
+                where commas [a] = a
+                      commas (h:t) = Comp "," [h, commas t]
 
-parensP :: Parser p -> Parser p
-parensP p = between (csymb '(') (csymb ')') p
+parens :: Parser p -> Parser p
+parens p = between (csymb '(') (csymb ')') p
 
 listP :: Parser Term
 listP = between (csymb '[') (csymb ']')
@@ -134,9 +134,9 @@ listP = between (csymb '[') (csymb ']')
 
 listTermsP :: Parser Term
 listTermsP =
-    do heads <- terms
+    do heads <- termsP
        tail <- option emptyListTermP
-                      (csymb '|' >> term)
+                      (csymb '|' >> termP)
        return (foldr consP tail heads)
 
 emptyListTermP :: Term
@@ -158,5 +158,5 @@ atomP = plain <|> symbolic <|> quoted
 
 variableP :: Parser String
 variableP = (do c <- upper <|> char '_'
-               cs <- many (alphaNum <|> char '_')
-               return (c:cs)) <?> "variable"
+                cs <- many (alphaNum <|> char '_')
+                return (c:cs)) <?> "variable"
