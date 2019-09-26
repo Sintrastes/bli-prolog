@@ -16,6 +16,7 @@ import Language.Haskell.TH.Lift
 data Term = Var Variable
           | Comp Atom Terms
           deriving (Eq, Show, Read, Lift)
+
 type Terms = [Term]
 type Atom = String
 type Variable = String

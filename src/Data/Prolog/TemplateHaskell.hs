@@ -2,7 +2,8 @@
 
 module Data.Prolog.TemplateHaskell(
     goal,
-    bli
+    bli,
+    program
 ) where
 
 import Data.Prolog.Ast
@@ -25,6 +26,22 @@ goal = QuasiQuoter {
           case parse goalP "" ("?- "++s) of
             Left  err    -> fail (show err)
             Right x      -> [e| x |]
+
+program :: QuasiQuoter
+program = QuasiQuoter {
+    quoteExp  = parserTH
+  , quotePat  = notHandled "patterns"
+  , quoteType = notHandled "types"
+  , quoteDec  = notHandled "declarations"
+  }
+  where notHandled things = error $
+            things ++ " are not handled by the regex quasiquoter."
+        parserTH :: String -> Q Exp
+        parserTH s =
+          case parse programP "" s of
+            Left  err    -> fail (show err)
+            Right x      -> [e| x |]
+
 
 bli :: QuasiQuoter
 bli = QuasiQuoter {

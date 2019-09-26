@@ -9,33 +9,31 @@ module Prolog.Analysis where
 import Data.Prolog.Ast
 import Prolog.Interp (isPlain)
 import qualified Data.Set as S
-import Data.List((\\))
+import Data.List((\\), nub)
+import Control.Monad (join)
 import Data.Schema
 
--- (?) Not sure what this does
-makeSig :: String -> [a] -> String
-makeSig f args = atom++"/"++(show $length args)
-  where atom = if isPlain f then f else "'" ++ f ++ "'"
+collectTermAtoms :: Term -> [(Atom, Int)]
+collectTermAtoms x = nub $ go x
+  where  go (Var _) = []
+         go (Comp x ts) = (x, length ts):(join $ map go ts)
 
--- (?) Not sure what this does.
-interface :: Program -> [String]
-interface prog = collect prog S.empty
-  where collect [] acc = S.toList acc
-        collect ((head,_) : rest) acc =
-          case head of
-          Comp f args -> collect rest $ S.insert (makeSig f args) acc
-          _           -> collect rest acc
+collectTermVars :: Term -> [Variable]
+collectTermVars = nub . go
+  where go (Var x) = [x]
+        go (Comp _ ts) = join $ map go ts 
 
+collectClauseAtoms :: Clause -> [(Atom, Int)]
+collectClauseAtoms (t, ts) = nub $ collectTermAtoms t ++ (join $ map collectTermAtoms ts)
 
--- Checks to see what predicates are used in a program (?)
-uses :: Program -> [String]
-uses prog = collect prog S.empty
-  where collect [] acc = S.toList acc
-        collect ((_, body) : rest) acc =
-          collect rest $ foldl getUse acc body
-        getUse acc (Comp f args) = S.insert (makeSig f args) acc
-        getUse acc _             = acc
+collectClauseVars :: Clause -> [Variable]
+collectClauseVars (t, ts) = nub $ collectTermVars t ++ (join $ map collectTermVars ts)
 
+collectProgramAtoms :: Program -> [(Atom, Int)]
+collectProgramAtoms = nub . join . map collectClauseAtoms
+
+collectProgramVars :: Program -> [Variable]
+collectProgramVars = nub . join . map collectClauseVars
 
 -- Checks to see what predicates are used in a bli prolog program.
 bliUses :: BliProgram -> [String]
@@ -48,7 +46,3 @@ isBliClauseValid = undefined
 -- Checks to see if a bli program is valid with respect to the given schema.
 isBliProgramValid :: BliProgram -> Schema -> Bool
 isBliProgramValid = undefined
-
--- predicates used, which are not declared in the program. That is, uses\interface.
-external :: Program -> [String]
-external prog = uses prog \\ interface prog
