@@ -12,20 +12,20 @@ import Data.Prolog.Ast
 -- Expernal Interface
 ---------------------------------------------------------------------
 
-clausesFromFile filename = parseFromFile program filename
+clausesFromFile filename = parseFromFile programP filename
 
-clausesFromString context = parse program context
+clausesFromString context = parse programP context
 
-goalFromString string = parse goal "<goalstring>" string
+goalFromString string = parse goalP "<goalstring>" string
 
-lambdaGoalFromString string = parse lambdaGoal "<goalstring>" string
+lambdaGoalFromString string = parse lambdaGoalP "<goalstring>" string
 
-parseBliCommand string = parse bliCommand "" string
+parseBliCommand string = parse bliCommandP "" string
 
 ----------------------------------------------------------------------
 -- Parser
 ----------------------------------------------------------------------
-comment = singleLineComment <|> multiLineComment
+commentP = singleLineComment <|> multiLineComment
   where
   singleLineComment = do char '%'
                          manyTill anyChar (try newline)
@@ -42,7 +42,7 @@ comment = singleLineComment <|> multiLineComment
       startEnd   = "/*/"
 
 
-spacesOrComments = skipMany ((space >> return()) <|> comment)
+spacesOrComments = skipMany ((space >> return()) <|> commentP)
 
 -- DISCLAIMER (aka TODO): If you are a student looking at this code,
 -- you should copy the following two functions, it shouldn't be needed
@@ -53,7 +53,7 @@ symb s = (try(spacesOrComments >> string s) >> spacesOrComments)
 
 bliCommand :: Parser BliCommand
 bliCommand = do 
-  result <- (try lambdaGoal `eitherP` (try assertClause `eitherP` (try assertion `eitherP` goal))) 
+  result <- (try lambdaGoalP `eitherP` (try assertClauseP `eitherP` (try assertionP `eitherP` goalP))) 
   case result of
      Left x  -> return $ LambdaQuery x
      Right x -> case x of 
@@ -63,90 +63,90 @@ bliCommand = do
             Right z -> return $ QueryMode z
     
 
-lambdaGoal :: Parser LambdaGoal
-lambdaGoal = do symb "?-"
+lambdaGoalP :: Parser LambdaGoal
+lambdaGoalP = do symb "?-"
                 skipMany (space >> return ())
                 csymb '\\' <|> csymb 'λ' <|> csymb 'Λ'
-                vars <- variable `sepBy` (csymb ',')
+                vars <- variableP `sepBy` (csymb ',')
                 csymb '.'
-                ts <- terms
+                ts <- termsP
                 csymb '.'
                 return (vars, ts)                
                 
-goal :: Parser Goal
-goal = do symb "?-"
-          ts <- terms
+goalP :: Parser Goal
+goalP = do symb "?-"
+          ts <- termsP
           csymb '.'
           return ts
 
-assertion :: Parser Goal
-assertion = do symb "?-"
-               ts <- terms
+assertionP :: Parser Goal
+assertionP = do symb "?-"
+               ts <- termsP
                csymb '!'
                return ts
 
  
-program :: Parser Program
-program = do spacesOrComments
-             clauses <- many1 clause
+programP :: Parser Program
+programP = do spacesOrComments
+             clauses <- many1 clauseP
              return clauses
 
-clause :: Parser Clause
-clause = do t <- term
+clauseP :: Parser Clause
+clauseP = do t <- term
             body <- option []
-                    (symb ":-" >> terms)
+                    (symb ":-" >> termsP)
             csymb '.'
             return (t, body)
 
-assertClause :: Parser Clause
-assertClause = do symb "?-"
-                  t <- term
+assertClauseP :: Parser Clause
+assertClauseP = do symb "?-"
+                  t <- termP
                   body <- option []
-                       (symb ":-" >> terms)
+                       (symb ":-" >> termsP)
                   csymb '!'
                   return (t, body)
 
-term :: Parser Term
-term =  (variable >>= return . Var)
-    <|> literal
-    <|> (list     <?> "list term")
+termP :: Parser Term
+termP =  (variableP >>= return . Var)
+    <|> literalP
+    <|> (listP     <?> "list term")
 
 
-terms :: Parser Terms
-terms = sepBy1 term (csymb ',')
+termsP :: Parser Terms
+termsP = sepBy1 termP (csymb ',')
 
-literal :: Parser Term
-literal = do id <- atom
+literalP :: Parser Term
+literalP = do id <- atomP
              option (Comp id [])
-                    (parens terms >>= return . Comp id)
+                    (parens termsP >>= return . Comp id)
           <|>
-          do ts <- parens terms
+          do ts <- parens termsP
              return $ commas ts
                where commas [a] = a
                      commas (h:t) = Comp "," [h, commas t]
 
-parens :: Parser p -> Parser p
-parens p = between (csymb '(') (csymb ')') p
+parensP :: Parser p -> Parser p
+parensP p = between (csymb '(') (csymb ')') p
 
-list :: Parser Term
-list = between (csymb '[') (csymb ']')
-               (option emptyListTerm listTerms)
+listP :: Parser Term
+listP = between (csymb '[') (csymb ']')
+               (option emptyListTermP listTermsP)
 
-listTerms :: Parser Term
-listTerms =
+listTermsP :: Parser Term
+listTermsP =
     do heads <- terms
-       tail <- option emptyListTerm
+       tail <- option emptyListTermP
                       (csymb '|' >> term)
-       return (foldr cons tail heads)
+       return (foldr consP tail heads)
 
-emptyListTerm :: Term
-emptyListTerm = Comp "[]" []
+emptyListTermP :: Term
+emptyListTermP = Comp "[]" []
 
-cons :: Term -> Term -> Term
-cons h t = Comp "." [h,t]
+consP :: Term -> Term -> Term
+consP h t = Comp "." [h,t]
 
-atom :: Parser Atom
-atom = plain <|> symbolic <|> quoted
+atomP :: Parser Atom
+atomP = plain <|> symbolic <|> quoted
   where
     plain = (do c <- lower
                 cs <- many (alphaNum <|> char '_')
@@ -156,7 +156,7 @@ atom = plain <|> symbolic <|> quoted
                  s <- manyTill anyChar (try $ char '\'')
                  return $ s ) <?> "quoted atom"  -- drop quotes; 'a' == a
 
-variable :: Parser String
-variable = (do c <- upper <|> char '_'
+variableP :: Parser String
+variableP = (do c <- upper <|> char '_'
                cs <- many (alphaNum <|> char '_')
                return (c:cs)) <?> "variable"
