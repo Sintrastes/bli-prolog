@@ -25,13 +25,22 @@ Language Features
 
 Bedelibry prolog has some features which differentiate it from pure prolog (i.e. prolog without any of its imperative features). We list some of these features below:
 
-Existential Quantification:
+Explicit Variable Binding:
 --------------------------
 
-TODO: Explain this feature.
+In a conventional pure prolog system, if you had two predicates `programming_language(X)`, and `name_of(X,Y)`, and you wanted to get a listing of all of the possible names for terms that have been declared to be `programming_language`s, you might first try the query
+~~~
+  programming_language(X), name_of(X,Y).
+~~~
+However, this gives us too much information, and returns the pair of both the identifier for the programming language bound to the free variable `X`, together with its name bound to the free variable `Y`. In this scenario, we only care about the term bound to `Y`. Bedelibry prolog gives a simple solution to this problem, allowing the user to make queries of the form:
 ~~~
   \Y. programming_language(X), name_of(X,Y).   
-~~~ 
+~~~
+This notation is intentionally similar to that of a lambda abstraction, although the semantics are slightly different. One can think of the above query as being an annonymous version of a horn clause, e.x. as follows:
+~~~
+  name_of_programming_language(Y) :- programming_language(X), name_of(X,Y). 
+  name_of_programming_language(Y).
+~~~
 
 For the fans of unicode, we also offer some alternate syntax options for this:
 ~~~
