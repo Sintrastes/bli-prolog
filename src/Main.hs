@@ -51,15 +51,17 @@ startOptions =
           , server = False &= help "Starts a REST server for processing bli prolog queries if set."
           , port = Nothing &= help "Port number to start the server."
           }
-  &= summary "bli-prolog interpreter v0.1, (C) Nathan Bedell 2019"
+  &= summary "bli-prolog interpreter v0.3, (C) Nathan Bedell 2019"
 
 processUserInput :: String -> Options -> Clauses -> IO (Maybe (Either Goal Clause))
 processUserInput input opts clauses = do
           let command = P.parseBliCommand input
           case command of   
               Right (AssertMode goal) -> do
+                 putStrLn $ "\27[32m"++"OK."++"\27[37m"++" Assertion successful."
                  return $ Just $ Left goal
               Right (AssertClause clause) -> do
+                 putStrLn $ "\27[32m"++"OK."++"\27[37m"++" Assertion successful."
                  return $ Just $ Right clause
               Right (LambdaQuery (vars,goal)) -> do
                 let t = I.makeReportTree clauses goal
@@ -77,12 +79,18 @@ processUserInput input opts clauses = do
                  let solutions = limiting $ searchF t
                  case solutions of
                    [] -> do
-                      putStrLn "no solutions"
+                      putStrLn ("\27[33m"++"No solutions."++"\27[37")
                       return Nothing
+                   (x:[]) -> do
+                      if (show x == "true")
+                      then do 
+                           putStrLn ("\27[32m"++"True."++"\27[37")
+                           return Nothing
+                      else return Nothing
                    _  -> do
                       mapM_ print solutions
                       return Nothing
-              Left err -> do putStrLn "Error parsing query string:" 
+              Left err -> do putStrLn ("\27[31m"++"Error"++"\27[37m"++" parsing query string:")
                              putStrLn $ foldr1 (\x -> \y -> x ++ "\n" ++ y) $
                                                (map (\x -> "  " ++ x)) $ 
                                                (splitOn "\n" $ show err)
@@ -90,7 +98,7 @@ processUserInput input opts clauses = do
 
 repl :: Options -> Clauses -> IO ()
 repl opts clauses = do
-  maybeLine <- readline "?- "
+  maybeLine <- readline ("\27[36m"++"?- "++ "\27[37m")
   case maybeLine of
     Nothing -> repl opts clauses
     Just line -> do
@@ -116,7 +124,7 @@ main = do
     "" -> return $ Right []
     _  -> P.clausesFromFile $ program opts
   case p of 
-    Left err -> do putStrLn "Error parsing file:" 
+    Left err -> do putStrLn ("\27[31m"++"Error"++"\27[37m"++" parsing file:") 
                    putStrLn $ foldr1 (\x -> \y -> x ++ "\n" ++ y) $
                                      (map (\x -> "  " ++ x)) $ 
                                      (splitOn "\n" $ show err)
@@ -133,7 +141,7 @@ main = do
              putStrLn "  |---|  |  |  |---|  |"
              putStrLn "               |"
              putStrLn "               |"
-             putStrLn "Welcome to the bli-prolog interpreter v0.1! (C) Nathan Bedell 2019"
+             putStrLn "Welcome to the bli-prolog interpreter v0.3! (C) Nathan Bedell 2019"
              putStrLn "Type \":h\" for help, or \":exit\" to quit."
            else return ()
            repl opts clauses

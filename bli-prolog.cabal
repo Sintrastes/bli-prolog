@@ -5,7 +5,7 @@
 -- hash: 2a2de3dc73e9bf63cea188e0d52bc905233f98fd2c8edd4a1d71f56564d9fa4b
 
 name:           bli-prolog
-version:        0.2.0
+version:        0.3.0
 synopsis:       Pure Prolog interpreter developed for use in bedelibry. Based on the
                 pure-prolog interpreter written by Ken Friis Larsen.
 author:         Nathan Bedell

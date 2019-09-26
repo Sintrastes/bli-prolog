@@ -140,7 +140,7 @@ Command line interface
 Once installed, you may run `bli-prolog --help` to get a help screen explaining the usage of bli-prolog's command line arguments:
 
 ~~~
-bli-prolog interpreter v0.1, (C) Nathan Bedell 2019
+bli-prolog interpreter v0.3, (C) Nathan Bedell 2019
 
 options [OPTIONS] [GOALSTRING]
 
@@ -172,7 +172,7 @@ If no goalstring is supplied, bli-prolog will run as a REPL with the following p
   |---|  |  |  |---|  |
                |
                |
-bli-prolog interpreter v0.1, (C) Nathan Bedell 2019
+bli-prolog interpreter v0.3, (C) Nathan Bedell 2019
 Type ":h" for help, or ":exit" to quit.
 ?- 
 ~~~
