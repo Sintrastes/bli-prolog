@@ -100,7 +100,7 @@ Assertions in bli prolog are made by terminating queries with a "!" instead of a
 ?- child(bob,  susan)!
 ?- child(mark, susan)!
 ?- siblings(bob, mark).
-true.
+True.
 ~~~
 This should also work for declaring new predicates in the same format as a schema file.
 ~~~
@@ -120,11 +120,11 @@ In particular, when run in assertion mode (explained above), predicates declared
 will attempt to declare new entities of a given type, storing this entity data in the configured bedelibry server, if an entity with such an id does not already exist. For instance:
 ~~~
   ?- programming_language(nim).
-  false.
+  False.
   ?- programming_language(nim)!
   OK. Added entity "nim" to list of programming languages.
   ?- programming_language(nim).
-  true.
+  True.
 ~~~
 However, if we try to assert this again:
 ~~~
@@ -133,6 +133,14 @@ However, if we try to assert this again:
 ~~~
 
 Note however, that in bli prolog, the only side effects that can occur are when *asserting* predicates. However, it is possible that more side effects can occur than purely asserting some predicate. For example, asserting a new entity of a given type also has the side effect of storing this assertion on the bedelibry server, if it has been configured to run with bli prolog.
+
+Note that if the user tries to query an entity (which is different from a nullary predicate), then the output from bedelibry prolog is slightly different.
+~~~
+  ?- programming_language(nim).
+  True.
+  ? nim.
+  OK. "nim" is an entity of type "programming_language".
+~~~
 
 Command line interface
 =========
