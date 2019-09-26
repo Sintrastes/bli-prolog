@@ -130,7 +130,7 @@ However, if we try to assert this again:
 
 Note however, that in bli prolog, the only side effects that can occur are when *asserting* predicates. However, it is possible that more side effects can occur than purely asserting some predicate. For example, asserting a new entity of a given type also has the side effect of storing this assertion on the bedelibry server, if it has been configured to run with bli prolog.
 
-Interface
+Command line interface
 =========
 
 Once installed, you may run `bli-prolog --help` to get a help screen explaining the usage of bli-prolog's command line arguments:
@@ -172,6 +172,11 @@ bli-prolog interpreter v0.1, (C) Nathan Bedell 2019
 Type ":h" for help, or ":exit" to quit.
 ?- 
 ~~~
+
+EDSL
+----
+
+Through the use of the quasiquoters found in `Data.Prolog.TemplateHaskell`, bli prolog can also be used as an EDSL in Haskell.
 
 Todo
 ----
