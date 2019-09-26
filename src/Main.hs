@@ -11,6 +11,7 @@ import Control.Monad (when)
 import Data.List (intersperse, isPrefixOf)
 import System.Console.Readline
 import Data.List.Split
+import Data.Schema
 
 data Search = DFS | BFS | Limited
             deriving (Show, Eq, Data, Typeable)
@@ -68,8 +69,8 @@ startOptions =
           }
   &= summary "bli-prolog interpreter v0.3, (C) Nathan Bedell 2019"
 
-processUserInput :: String -> Options -> Clauses -> IO (Maybe (Either Goal Clause))
-processUserInput input opts clauses = do
+processUserInput :: String -> Options -> Clauses -> Schema -> IO (Maybe (Either Goal Clause))
+processUserInput input opts clauses schema = do
           let command = P.parseBliCommand input
           case command of   
               Right (AssertMode goal) -> do
@@ -112,29 +113,29 @@ processUserInput input opts clauses = do
                              putStrLn $ "\27[33m"++"All bli prolog commands end with either a '.' or an '!'."++"\27[37m"
                              return Nothing
 
-repl :: Options -> Clauses -> IO ()
-repl opts clauses = do
+repl :: Options -> Clauses -> Schema -> IO ()
+repl opts clauses schema = do
   maybeLine <- readline ("\27[36m"++"?- "++ "\27[37m")
   case maybeLine of
-    Nothing -> repl opts clauses
+    Nothing -> repl opts clauses schema
     Just line -> do
       case line of 
         ":h"   -> do 
           putStrLn replHelpScreen
-          repl opts clauses
+          repl opts clauses schema
         ":exit" -> return ()
         _ | isPrefixOf ":load" line -> do
                putStrLn "\27[33mLoad command not implemented.\27[37m"
-               repl opts clauses
+               repl opts clauses schema
           | isPrefixOf ":export" line -> do
                putStrLn "\27[33mExport command not implemented.\27[37m"
-               repl opts clauses
+               repl opts clauses schema
           | otherwise -> do
-                      response <- processUserInput ("?- "++line) opts clauses
+                      response <- processUserInput ("?- "++line) opts clauses schema
                       case response of
-                        Nothing -> repl opts clauses
-                        Just (Left goal) -> (repl opts (clauses ++ (map (\term -> (term,[])) goal) ))
-                        Just (Right clause) -> (repl opts (clauses ++ [clause]))
+                        Nothing -> repl opts clauses schema
+                        Just (Left goal) -> (repl opts (clauses ++ (map (\term -> (term,[])) goal) ) schema)
+                        Just (Right clause) -> (repl opts (clauses ++ [clause]) schema)
 
 main = do
   -- opts <- checkOptions
@@ -164,5 +165,5 @@ main = do
              putStrLn "Welcome to the bli-prolog interpreter v0.3! (C) Nathan Bedell 2019"
              putStrLn "Type \27[36m:h\27[37m for help, or \27[36m:exit\27[37m to quit."
            else return ()
-           repl opts clauses
-        input -> processUserInput input opts clauses >> return ()
+           repl opts clauses []
+        input -> processUserInput input opts clauses [] >> return ()
