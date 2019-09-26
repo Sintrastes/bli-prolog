@@ -61,28 +61,27 @@ processUserInput input opts clauses = do
               Right (AssertClause clause) -> do
                  putStrLn "Assertions not yet implemented."
               Right (LambdaQuery (vars,goal)) -> do
-                 putStrLn "Lambda queries not yet implemented."
+                let t = I.makeReportTree clauses goal
+                print $ map I.Solution 
+                      $ map (filter (\(x,y) -> x `elem` vars)) 
+              -- Note: This is currently fixed to use bfs.
+                      $ map (\(I.Solution x) -> x) $ I.bfs t
               Right (QueryMode goal) -> do
                  let limiting lst = case limit opts of
                        Nothing -> lst
                        Just n  -> take n lst
-                 case (clauses, goal) of
-                    (Right p, g) -> do
-                          let searchF = searchFunction (search opts) $ depth opts
-                          let t = I.makeReportTree p g
-                          let solutions = limiting $ searchF t
-                          case solutions of
-                             [] -> putStrLn "no solutions"
-                             _  -> mapM_ print solutions
-                    (Left err, _) -> do putStrLn "Error parsing file:" 
-                                        putStrLn $ foldr1 (\x -> \y -> x ++ "\n" ++ y) $
-                                                          (map (\x -> "  " ++ x)) $ 
-                                                          (splitOn "\n" $ show err)     
+                 let searchF = searchFunction (search opts) $ depth opts
+                 let t = I.makeReportTree clauses goal
+                 let solutions = limiting $ searchF t
+                 case solutions of
+                   [] -> putStrLn "no solutions"
+                   _  -> mapM_ print solutions
               Left err -> do putStrLn "Error parsing query string:" 
                              putStrLn $ foldr1 (\x -> \y -> x ++ "\n" ++ y) $
                                                (map (\x -> "  " ++ x)) $ 
                                                (splitOn "\n" $ show err)
 
+repl :: Options -> Clauses -> IO ()
 repl opts clauses = do
   maybeLine <- readline "?- "
   case maybeLine of
@@ -106,21 +105,27 @@ main = do
   p <- case program opts of
     "" -> return $ Right []
     _  -> P.clausesFromFile $ program opts
-  case goal opts of
-    "" -> do
-       if (verbose opts)
-       then do
-         putStrLn ""
-         putStrLn "  |      |            |"
-         putStrLn "  |      |  .         |"
-         putStrLn "  |---|  |     |---|  |"
-         putStrLn "  |   |  |  |  |   |  |"
-         putStrLn "  |---|  |  |  |---|  |"
-         putStrLn "               |"
-         putStrLn "               |"
-         putStrLn "Welcome to the bli-prolog interpreter v0.1! (C) Nathan Bedell 2019"
-         putStrLn "Type \":h\" for help, or \":exit\" to quit."
-       else return ()
-       repl opts p
-    input -> processUserInput input opts p
+  case p of 
+    Left err -> do putStrLn "Error parsing file:" 
+                   putStrLn $ foldr1 (\x -> \y -> x ++ "\n" ++ y) $
+                                     (map (\x -> "  " ++ x)) $ 
+                                     (splitOn "\n" $ show err)
+    Right clauses ->
+      case goal opts of
+        "" -> do
+           if (verbose opts)
+           then do
+             putStrLn ""
+             putStrLn "  |      |            |"
+             putStrLn "  |      |  .         |"
+             putStrLn "  |---|  |     |---|  |"
+             putStrLn "  |   |  |  |  |   |  |"
+             putStrLn "  |---|  |  |  |---|  |"
+             putStrLn "               |"
+             putStrLn "               |"
+             putStrLn "Welcome to the bli-prolog interpreter v0.1! (C) Nathan Bedell 2019"
+             putStrLn "Type \":h\" for help, or \":exit\" to quit."
+           else return ()
+           repl opts clauses
+        input -> processUserInput input opts clauses
     
