@@ -53,19 +53,21 @@ startOptions =
           }
   &= summary "bli-prolog interpreter v0.1, (C) Nathan Bedell 2019"
 
+processUserInput :: String -> Options -> Clauses -> IO (Maybe (Either Goal Clause))
 processUserInput input opts clauses = do
           let command = P.parseBliCommand input
           case command of   
               Right (AssertMode goal) -> do
-                 putStrLn "Assertions not yet implemented."
+                 return $ Just $ Left goal
               Right (AssertClause clause) -> do
-                 putStrLn "Assertions not yet implemented."
+                 return $ Just $ Right clause
               Right (LambdaQuery (vars,goal)) -> do
                 let t = I.makeReportTree clauses goal
                 print $ map I.Solution 
                       $ map (filter (\(x,y) -> x `elem` vars)) 
               -- Note: This is currently fixed to use bfs.
                       $ map (\(I.Solution x) -> x) $ I.bfs t
+                return Nothing
               Right (QueryMode goal) -> do
                  let limiting lst = case limit opts of
                        Nothing -> lst
@@ -74,12 +76,17 @@ processUserInput input opts clauses = do
                  let t = I.makeReportTree clauses goal
                  let solutions = limiting $ searchF t
                  case solutions of
-                   [] -> putStrLn "no solutions"
-                   _  -> mapM_ print solutions
+                   [] -> do
+                      putStrLn "no solutions"
+                      return Nothing
+                   _  -> do
+                      mapM_ print solutions
+                      return Nothing
               Left err -> do putStrLn "Error parsing query string:" 
                              putStrLn $ foldr1 (\x -> \y -> x ++ "\n" ++ y) $
                                                (map (\x -> "  " ++ x)) $ 
                                                (splitOn "\n" $ show err)
+                             return Nothing
 
 repl :: Options -> Clauses -> IO ()
 repl opts clauses = do
@@ -95,8 +102,11 @@ repl opts clauses = do
         otherwise -> do
           -- Note: If it starts with :load, we should load a 
           -- schema or a knowledge base.
-          processUserInput ("?- "++line) opts clauses
-          repl opts clauses
+          response <- processUserInput ("?- "++line) opts clauses
+          case response of
+            Nothing -> repl opts clauses
+            Just (Left goal) -> (repl opts (clauses ++ (map (\term -> (term,[])) goal) ))
+            Just (Right clause) -> (repl opts (clauses ++ [clause]))
 
 main = do
   -- opts <- checkOptions
@@ -127,5 +137,4 @@ main = do
              putStrLn "Type \":h\" for help, or \":exit\" to quit."
            else return ()
            repl opts clauses
-        input -> processUserInput input opts clauses
-    
+        input -> processUserInput input opts clauses >> return ()
