@@ -83,10 +83,14 @@ For example, in the implicit predication example we looked at above, we could ha
   name: 2
   programming_language: 1
 ~~~
-
-Entity Management
------------------
-TODO: Explain this feature
+As the project evolves, this interface will change. For example, later we discuss schema declarations like:
+~~~
+  programming_language: type
+~~~
+Which allow for us to connect our queries to the configured bedelibry server, and make more detailed schema declarations, like
+~~~
+  name: type, string
+~~~
 
 Assertions
 ----------
