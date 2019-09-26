@@ -118,7 +118,7 @@ main = do
          putStrLn "  |---|  |  |  |---|  |"
          putStrLn "               |"
          putStrLn "               |"
-         putStrLn "bli-prolog interpreter v0.1, (C) Nathan Bedell 2019"
+         putStrLn "Welcome to the bli-prolog interpreter v0.1! (C) Nathan Bedell 2019"
          putStrLn "Type \":h\" for help, or \":exit\" to quit."
        else return ()
        repl opts p
