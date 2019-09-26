@@ -25,6 +25,21 @@ searchFunction Limited n = I.limitedDfs n
 -- solutionToJSON :: Solution -> JSON
 -- solutionToJSON = undefined
 
+-- Help scree to print when :h is called in the REPL
+replHelpScreen = foldr1 (\x -> \y -> x ++ "\n" ++ y) $
+  ["Commands: "
+  ,"  \27[36m:h\27[37m      Prints this help screen."
+  ,"  \27[36m:exit\27[37m    Exits bli-prolog."
+  ,"  \27[36m:export\27[37m  Exports the definitions stored in bli-prolog's in-memory fact store as assertions"
+  ,"           to a file."
+  ,"  \27[36m:load\27[37m    Loads a schema or a prolog file into bli-prolog's in-memory store."
+  ,""
+  ,"Usage:"
+  ,"  [PROLOG_TERM|PROLOG_CLAUSE]!   Assert a fact or rule."
+  ,"  [PROLOG_TERM].                 Make a standard prolog query."
+  ,"  \\[FREE_VARS]. [PROLOG_TERM].   Make a lambda query."
+  ,""
+  ,"For more information, please see the documentation at https://github.com/Sintrastes/bli-prolog."]
 data Options =
   Options { search    :: Search
           , program   :: FilePath
@@ -94,6 +109,7 @@ processUserInput input opts clauses = do
                              putStrLn $ foldr1 (\x -> \y -> x ++ "\n" ++ y) $
                                                (map (\x -> "  " ++ x)) $ 
                                                (splitOn "\n" $ show err)
+                             putStrLn $ "\27[33m"++"All bli prolog commands end with either a '.' or an '!'."++"\27[37m"
                              return Nothing
 
 repl :: Options -> Clauses -> IO ()
@@ -104,7 +120,7 @@ repl opts clauses = do
     Just line -> do
       case line of 
         ":h"   -> do 
-          putStrLn "Help message"
+          putStrLn replHelpScreen
           repl opts clauses
         ":exit" -> return ()
         otherwise -> do
@@ -142,7 +158,7 @@ main = do
              putStrLn "               |"
              putStrLn "               |"
              putStrLn "Welcome to the bli-prolog interpreter v0.3! (C) Nathan Bedell 2019"
-             putStrLn "Type \":h\" for help, or \":exit\" to quit."
+             putStrLn "Type \27[36m:h\27[37m for help, or \27[36m:exit\27[37m to quit."
            else return ()
            repl opts clauses
         input -> processUserInput input opts clauses >> return ()
