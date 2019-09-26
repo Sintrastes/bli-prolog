@@ -58,8 +58,8 @@ data InvalidClause = BoundVarNotInBody
                    | AtomsNotInSchema [Atom]
 
 -- Checks to see if a bli clause is valid with regard to a given schema.
-isBliClauseValid :: BliCommand -> Schema -> Either InvalidClause Ok
-isBliClauseValid x@(QueryMode goal) schema  
+isBliCommandValid :: BliCommand -> Schema -> Either InvalidClause Ok
+isBliCommandValid x@(QueryMode goal) schema  
    | atoms `subset` schema = Right Ok
    | otherwise = Left $ AtomsNotInSchema $
                      map (\(x,y) -> x) 
@@ -67,7 +67,7 @@ isBliClauseValid x@(QueryMode goal) schema
                             atoms)
  where atoms = collectBliCommandAtoms x
        subset xs ys = all (\x -> x `elem` ys) xs
-isBliClauseValid x@(AssertMode goal) schema 
+isBliCommandValid x@(AssertMode goal) schema 
    | atoms `subset` schema = Right Ok
    | otherwise = Left $ AtomsNotInSchema $
                      map (\(x,y) -> x) 
@@ -75,7 +75,7 @@ isBliClauseValid x@(AssertMode goal) schema
                             atoms)
   where atoms = collectBliCommandAtoms x
         subset xs ys = all (\x -> x `elem` ys) xs
-isBliClauseValid x@(AssertClause clause) schema 
+isBliCommandValid x@(AssertClause clause) schema 
    | atoms `subset` schema = Right Ok
    | otherwise = Left $ AtomsNotInSchema $
                      map (\(x,y) -> x) 
@@ -83,7 +83,7 @@ isBliClauseValid x@(AssertClause clause) schema
                             atoms)
   where atoms = collectBliCommandAtoms x
         subset xs ys = all (\x -> x `elem` ys) xs
-isBliClauseValid x@(LambdaQuery (bindingVars,goal)) schema 
+isBliCommandValid x@(LambdaQuery (bindingVars,goal)) schema 
    | (bindingVars `subset` bodyVars) && (atoms `subset` schema) = Right Ok
    | not (bindingVars `subset` bodyVars) = Left $ BoundVarNotInBody
    | not (atoms `subset` schema) = Left $ AtomsNotInSchema $

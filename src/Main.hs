@@ -73,39 +73,59 @@ processUserInput :: String -> Options -> Clauses -> Schema -> IO (Maybe (Either 
 processUserInput input opts clauses schema = do
           let command = P.parseBliCommand input
           case command of   
-              Right (AssertMode goal) -> do
-                 putStrLn $ "\27[32m"++"OK."++"\27[37m"++" Assertion successful."
-                 return $ Just $ Left goal
-              Right (AssertClause clause) -> do
-                 putStrLn $ "\27[32m"++"OK."++"\27[37m"++" Assertion successful."
-                 return $ Just $ Right clause
-              Right (LambdaQuery (vars,goal)) -> do
-                let t = I.makeReportTree clauses goal
-                print $ map I.Solution 
-                      $ map (filter (\(x,y) -> x `elem` vars)) 
-              -- Note: This is currently fixed to use bfs.
-                      $ map (\(I.Solution x) -> x) $ I.bfs t
-                return Nothing
-              Right (QueryMode goal) -> do
-                 let limiting lst = case limit opts of
-                       Nothing -> lst
-                       Just n  -> take n lst
-                 let searchF = searchFunction (search opts) $ depth opts
-                 let t = I.makeReportTree clauses goal
-                 let solutions = limiting $ searchF t
-                 case solutions of
-                   [] -> do
-                      putStrLn ("\27[33m"++"No solutions."++"\27[37")
+              Right x@(AssertMode goal) -> do
+                   case A.isBliCommandValid x schema of
+                     Right A.Ok -> do
+                       putStrLn $ "\27[32m"++"OK."++"\27[37m"++" Assertion successful."
+                       return $ Just $ Left goal
+                     Left _ -> do
+                       putStrLn $ "\27[31m"++"Failure."++"\27[37m"++" Assertion unsuccessful."
+                       return Nothing
+              Right x@(AssertClause clause) -> do
+                   case A.isBliCommandValid x schema of
+                     Right A.Ok -> do
+                       putStrLn $ "\27[32m"++"OK."++"\27[37m"++" Assertion successful."
+                       return $ Just $ Right clause
+                     Left _ -> do
+                       putStrLn $ "\27[31m"++"Failure."++"\27[37m"++" Assertion unsuccessful."
+                       return Nothing
+              Right x@(LambdaQuery (vars, goal)) -> do
+                  case A.isBliCommandValid x schema of
+                    Right A.Ok -> do
+                      let t = I.makeReportTree clauses goal
+                      print $ map I.Solution 
+                            $ map (filter (\(x,y) -> x `elem` vars)) 
+                            -- Note: This is currently fixed to use bfs.
+                            $ map (\(I.Solution x) -> x) $ I.bfs t
                       return Nothing
-                   (x:[]) -> do
-                      if (show x == "true")
-                      then do 
-                           putStrLn ("\27[32m"++"True."++"\27[37")
-                           return Nothing
-                      else return Nothing
-                   _  -> do
-                      mapM_ print solutions
+                    Left _ -> do
+                      putStrLn $ "\27[31m"++"Failure."++"\27[37m"++" Assertion unsuccessful."
                       return Nothing
+              Right x@(QueryMode goal) -> do
+                   case A.isBliCommandValid x schema of
+                     Right A.Ok -> do
+                       let limiting lst = case limit opts of
+                             Nothing -> lst
+                             Just n  -> take n lst
+                       let searchF = searchFunction (search opts) $ depth opts
+                       let t = I.makeReportTree clauses goal
+                       let solutions = limiting $ searchF t
+                       case solutions of
+                         [] -> do
+                            putStrLn ("\27[33m"++"No solutions."++"\27[37")
+                            return Nothing
+                         (x:[]) -> do
+                            if (show x == "true")
+                            then do 
+                                 putStrLn ("\27[32m"++"True."++"\27[37")
+                                 return Nothing
+                            else return Nothing
+                         _  -> do
+                            mapM_ print solutions
+                            return Nothing
+                     Left _ -> do
+                       putStrLn $ "\27[31m"++"Invalid query."++"\27[37m"++" "
+                       return Nothing
               Left err -> do putStrLn ("\27[31m"++"Error"++"\27[37m"++" parsing query string:")
                              putStrLn $ foldr1 (\x -> \y -> x ++ "\n" ++ y) $
                                                (map (\x -> "  " ++ x)) $ 
