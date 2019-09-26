@@ -10,4 +10,3 @@ Todo
   * Integrate existential quantification into REPL.
   * Make sure bli prolog command parser does not allow the user to quantify over terms
     with free variables not in the body. (e.x. dissallow \X -> P(Y))
-  * Add template haskell quasiquoters to enable use of bedelibry prolog as an EDSL in Haskell.

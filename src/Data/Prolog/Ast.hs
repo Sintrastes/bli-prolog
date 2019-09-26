@@ -41,7 +41,7 @@ data BliCommand = QueryMode Goal
                 | AssertMode Goal
                 | AssertClause Clause
                 | LambdaQuery LambdaGoal
-  deriving(Show)
+  deriving(Show, Lift)
 
 type Program = Clauses
 type Clauses = [Clause]

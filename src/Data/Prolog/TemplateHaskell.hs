@@ -6,18 +6,39 @@ module Data.Prolog.TemplateHaskell(
 
 import Data.Prolog.Ast
 import Prolog.Parser as P
+import Text.ParserCombinators.Parsec
 import Language.Haskell.TH
 import Language.Haskell.TH.Quote
 
 goal :: QuasiQuoter
 goal = QuasiQuoter {
-    quoteExp  = undefined
+    quoteExp  = parserTH
   , quotePat  = notHandled "patterns"
   , quoteType = notHandled "types"
   , quoteDec  = notHandled "declarations"
   }
   where notHandled things = error $
             things ++ " are not handled by the regex quasiquoter."
+        parserTH :: String -> Q Exp
+        parserTH s =
+          case parse goalP "" s of
+            Left  err    -> fail (show err)
+            Right x      -> [e| x |]
+
+bli :: QuasiQuoter
+bli = QuasiQuoter {
+    quoteExp  = parserTH
+  , quotePat  = notHandled "patterns"
+  , quoteType = notHandled "types"
+  , quoteDec  = notHandled "declarations"
+  }
+  where notHandled things = error $
+            things ++ " are not handled by the regex quasiquoter."
+        parserTH :: String -> Q Exp
+        parserTH s =
+          case parse bliCommandP "" s of
+            Left  err    -> fail (show err)
+            Right x      -> [e| x |]
 
 
 
