@@ -9,9 +9,9 @@ module Main where
 import Data.Prolog.Ast
 import Data.Schema
 import Schema.Parser
-import qualified Prolog.Parser as P
-import qualified Prolog.Interp as I
-import qualified Prolog.Analysis as A
+import Prolog.Parser
+import Prolog.Interp
+import Prolog.Analysis
 import Bli.App.Config
 import Control.Monad.Bli
 
@@ -32,7 +32,7 @@ main = do
       -- If prolog file not specified, start with an empty set of clauses.
       p <- case program opts of
         "" -> return $ Right []
-        _  -> P.clausesFromFile $ program opts
+        _  -> clausesFromFile $ program opts
       -- If Schema file not specified, start with an empty schema. 
       s <- case schema opts of
         "" -> return $ Right []
@@ -95,50 +95,50 @@ processBliCommand input' = do
           -- our parsers
           let input = "?- " ++ input'
           -- Parse and handle the command
-          let command = P.parseBliCommand input
+          let command = parseBliCommand input
           case command of   
               Right x@(AssertMode goal) -> do
-                   case A.isBliCommandValid x schema of
-                     Right A.Ok -> do
+                   case isBliCommandValid x schema of
+                     Right Ok -> do
                        io $ putStrLn $ "\27[32m"++"OK."++"\27[37m"++" Assertion successful."
                        modifyProgram (\clauses -> clauses ++ (map (\term -> (term,[])) goal))
-                     Left (A.AtomsNotInSchema atoms) -> do
+                     Left (AtomsNotInSchema atoms) -> do
                        io $ putStrLn $ "\27[31m"++"Failure."++"\27[37m"++" Assertion unsuccessful."
                        io $ putStrLn $ "    The identifiers "++ show atoms
                        io $ putStrLn $ "    have not been declared in a schema."
               Right x@(AssertClause clause) -> do
-                   case A.isBliCommandValid x schema of
-                     Right A.Ok -> do
+                   case isBliCommandValid x schema of
+                     Right Ok -> do
                        io $ putStrLn $ "\27[32m"++"OK."++"\27[37m"++" Assertion successful."
                        modifyProgram (\clauses -> clauses ++ [clause])
-                     Left (A.AtomsNotInSchema atoms) -> do
+                     Left (AtomsNotInSchema atoms) -> do
                        io $ putStrLn $ "\27[31m"++"Failure."++"\27[37m"++" Assertion unsuccessful."
                        io $ putStrLn $ "    The identifiers "++ show atoms
                        io $ putStrLn $ "    have not been declared in a schema."
               Right x@(LambdaQuery (vars, goal)) -> do
-                  case A.isBliCommandValid x schema of
-                    Right A.Ok -> do
-                      let t = I.makeReportTree clauses goal
-                      io $ print $ map I.Solution 
+                  case isBliCommandValid x schema of
+                    Right Ok -> do
+                      let t = makeReportTree clauses goal
+                      io $ print $ map Solution 
                                  $ map (filter (\(x,y) -> x `elem` vars)) 
                                  -- Note: This is currently fixed to use bfs.
-                                 $ map (\(I.Solution x) -> x) $ I.bfs t
-                    Left (A.AtomsNotInSchema atoms) -> do
+                                 $ map (\(Solution x) -> x) $ bfs t
+                    Left (AtomsNotInSchema atoms) -> do
                       io $ putStrLn $ "\27[31m"++"Failure."++"\27[37m"++" Query unsuccessful."
                       io $ putStrLn $ "    The identifiers "++ show atoms
                       io $ putStrLn $ "    have not been declared in a schema."
-                    Left (A.BoundVarNotInBody) -> do
+                    Left (BoundVarNotInBody) -> do
                       io $ putStrLn $ "\27[31m"++"Failure."++"\27[37m"++" Query unsuccessful."
                       io $ putStrLn $ "    Variables bound by a lambda abstraction that do not appear"
                       io $ putStrLn $ "    In the body of a query."
               Right x@(QueryMode goal) -> do
-                   case A.isBliCommandValid x schema of
-                     Right A.Ok -> do
+                   case isBliCommandValid x schema of
+                     Right Ok -> do
                        let limiting lst = case limit opts of
                              Nothing -> lst
                              Just n  -> take n lst
                        let searchF = searchFunction (search opts) $ depth opts
-                       let t = I.makeReportTree clauses goal
+                       let t = makeReportTree clauses goal
                        let solutions = limiting $ searchF t
                        case solutions of
                          [] -> do
@@ -149,7 +149,7 @@ processBliCommand input' = do
                             else return ()
                          _  -> do
                             io $ mapM_ print solutions
-                     Left (A.AtomsNotInSchema atoms) -> do
+                     Left (AtomsNotInSchema atoms) -> do
                       io $ putStrLn $ "\27[31m"++"Failure."++"\27[37m"++" Query unsuccessful."
                       io $ putStrLn $ "    The identifiers "++ show atoms
                       io $ putStrLn $ "    have not been declared in a schema."
