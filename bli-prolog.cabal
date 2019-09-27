@@ -28,6 +28,7 @@ library
       Schema.Parser
       Bli.App.Config
       Bli.App.Json
+      Bli.App.Colors
       Prolog.Interp
       Control.Monad.Bli
       Control.Monad.Bli.Pure
