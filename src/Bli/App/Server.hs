@@ -23,31 +23,13 @@ import Prolog.Analysis
 import Prolog.Parser
 import Control.Applicative
 import Control.Monad.Bli
-
--- | A data type to model the types of 
---   requests that can be made to the server
-data BliRequest = 
--- | A simple Get request to 
---   make a query and return the
---   results of that query.
-     MakeQuery B.ByteString
--- | Request that an assertion be made.
-   | MakeAssertion B.ByteString
-
--- | A data type to model the types of responses
---   that the server can return to clients.
-data BliResponse = 
-  -- | Response to return when 
-     SyntaxError InvalidClause
-  -- | Response to successful query
-   | QuerySuccess BU.ByteString
-   | AssertionSuccess
+import Bli.App.Api
 
 parseRequest :: Request -> IO (Maybe BliRequest)
 parseRequest req 
     | (method == "GET") && (path == [pack "query"]) 
         = do body <- body'
-             return $ Just $ MakeQuery body
+             return $ Just $ MakeQuery $ BU.toString $ B.toStrict body
     | otherwise = return $ Nothing
   where path   = pathInfo req
         method = requestMethod req
@@ -55,14 +37,14 @@ parseRequest req
 
 processResponse :: Maybe BliResponse -> IO Response
 processResponse (Just (SyntaxError err)) = return $ responseBuilder badRequest400 [] "Syntax error"
-processResponse (Just (QuerySuccess response)) = return $ jsonResponse $ byteString response
+processResponse (Just (QuerySuccess response)) = return $ jsonResponse $ byteString $ BU.fromString $ response
 processResponse (Just AssertionSuccess) = return $ responseBuilder status200 [] ""
 processResponse Nothing = return $ responseBuilder badRequest400 [] "Bad request"
 
 -- This is where the magic happens.
 requestHandler :: Maybe BliRequest -> IO (Maybe BliResponse)
 requestHandler (Just (MakeQuery query)) 
-  = case (parseBliCommand $ BU.toString $ B.toStrict $ query) of 
+  = case (parseBliCommand query) of 
       Left err -> return $ Just $ SyntaxError $ undefined
       Right val -> undefined
 requestHandler (Just (MakeAssertion assertion)) = undefined
