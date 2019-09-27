@@ -50,6 +50,7 @@ library
     , template-haskell
     , cmdargs
     , utf8-string
+    , httpd-shed
     , aeson
     , aeson-pretty
   extensions:
