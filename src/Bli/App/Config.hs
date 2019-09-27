@@ -73,7 +73,8 @@ data Options =
           , nocolor   :: Bool
           , json      :: Bool
           , server    :: Bool
-          , port      :: Maybe Int
+          , port     :: Maybe Int
+          , burl      :: String
           }
   deriving (Show, Data, Typeable)
 
@@ -90,6 +91,7 @@ startOptions version =
           , json = False &= help "Specify whether or not json output formatting is used for queries."
           , server = False &= help "Starts a REST server for processing bli prolog queries if set."
           , port = Nothing &= help "Port number to start the server."
+          , burl = "" &= help "URL of the bedelibry server configured to work with bli-prolog." 
           }
   &= summary ("bli-prolog interpreter v" ++ version ++ ", (C) Nathan Bedell 2019")
 
