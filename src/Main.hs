@@ -27,42 +27,37 @@ processUserInput input opts clauses schema = do
               Right x@(AssertMode goal) -> do
                    case A.isBliCommandValid x schema of
                      Right A.Ok -> do
-                       putStrLn $ "\27[32m"++"OK."++"\27[37m"++" Assertion successful."
-                       return $ Just $ Left goal
+                       io $ putStrLn $ "\27[32m"++"OK."++"\27[37m"++" Assertion successful."
+                       modifyProgram (\clauses -> clauses ++ (map (\term -> (term,[])) goal))
                      Left (A.AtomsNotInSchema atoms) -> do
-                       putStrLn $ "\27[31m"++"Failure."++"\27[37m"++" Assertion unsuccessful."
-                       putStrLn $ "    The identifiers "++ show atoms
-                       putStrLn $ "    have not been declared in a schema."
-                       return Nothing
+                       io $ putStrLn $ "\27[31m"++"Failure."++"\27[37m"++" Assertion unsuccessful."
+                       io $ putStrLn $ "    The identifiers "++ show atoms
+                       io $ putStrLn $ "    have not been declared in a schema."
               Right x@(AssertClause clause) -> do
                    case A.isBliCommandValid x schema of
                      Right A.Ok -> do
-                       putStrLn $ "\27[32m"++"OK."++"\27[37m"++" Assertion successful."
-                       return $ Just $ Right clause
+                       io $ putStrLn $ "\27[32m"++"OK."++"\27[37m"++" Assertion successful."
+                       modifyProgram (\clauses -> clauses ++ [clause])
                      Left (A.AtomsNotInSchema atoms) -> do
-                       putStrLn $ "\27[31m"++"Failure."++"\27[37m"++" Assertion unsuccessful."
-                       putStrLn $ "    The identifiers "++ show atoms
-                       putStrLn $ "    have not been declared in a schema."
-                       return Nothing
+                       io $ putStrLn $ "\27[31m"++"Failure."++"\27[37m"++" Assertion unsuccessful."
+                       io $ putStrLn $ "    The identifiers "++ show atoms
+                       io $ putStrLn $ "    have not been declared in a schema."
               Right x@(LambdaQuery (vars, goal)) -> do
                   case A.isBliCommandValid x schema of
                     Right A.Ok -> do
                       let t = I.makeReportTree clauses goal
-                      print $ map I.Solution 
-                            $ map (filter (\(x,y) -> x `elem` vars)) 
-                            -- Note: This is currently fixed to use bfs.
-                            $ map (\(I.Solution x) -> x) $ I.bfs t
-                      return Nothing
+                      io $ print $ map I.Solution 
+                                 $ map (filter (\(x,y) -> x `elem` vars)) 
+                                 -- Note: This is currently fixed to use bfs.
+                                 $ map (\(I.Solution x) -> x) $ I.bfs t
                     Left (A.AtomsNotInSchema atoms) -> do
-                      putStrLn $ "\27[31m"++"Failure."++"\27[37m"++" Query unsuccessful."
-                      putStrLn $ "    The identifiers "++ show atoms
-                      putStrLn $ "    have not been declared in a schema."
-                      return Nothing
+                      io $ putStrLn $ "\27[31m"++"Failure."++"\27[37m"++" Query unsuccessful."
+                      io $ putStrLn $ "    The identifiers "++ show atoms
+                      io $ putStrLn $ "    have not been declared in a schema."
                     Left (A.BoundVarNotInBody) -> do
-                      putStrLn $ "\27[31m"++"Failure."++"\27[37m"++" Query unsuccessful."
-                      putStrLn $ "    Variables bound by a lambda abstraction that do not appear"
-                      putStrLn $ "    In the body of a query."
-                      return Nothing
+                      io $ putStrLn $ "\27[31m"++"Failure."++"\27[37m"++" Query unsuccessful."
+                      io $ putStrLn $ "    Variables bound by a lambda abstraction that do not appear"
+                      io $ putStrLn $ "    In the body of a query."
               Right x@(QueryMode goal) -> do
                    case A.isBliCommandValid x schema of
                      Right A.Ok -> do
@@ -74,26 +69,20 @@ processUserInput input opts clauses schema = do
                        let solutions = limiting $ searchF t
                        case solutions of
                          [] -> do
-                            putStrLn ("\27[33m"++"No solutions."++"\27[37")
-                            return Nothing
+                            io $ putStrLn ("\27[33m"++"No solutions."++"\27[37")
                          (x:[]) -> do
                             if (show x == "true")
-                            then do 
-                                 putStrLn ("\27[32m"++"True."++"\27[37")
-                                 return Nothing
-                            else return Nothing
+                            then io $ putStrLn ("\27[32m"++"True."++"\27[37")
+                            else return ()
                          _  -> do
-                            mapM_ print solutions
-                            return Nothing
+                            io $ mapM_ print solutions
                      Left _ -> do
-                       putStrLn $ "\27[31m"++"Invalid query."++"\27[37m"++" "
-                       return Nothing
-              Left err -> do putStrLn ("\27[31m"++"Error"++"\27[37m"++" parsing query string:")
-                             putStrLn $ foldr1 (\x -> \y -> x ++ "\n" ++ y) $
+                       io $ putStrLn $ "\27[31m"++"Invalid query."++"\27[37m"++" "
+              Left err -> do io $ putStrLn ("\27[31m"++"Error"++"\27[37m"++" parsing query string:")
+                             io $ putStrLn $ foldr1 (\x -> \y -> x ++ "\n" ++ y) $
                                                (map (\x -> "  " ++ x)) $ 
                                                (splitOn "\n" $ show err)
-                             putStrLn $ "\27[33m"++"All bli prolog commands end with either a '.' or an '!'."++"\27[37m"
-                             return Nothing
+                             io $ putStrLn $ "\27[33m"++"All bli prolog commands end with either a '.' or an '!'."++"\27[37m"
 
 repl :: Bli ()
 repl opts clauses schema = do
@@ -112,16 +101,7 @@ repl opts clauses schema = do
           | isPrefixOf ":export" line -> do
                io $ putStrLn "\27[33mExport command not implemented.\27[37m"
                repl
-          | otherwise -> do
-                      response <- processUserInput ("?- "++line)
-                      case response of
-                        Nothing -> repl
-                        Just (Left goal) -> do
-                           modifyProgram (\clauses -> clauses ++ (map (\term -> (term,[])) goal))
-                           repl
-                        Just (Right clause) -> do
-                           modifyProgram (\clauses -> clauses ++ [clause])
-                           repl
+          | otherwise -> processUserInput ("?- "++line)
 
 main = do
   -- Get the version from the cabal file at compile-time.
