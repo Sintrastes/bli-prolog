@@ -99,25 +99,29 @@ repl :: Bli ()
 repl opts clauses schema = do
   maybeLine <- readline ("\27[36m"++"?- "++ "\27[37m")
   case maybeLine of
-    Nothing -> repl opts clauses schema
+    Nothing -> repl
     Just line -> do
       case line of 
         ":h"   -> do 
-          putStrLn replHelpScreen
-          repl opts clauses schema
+          io $ putStrLn replHelpScreen
+          repl
         ":exit" -> return ()
         _ | isPrefixOf ":load" line -> do
-               putStrLn "\27[33mLoad command not implemented.\27[37m"
-               repl opts clauses schema
+               io $ putStrLn "\27[33mLoad command not implemented.\27[37m"
+               repl
           | isPrefixOf ":export" line -> do
-               putStrLn "\27[33mExport command not implemented.\27[37m"
-               repl opts clauses schema
+               io $ putStrLn "\27[33mExport command not implemented.\27[37m"
+               repl
           | otherwise -> do
-                      response <- processUserInput ("?- "++line) opts clauses schema
+                      response <- processUserInput ("?- "++line)
                       case response of
-                        Nothing -> repl opts clauses schema
-                        Just (Left goal) -> (repl opts (clauses ++ (map (\term -> (term,[])) goal) ) schema)
-                        Just (Right clause) -> (repl opts (clauses ++ [clause]) schema)
+                        Nothing -> repl
+                        Just (Left goal) -> do
+                           modifyProgram (\clauses -> clauses ++ (map (\term -> (term,[])) goal))
+                           repl
+                        Just (Right clause) -> do
+                           modifyProgram (\clauses -> clauses ++ [clause])
+                           repl
 
 main = do
   -- Get the version from the cabal file at compile-time.
