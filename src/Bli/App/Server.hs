@@ -20,6 +20,7 @@ import Data.String
 import System.Directory
 import Control.Monad
 import Prolog.Analysis
+import Control.Applicative
 
 -- | A data type to model the types of 
 --   requests that can be made to the server
@@ -49,14 +50,14 @@ parseRequest req
         method = requestMethod req
         body'  = strictRequestBody req
 
-processResponse :: Maybe BliResponse -> Response
-processResponse (Just (SyntaxError err)) = responseBuilder badRequest400 [] "Syntax error"
-processResponse (Just (QuerySuccess response)) = jsonResponse $ byteString response
-processResponse Nothing = responseBuilder badRequest400 [] "Bad request"
+processResponse :: Maybe BliResponse -> IO Response
+processResponse (Just (SyntaxError err)) = return $ responseBuilder badRequest400 [] "Syntax error"
+processResponse (Just (QuerySuccess response)) = return $ jsonResponse $ byteString response
+processResponse Nothing = return $ responseBuilder badRequest400 [] "Bad request"
 
 -- Note: I'll want to wrap this in my own datatypes above,
 -- and then translate it to the "Request" and "Response" datatypes.
-requestHandler :: BliRequest -> IO BliResponse
+requestHandler :: Maybe BliRequest -> IO (Maybe BliResponse)
 requestHandler r = undefined --case reqMethod r of
 
 -- | Initialize a new bli-prolog server on @port@. 
@@ -69,19 +70,13 @@ newServer port = do
   -- Run the server on the given port.
   runTLS tSet (setPort port defaultSettings) app
 
--- Stuff imported from test project
-
--- Sample app. Will want to change this later.
-app req respond = respond $
-  case requestMethod req of
-    "GET" -> 
-      case pathInfo req of
-        ["yay"] -> textResponse $ byteString $ fromString $ (BU.toString username ++ "\n" ++ BU.toString password)
-          where Just username = lookup "username" (requestHeaders req)
-                Just password = lookup "password" (requestHeaders req)
-        otherwise -> textResponse $ byteString $ mconcat $ map encodeUtf8 (pathInfo req)
-    "POST" -> textResponse "POST"
-    otherwise -> textResponse "Method not supported."
+-- | Warp application for our server.
+app :: Request -> (Response -> IO ResponseReceived) -> IO ResponseReceived
+app req respond = 
+     respond
+ =<< processResponse
+ =<< requestHandler
+ =<< parseRequest req
 
 -- | Helper function to return a pre-formatted text response.
 textResponse str = responseBuilder status200 [ ("Content-Type", "text/plain") ] $ str
