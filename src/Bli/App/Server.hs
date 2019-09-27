@@ -7,6 +7,7 @@ module Bli.App.Server where
 
 import Network.Shed.Httpd
 import qualified Data.ByteString.Lazy.UTF8 as B
+import Control.Monad
 
 -- | A data type to model the types of 
 --   requests that can be made to the server
@@ -27,10 +28,10 @@ data BliResponse =
 -- Note: I'll want to wrap this in my own datatypes above,
 -- and then translate it to the "Request" and "Response" datatypes.
 requestHandler :: Request -> IO Response
-requestHandler = case reqMethod r of
-  "GET"     -> return Response { resCode = 0, resHeaders = [], resBody = B.toString $ "test" }
-  "POST"    -> return Response { resCode = 0, resHeaders = [], resBody = B.toString $ "test" }
-  otherwise -> return Response { resCode = 0, resHeaders = [], resBody = B.toString $ "test" }
+requestHandler r = case reqMethod r of
+  "GET"     -> return $ Response { resCode = 0, resHeaders = [], resBody = "" }
+  "POST"    -> return $ Response { resCode = 0, resHeaders = [], resBody = "" }
+  otherwise -> return $ Response { resCode = 0, resHeaders = [], resBody = "" }
 
 -- | Initialize a new bli-prolog server on @port@. 
 newServer :: Int -> IO ()

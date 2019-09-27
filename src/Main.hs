@@ -52,15 +52,21 @@ main = do
                                              (splitOn "\n" $ show err)
         -- If all files parse sucessfully...
         (Right clauses, Right schema) ->
-          case goal opts of
-            "" -> do
-               -- Print the main banner if options set to verbose.
-               if (verbose opts) then putStrLn $ replBanner version colorOpts else return ()
-               -- Run a bli prolog REPL with the user configuration.
-               runBli opts clauses schema $ repl
-            -- If the user supplies a non-empty goal-string, run a single
-            -- command rather than starting the REPL.
-            input -> runBli opts clauses schema $ processBliCommand input
+          case server opts of
+        -- Launch server
+            True -> do
+              putStrLn (red colorOpts "Server not implemented.")
+        -- If not configured to start server...
+            False -> do
+              case goal opts of
+                "" -> do
+                   -- Print the main banner if options set to verbose.
+                   if (verbose opts) then putStrLn $ replBanner version colorOpts else return ()
+                   -- Run a bli prolog REPL with the user configuration.
+                   runBli opts clauses schema $ repl
+                -- If the user supplies a non-empty goal-string, run a single
+                -- command rather than starting the REPL.
+                input -> runBli opts clauses schema $ processBliCommand input
 
 -- | Main entrypoint for the bli-prolog REPL.
 repl :: Bli ()
