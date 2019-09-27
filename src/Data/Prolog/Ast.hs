@@ -16,9 +16,9 @@ data Term = Var Variable
           deriving (Eq, Read, Lift)
 
 instance Show Term where
-  show (Var x) = show x
-  show (Comp id []) = show id
-  show (Comp id ts) = show id ++ "(" ++ (intercalate "," (map show ts)) ++ ")" 
+  show (Var x) = x
+  show (Comp id []) = id
+  show (Comp id ts) = id ++ "(" ++ (intercalate "," (map show ts)) ++ ")" 
 
 -- | Used for identifiers for entities and prolog relations/predicates.
 --   Must begin with a lowercase letter.
