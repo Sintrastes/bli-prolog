@@ -44,7 +44,7 @@ replBanner version = foldr1 (\x -> \y -> x ++ "\n" ++ y) $
 -- | Help scree to print when :h is called in the REPL
 replHelpScreen = foldr1 (\x -> \y -> x ++ "\n" ++ y) $
   ["Commands: "
-  ,"  \27[36m:h\27[37m      Prints this help screen."
+  ,"  \27[36m:h\27[37m       Prints this help screen."
   ,"  \27[36m:exit\27[37m    Exits bli-prolog."
   ,"  \27[36m:export\27[37m  Exports the definitions stored in bli-prolog's in-memory fact store as assertions"
   ,"           to a file."
