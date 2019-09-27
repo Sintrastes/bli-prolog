@@ -5,6 +5,9 @@ module Control.Monad.Bli where
 -- | A monad for IO computations preformed in the context of a 
 --   running bli prolog session.
 --
+--   Note: If used within the same application as Control.Monad.Bli,
+--   must be imported qualified to avoid name conflicts.
+--
 
 import Control.Monad.Trans.State
 import Control.Monad.Trans.Class (lift)
@@ -13,7 +16,6 @@ import Data.Schema
 import Control.Applicative
 
 -- | A monad for wrapping computations done (and run) in bli prolog.
----  Note: We should also have a pure version of this later.
 type Bli a = StateT (Options, Program, Schema) IO a
 
 -- | Lift io computations into the Bli monad.
