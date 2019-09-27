@@ -59,6 +59,7 @@ main = do
             -- command rather than starting the REPL.
             input -> runBli opts clauses schema $ processBliCommand input
 
+-- | Main entrypoint for the bli-prolog REPL.
 repl :: Bli ()
 repl = do
   maybeLine <- io $ readline ("\27[36m"++"?- "++ "\27[37m")
@@ -83,6 +84,7 @@ repl = do
                 processBliCommand line
                 repl
 
+-- | Helper function to process bli-prolog commands in a running application.
 processBliCommand :: String -> Bli ()
 processBliCommand input' = do
           -- Get schema, clauses, and options from context.
