@@ -21,6 +21,68 @@ import System.Console.Readline
 import Data.List.Split
 import System.Console.CmdArgs as CA hiding (program)
 
+main = do
+  -- Get the version from the cabal file at compile-time.
+  let v = $(getVersionFromCabal)
+  -- Make sure version loaded from file successfully.
+  case v of 
+    Nothing -> putStrLn $ "\27[31m"++"Error loading version info from cabal file. Aborting."++"\27[37m"
+    Just version -> do
+      opts <- cmdArgs $ startOptions version
+      -- If prolog file not specified, start with an empty set of clauses.
+      p <- case program opts of
+        "" -> return $ Right []
+        _  -> P.clausesFromFile $ program opts
+      -- If Schema file not specified, start with an empty schema. 
+      s <- case schema opts of
+        "" -> return $ Right []
+        _  -> schemaFromFile $ schema opts
+      -- Handle parse errors for prolog and schema files.
+      case (p,s) of 
+        (Left err,_) -> do putStrLn ("\27[31m"++"Error"++"\27[37m"++" parsing prolog file:") 
+                           putStrLn $ foldr1 (\x -> \y -> x ++ "\n" ++ y) $
+                                             (map (\x -> "  " ++ x)) $ 
+                                             (splitOn "\n" $ show err)
+        (_,Left err) -> do putStrLn ("\27[31m"++"Error"++"\27[37m"++" parsing schema file:") 
+                           putStrLn $ foldr1 (\x -> \y -> x ++ "\n" ++ y) $
+                                             (map (\x -> "  " ++ x)) $ 
+                                             (splitOn "\n" $ show err)
+        -- If all files parse sucessfully...
+        (Right clauses, Right schema) ->
+          case goal opts of
+            "" -> do
+               -- Print the main banner if options set to verbose.
+               if (verbose opts) then putStrLn $ replBanner version else return ()
+               -- Run a bli prolog REPL with the user configuration.
+               runBli opts clauses schema $ repl
+            -- If the user supplies a non-empty goal-string, run a single
+            -- command rather than starting the REPL.
+            input -> runBli opts clauses schema $ processBliCommand input
+
+repl :: Bli ()
+repl = do
+  maybeLine <- io $ readline ("\27[36m"++"?- "++ "\27[37m")
+  case maybeLine of
+    Nothing -> repl
+    Just line -> do
+      case line of 
+        -- First,handle user REPL commands (beginning with a semicolon).
+        ":h"   -> do 
+          io $ putStrLn replHelpScreen
+          repl
+        ":exit" -> return ()
+        _ | isPrefixOf ":load" line -> do
+               io $ putStrLn "\27[33mLoad command not implemented.\27[37m"
+               repl
+          | isPrefixOf ":export" line -> do
+               io $ putStrLn "\27[33mExport command not implemented.\27[37m"
+               repl
+        -- If the user has not entered a REPL command, try processing
+        -- their input as a standard Bedelibry Prolog command.
+          | otherwise -> do
+                processBliCommand line
+                repl
+
 processBliCommand :: String -> Bli ()
 processBliCommand input' = do
           -- Get schema, clauses, and options from context.
@@ -98,67 +160,3 @@ processBliCommand input' = do
                                                (map (\x -> "  " ++ x)) $ 
                                                (splitOn "\n" $ show err)
                              io $ putStrLn $ "\27[33m"++"All bli prolog commands end with either a '.' or an '!'."++"\27[37m"
-
-repl :: Bli ()
-repl = do
-  maybeLine <- io $ readline ("\27[36m"++"?- "++ "\27[37m")
-  case maybeLine of
-    Nothing -> repl
-    Just line -> do
-      case line of 
-        -- First,handle user REPL commands (beginning with a semicolon).
-        ":h"   -> do 
-          io $ putStrLn replHelpScreen
-          repl
-        ":exit" -> return ()
-        _ | isPrefixOf ":load" line -> do
-               io $ putStrLn "\27[33mLoad command not implemented.\27[37m"
-               repl
-          | isPrefixOf ":export" line -> do
-               io $ putStrLn "\27[33mExport command not implemented.\27[37m"
-               repl
-        -- If the user has not entered a REPL command, try processing
-        -- their input as a standard Bedelibry Prolog command.
-          | otherwise -> do
-                processBliCommand line
-                repl
-
-main = do
-  -- Get the version from the cabal file at compile-time.
-  let v = $(getVersionFromCabal)
-  -- Make sure version loaded from file successfully.
-  case v of 
-    Nothing -> putStrLn $ "\27[31m"++"Error loading version info from cabal file. Aborting."++"\27[37m"
-    Just version -> do
-      opts <- cmdArgs $ startOptions version
-      -- If prolog file not specified, start with an empty set of clauses.
-      p <- case program opts of
-        "" -> return $ Right []
-        _  -> P.clausesFromFile $ program opts
-      -- If Schema file not specified, start with an empty schema. 
-      s <- case schema opts of
-        "" -> return $ Right []
-        _  -> schemaFromFile $ schema opts
-      -- Handle parse errors for prolog and schema files.
-      case (p,s) of 
-        (Left err,_) -> do putStrLn ("\27[31m"++"Error"++"\27[37m"++" parsing prolog file:") 
-                           putStrLn $ foldr1 (\x -> \y -> x ++ "\n" ++ y) $
-                                             (map (\x -> "  " ++ x)) $ 
-                                             (splitOn "\n" $ show err)
-        (_,Left err) -> do putStrLn ("\27[31m"++"Error"++"\27[37m"++" parsing schema file:") 
-                           putStrLn $ foldr1 (\x -> \y -> x ++ "\n" ++ y) $
-                                             (map (\x -> "  " ++ x)) $ 
-                                             (splitOn "\n" $ show err)
-        -- If all files parse sucessfully...
-        (Right clauses, Right schema) ->
-          case goal opts of
-            "" -> do
-               -- Print the main banner if options set to verbose.
-               if (verbose opts) then putStrLn $ replBanner version else return ()
-               -- Run a bli prolog REPL with the user configuration.
-               runBli opts clauses schema $ repl
-            -- If the user supplies a non-empty goal-string, run a single
-            -- command rather than starting the REPL.
-            input -> runBli opts clauses schema $ processBliCommand input
-
-
