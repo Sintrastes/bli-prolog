@@ -135,15 +135,8 @@ main = do
         (Right clauses, Right schema) ->
           case goal opts of
             "" -> do
-<<<<<<< HEAD
-               if (verbose opts)
-               then do
-                 putStrLn $ replBanner version
-               else return ()
-               repl opts clauses schema
-            input -> processUserInput input opts clauses schema >> return ()
-=======
                if (verbose opts) then putStrLn $ replBanner version else return ()
                runBli opts clauses schema $ repl
             input -> runBli opts clauses schema $ processUserInput input
->>>>>>> refactorMain
+
+
