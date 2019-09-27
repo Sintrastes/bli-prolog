@@ -6,7 +6,10 @@ module Control.Monad.Bli where
 --   running bli prolog session.
 --
 
+import Control.Monad.Trans.State
+import Control.Monad.Trans.Class (lift)
 import Data.Prolog.Ast
+import Data.Schema
 import Control.Applicative
 
 -- | A monad for wrapping computations done (and run) in bli prolog.

@@ -27,7 +27,10 @@ library
       Prolog.Parser
       Data.Schema
       Schema.Parser
+      Config.App
       Prolog.Interp
+      Control.Monad.Bli
+      Control.Monad.Bli.Pure
   other-modules:
       Paths_bli_prolog
   hs-source-dirs:
