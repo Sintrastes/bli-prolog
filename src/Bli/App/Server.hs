@@ -8,10 +8,12 @@ module Bli.App.Server (newServer) where
 import Network.Wai
 import Network.Wai.Handler.Warp
 import Network.Wai.Handler.WarpTLS
-import Network.HTTP.Types (status200)
+import Network.HTTP.Types (status200, badRequest400)
 import Blaze.ByteString.Builder (copyByteString)
 import Data.ByteString.Builder (byteString)
 import qualified Data.ByteString.UTF8 as BU
+import qualified Data.ByteString.Lazy as B
+import Data.Text (pack)
 import Data.Monoid
 import Data.Text.Encoding
 import Data.String
@@ -25,9 +27,9 @@ data BliRequest =
 -- | A simple Get request to 
 --   make a query and return the
 --   results of that query.
-     Get  String
+     MakeQuery B.ByteString
 -- | Request that an assertion be made.
-   | Post String
+   | MakeAssertion B.ByteString
 
 -- | A data type to model the types of responses
 --   that the server can return to clients.
@@ -35,13 +37,22 @@ data BliResponse =
   -- | Response to return when 
      SyntaxError InvalidClause
   -- | Response to successful query
-   | QuerySuccess String
+   | QuerySuccess BU.ByteString
 
-parseRequest :: Request -> Maybe BliRequest
-parseRequest = undefined
+parseRequest :: Request -> IO (Maybe BliRequest)
+parseRequest req 
+    | (method == "GET") && (path == [pack "query"]) 
+        = do body <- body'
+             return $ Just $ MakeQuery body
+    | otherwise = return $ Nothing
+  where path   = pathInfo req
+        method = requestMethod req
+        body'  = strictRequestBody req
 
-processResponse :: BliResponse -> Response
-processResponse = undefined
+processResponse :: Maybe BliResponse -> Response
+processResponse (Just (SyntaxError err)) = responseBuilder badRequest400 [] "Syntax error"
+processResponse (Just (QuerySuccess response)) = jsonResponse $ byteString response
+processResponse Nothing = responseBuilder badRequest400 [] "Bad request"
 
 -- Note: I'll want to wrap this in my own datatypes above,
 -- and then translate it to the "Request" and "Response" datatypes.
