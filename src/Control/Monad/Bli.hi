@@ -44,3 +44,15 @@ modifyProgram f = modify (\(x,y,z) -> (x, f y, z))
 -- | Modify the schema of a running bli application.
 modifySchema :: (Schema -> Schema) -> Bli ()
 modifySchema f = modify (\(x,y,z) -> (x, y, f z))
+
+-- | Set the program of a running bli application.
+setProgram :: Program -> Bli ()
+setProgram val = modify (\(x,y,z) -> (val, y, z))
+
+-- | Set the options of a running bli application
+setOpts :: Options -> Bli ()
+setOpts val = modify (\(x,y,z) -> (x, val, z))
+
+-- | Set the schema of a running bli application
+setSchema :: Schema  -> Bli ()
+setSchema val = modify (\(x,y,z) -> (x, y, val))
