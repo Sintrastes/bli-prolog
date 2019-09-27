@@ -26,6 +26,7 @@ library
       Prolog.Parser
       Data.Schema
       Schema.Parser
+      Bli.App.Server
       Bli.App.Config
       Bli.App.Json
       Bli.App.Colors
