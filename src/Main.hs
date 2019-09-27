@@ -13,6 +13,7 @@ import qualified Prolog.Parser as P
 import qualified Prolog.Interp as I
 import qualified Prolog.Analysis as A
 import Bli.App.Config
+import Control.Monad.Bli
 
 import Control.Monad (when)
 import Data.List (intersperse, isPrefixOf)
@@ -21,7 +22,10 @@ import Data.List.Split
 import System.Console.CmdArgs as CA hiding (program)
 
 processUserInput :: String -> Bli ()
-processUserInput input opts clauses schema = do
+processUserInput input = do
+          schema <- getSchema
+          clauses <- getProgram
+          opts <- getOpts
           let command = P.parseBliCommand input
           case command of   
               Right x@(AssertMode goal) -> do
@@ -85,8 +89,8 @@ processUserInput input opts clauses schema = do
                              io $ putStrLn $ "\27[33m"++"All bli prolog commands end with either a '.' or an '!'."++"\27[37m"
 
 repl :: Bli ()
-repl opts clauses schema = do
-  maybeLine <- readline ("\27[36m"++"?- "++ "\27[37m")
+repl = do
+  maybeLine <- io $ readline ("\27[36m"++"?- "++ "\27[37m")
   case maybeLine of
     Nothing -> repl
     Just line -> do
@@ -101,7 +105,9 @@ repl opts clauses schema = do
           | isPrefixOf ":export" line -> do
                io $ putStrLn "\27[33mExport command not implemented.\27[37m"
                repl
-          | otherwise -> processUserInput ("?- "++line)
+          | otherwise -> do
+                processUserInput ("?- "++line)
+                repl
 
 main = do
   -- Get the version from the cabal file at compile-time.
@@ -129,9 +135,6 @@ main = do
         (Right clauses, Right schema) ->
           case goal opts of
             "" -> do
-               if (verbose opts)
-               then do
-                 putStrLn $ replBanner version
-               else return ()
-               repl opts clauses schema
-            input -> processUserInput input opts clauses schema >> return ()
+               if (verbose opts) then putStrLn $ replBanner version else return ()
+               runBli opts clauses schema $ repl
+            input -> runBli opts clauses schema $ processUserInput input
