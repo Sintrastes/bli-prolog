@@ -12,7 +12,8 @@ module Control.Monad.Bli.Pure where
 import Data.Prolog.Ast
 import Control.Applicative
 import Data.Schema
-import Control.Monad.State
+import Control.Monad.State.Lazy
+import Bli.App.Config (Options)
 
 -- | A monad for wrapping pure computations done (and run) in bli prolog.
 type Bli a = State (Options, Program, Schema) a
@@ -23,15 +24,15 @@ runBli options program schema app = evalState app (options, program, schema)
 
 -- | Get the options from a pure bli computation.
 getOpts    :: Bli Options
-getOpts = fst <$> get
+getOpts = (\(x,y,z) -> x) <$> get
 
 -- | Get the program from a pure bli computation.
 getProgram :: Bli Program
-getProgram = snd <$> get
+getProgram = (\(x,y,z) -> y) <$> get
 
 -- | Get the schema from a pure bli computation.
 getSchema  :: Bli Schema
-getSchema = (!! 3) <$> get
+getSchema = (\(x,y,z) -> z) <$> get
 
 -- | Modify the options of a pure bli computation. 
 modifyOpts :: (Options -> Options) -> Bli ()
@@ -47,11 +48,11 @@ modifySchema f = modify (\(x,y,z) -> (x, y, f z))
 
 -- | Set the program of a pure bli computation.
 setProgram :: Program -> Bli ()
-setProgram val = modify (\(x,y,z) -> (val, y, z))
+setProgram val = modify (\(x,y,z) -> (x, val, z))
 
 -- | Set the options of a pure bli computation.
 setOpts :: Options -> Bli ()
-setOpts val = modify (\(x,y,z) -> (x, val, z))
+setOpts val = modify (\(x,y,z) -> (val, y, z))
 
 -- | Set the schema of a pure bli computation.
 setSchema :: Schema  -> Bli ()

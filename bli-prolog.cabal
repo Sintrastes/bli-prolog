@@ -18,7 +18,6 @@ cabal-version:  >= 1.10
 extra-source-files:
     README.md
 
-
 library
   exposed-modules:
       Data.Prolog.Ast
@@ -27,7 +26,8 @@ library
       Prolog.Parser
       Data.Schema
       Schema.Parser
-      Config.App
+      Bli.App.Config
+      Bli.App.Json
       Prolog.Interp
       Control.Monad.Bli
       Control.Monad.Bli.Pure
@@ -41,8 +41,13 @@ library
     , parsec
     , parser-combinators
     , pretty
+    , mtl
+    , transformers
     , th-lift
     , template-haskell
+    , cmdargs
+  extensions:
+      DeriveDataTypeable
   default-language: Haskell2010
 
 executable bli-prolog
@@ -53,7 +58,6 @@ executable bli-prolog
       base <5
     , cmdargs
     , readline
-    , transformers
     , split
     , bli-prolog
   default-language: Haskell2010

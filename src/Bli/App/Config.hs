@@ -6,6 +6,7 @@ module Bli.App.Config where
 --
 
 import System.Console.CmdArgs as CA hiding (program)
+import Prolog.Interp
 
 -- | An ADT representing all of the different search 
 --   algorithms bli prolog can be configured to run with.
@@ -18,9 +19,9 @@ instance Default Search where
 
 -- | Helper function for converting our Search ADT into
 --   actual search functions.
-searchFunction DFS _     = I.dfs
-searchFunction BFS _     = I.bfs
-searchFunction Limited n = I.limitedDfs n
+searchFunction DFS _     = dfs
+searchFunction BFS _     = bfs
+searchFunction Limited n = limitedDfs n
 
 -- | Help scree to print when :h is called in the REPL
 replHelpScreen = foldr1 (\x -> \y -> x ++ "\n" ++ y) $

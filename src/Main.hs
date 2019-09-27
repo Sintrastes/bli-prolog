@@ -8,7 +8,7 @@ module Main where
 
 import Data.Prolog.Ast
 import Data.Schema
-import Data.Schemaimport Schema.Parser
+import Schema.Parser
 import qualified Prolog.Parser as P
 import qualified Prolog.Interp as I
 import qualified Prolog.Analysis as A
@@ -19,10 +19,6 @@ import Data.List (intersperse, isPrefixOf)
 import System.Console.Readline
 import Data.List.Split
 import System.Console.CmdArgs as CA hiding (program)
-
--- For JSON formatting
--- solutionToJSON :: Solution -> JSON
--- solutionToJSON = undefined
 
 processUserInput :: String -> Options -> Clauses -> Schema -> IO (Maybe (Either Goal Clause))
 processUserInput input opts clauses schema = do

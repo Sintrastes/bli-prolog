@@ -14,6 +14,7 @@ import Control.Monad.Trans.Class (lift)
 import Data.Prolog.Ast
 import Data.Schema
 import Control.Applicative
+import Bli.App.Config (Options)
 
 -- | A monad for wrapping computations done (and run) in bli prolog.
 type Bli a = StateT (Options, Program, Schema) IO a
@@ -28,15 +29,15 @@ runBli options program schema app = evalStateT app (options, program, schema)
 
 -- | Get the options from a running bli application
 getOpts    :: Bli Options
-getOpts = fst <$> get
+getOpts = (\(x,y,z) -> x) <$> get
 
 -- | Get the program from a running bli application.
 getProgram :: Bli Program
-getProgram = snd <$> get
+getProgram = (\(x,y,z) -> y) <$> get
 
 -- | Get the schema from a running bli application.
 getSchema  :: Bli Schema
-getSchema = (!! 3) <$> get
+getSchema = (\(x,y,z) -> z) <$> get
 
 -- | Modify the options of a running bli application. 
 modifyOpts :: (Options -> Options) -> Bli ()
@@ -52,11 +53,11 @@ modifySchema f = modify (\(x,y,z) -> (x, y, f z))
 
 -- | Set the program of a running bli application.
 setProgram :: Program -> Bli ()
-setProgram val = modify (\(x,y,z) -> (val, y, z))
+setProgram val = modify (\(x,y,z) -> (x, val, z))
 
 -- | Set the options of a running bli application
 setOpts :: Options -> Bli ()
-setOpts val = modify (\(x,y,z) -> (x, val, z))
+setOpts val = modify (\(x,y,z) -> (val, y, z))
 
 -- | Set the schema of a running bli application
 setSchema :: Schema  -> Bli ()
