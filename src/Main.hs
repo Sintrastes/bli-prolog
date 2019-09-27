@@ -159,4 +159,7 @@ processBliCommand input' = do
                              io $ putStrLn $ foldr1 (\x -> \y -> x ++ "\n" ++ y) $
                                                (map (\x -> "  " ++ x)) $ 
                                                (splitOn "\n" $ show err)
-                             io $ putStrLn $ "\27[33m"++"All bli prolog commands end with either a '.' or an '!'."++"\27[37m"
+                             io $ putStrLn $ 
+                               "\27[33m" ++ 
+                                  "All bli prolog commands end with either a '.' or an '!'."
+                                ++ "\27[37m"
