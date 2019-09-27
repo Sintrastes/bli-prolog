@@ -50,6 +50,7 @@ executable bli-prolog
       base <5
     , cmdargs
     , readline
+    , transformers
     , split
     , bli-prolog
   default-language: Haskell2010

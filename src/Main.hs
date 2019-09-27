@@ -18,6 +18,37 @@ import System.Console.Readline
 import Data.List.Split
 import Data.Schema
 import Schema.Parser
+import Control.Monad.Trans.State
+import Control.Monad.Trans.Class (lift)
+
+
+-- | A monad for wrapping computations done (and run) in bli prolog.
+---  Note: We should also have a pure version of this later.
+type Bli a = StateT (Options, Program, Schema) IO a
+
+io :: IO a -> Bli a
+io = lift
+
+runBli :: Options -> Program -> Schema -> Bli a -> IO a
+runBli options program schema app = evalStateT app (options, program, schema)
+
+getOpts    :: Bli a -> Options
+getOpts = undefined
+
+getProgram :: Bli a -> Program
+getProgram = undefined
+
+getSchema  :: Bli a -> Schema
+getSchema = undefined
+
+modifyOpts :: Options -> Bli a
+modifyOpts = undefined
+
+modifyProgram :: Program -> Bli a
+modifyProgram = undefined
+
+modifySchema :: Schema -> Bli a
+modifySchema = undefined
 
 data Search = DFS | BFS | Limited
             deriving (Show, Eq, Data, Typeable)
