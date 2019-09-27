@@ -50,9 +50,17 @@ library
     , template-haskell
     , cmdargs
     , utf8-string
-    , httpd-shed
     , aeson
     , aeson-pretty
+    , warp
+    , warp-tls
+    , http-types
+    , directory
+    , blaze-builder
+    , bytestring
+    , wai
+    , wai-extra
+    , text
   extensions:
       DeriveDataTypeable
       TemplateHaskell
