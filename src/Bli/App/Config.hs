@@ -12,6 +12,7 @@ import Language.Haskell.TH.Quote
 import Data.List.Split
 import Data.List
 import Control.Monad (join)
+import Bli.App.Colors
 
 -- | An ADT representing all of the different search 
 --   algorithms bli prolog can be configured to run with.
@@ -29,7 +30,8 @@ searchFunction BFS _     = bfs
 searchFunction Limited n = limitedDfs n
 
 -- | The banner which is displayed when the user first loads the repl.
-replBanner version = foldr1 (\x -> \y -> x ++ "\n" ++ y) $
+replBanner :: String -> Bool -> String
+replBanner version colorOpts = foldr1 (\x -> \y -> x ++ "\n" ++ y) $
     [""
     ,"  |      |            |"
     ,"  |      |  .         |"
@@ -39,16 +41,17 @@ replBanner version = foldr1 (\x -> \y -> x ++ "\n" ++ y) $
     ,"               |"
     ,"               |"
     ,"Welcome to the bli-prolog interpreter v" ++ version ++ "! (C) Nathan Bedell 2019"
-    ,"Type \27[36m:h\27[37m for help, or \27[36m:exit\27[37m to quit."]
+    ,"Type "++(blue colorOpts ":h")++" for help, or "++(blue colorOpts ":exit")++" to quit."]
 
 -- | Help scree to print when :h is called in the REPL
-replHelpScreen = foldr1 (\x -> \y -> x ++ "\n" ++ y) $
+replHelpScreen :: Bool -> String
+replHelpScreen colorOpts = foldr1 (\x -> \y -> x ++ "\n" ++ y) $
   ["Commands: "
-  ,"  \27[36m:h\27[37m       Prints this help screen."
-  ,"  \27[36m:exit\27[37m    Exits bli-prolog."
-  ,"  \27[36m:export\27[37m  Exports the definitions stored in bli-prolog's in-memory fact store as assertions"
+  ,"  "++(blue colorOpts ":h")++"       Prints this help screen."
+  ,"  "++(blue colorOpts ":exit")++"    Exits bli-prolog."
+  ,"  "++(blue colorOpts ":export")++"  Exports the definitions stored in bli-prolog's in-memory fact store as assertions"
   ,"           to a file."
-  ,"  \27[36m:load\27[37m    Loads a schema or a prolog file into bli-prolog's in-memory store."
+  ,"  "++(blue colorOpts ":load")++"    Loads a schema or a prolog file into bli-prolog's in-memory store."
   ,""
   ,"Usage:"
   ,"  [PROLOG_TERM|PROLOG_CLAUSE]!   Assert a fact or rule."
@@ -67,6 +70,7 @@ data Options =
           , limit     :: Maybe Int
           , depth     :: Int
           , verbose   :: Bool
+          , nocolor   :: Bool
           , json      :: Bool
           , server    :: Bool
           , port      :: Maybe Int
@@ -81,6 +85,7 @@ startOptions version =
           , limit = def &= help "Limit the number of solutions found"
           , depth = 100 &= help "Maximum depth to traverse when using limited search"
           , goal = def &= args &= typ "GOALSTRING"
+          , nocolor = False &= help "Turn off colors in the REPL."
           , verbose = True &= help "Specify whether or not to use verbose output (on by default)"
           , json = False &= help "Specify whether or not json output formatting is used for queries."
           , server = False &= help "Starts a REST server for processing bli prolog queries if set."

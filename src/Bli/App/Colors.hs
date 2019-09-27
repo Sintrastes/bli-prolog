@@ -11,9 +11,13 @@ red True s = "\27[31m" ++ s ++ "\27[37m"
 red False s = s
 
 blue :: Bool -> String -> String
-blue True s = "\27[37m" ++ s ++ "\27[37m"
+blue True s = "\27[36m" ++ s ++ "\27[37m"
 blue False s = s
 
 yellow :: Bool -> String -> String
 yellow True s = "\27[33m" ++ s ++ "\27[37m"
 yellow False s = s
+
+green :: Bool -> String -> String
+green True s = "\27[32m" ++ s ++ "\27[37m"
+green False s = s
