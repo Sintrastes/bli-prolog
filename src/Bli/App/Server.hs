@@ -20,7 +20,9 @@ import Data.String
 import System.Directory
 import Control.Monad
 import Prolog.Analysis
+import Prolog.Parser
 import Control.Applicative
+import Control.Monad.Bli
 
 -- | A data type to model the types of 
 --   requests that can be made to the server
@@ -39,6 +41,7 @@ data BliResponse =
      SyntaxError InvalidClause
   -- | Response to successful query
    | QuerySuccess BU.ByteString
+   | AssertionSuccess
 
 parseRequest :: Request -> IO (Maybe BliRequest)
 parseRequest req 
@@ -53,22 +56,29 @@ parseRequest req
 processResponse :: Maybe BliResponse -> IO Response
 processResponse (Just (SyntaxError err)) = return $ responseBuilder badRequest400 [] "Syntax error"
 processResponse (Just (QuerySuccess response)) = return $ jsonResponse $ byteString response
+processResponse (Just AssertionSuccess) = return $ responseBuilder status200 [] ""
 processResponse Nothing = return $ responseBuilder badRequest400 [] "Bad request"
 
--- Note: I'll want to wrap this in my own datatypes above,
--- and then translate it to the "Request" and "Response" datatypes.
+-- This is where the magic happens.
 requestHandler :: Maybe BliRequest -> IO (Maybe BliResponse)
-requestHandler r = undefined --case reqMethod r of
+requestHandler (Just (MakeQuery query)) 
+  = case (parseBliCommand $ BU.toString $ B.toStrict $ query) of 
+      Left err -> return $ Just $ SyntaxError $ undefined
+      Right val -> undefined
+requestHandler (Just (MakeAssertion assertion)) = undefined
+-- If we recieve an unsupported request, return the appropriate
+-- response.
+requestHandler Nothing = return Nothing
 
 -- | Initialize a new bli-prolog server on @port@. 
-newServer :: Int -> IO ()
+newServer :: Int -> Bli ()
 newServer port = do
-  homeDir <- getHomeDirectory
+  homeDir <- io $ getHomeDirectory
   -- Get keys and certificates.
   let tSet = tlsSettings (homeDir ++ "/.bedelibry/prolog-server/server.crt") 
                          (homeDir ++ "/.bedelibry/prolog-server/server.key")
   -- Run the server on the given port.
-  runTLS tSet (setPort port defaultSettings) app
+  io $ runTLS tSet (setPort port defaultSettings) app
 
 -- | Warp application for our server.
 app :: Request -> (Response -> IO ResponseReceived) -> IO ResponseReceived
