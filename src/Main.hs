@@ -120,30 +120,34 @@ repl opts clauses schema = do
                         Just (Right clause) -> (repl opts (clauses ++ [clause]) schema)
 
 main = do
-  -- opts <- checkOptions
-  opts <- cmdArgs startOptions
-  -- If file not specified, start with an empty set of clauses.
-  p <- case program opts of
-    "" -> return $ Right []
-    _  -> P.clausesFromFile $ program opts
-  s <- case schema opts of
-    "" -> return $ Right []
-    _  -> schemaFromFile $ schema opts
-  case (p,s) of 
-    (Left err,_) -> do putStrLn ("\27[31m"++"Error"++"\27[37m"++" parsing prolog file:") 
-                       putStrLn $ foldr1 (\x -> \y -> x ++ "\n" ++ y) $
-                                         (map (\x -> "  " ++ x)) $ 
-                                         (splitOn "\n" $ show err)
-    (_,Left err) -> do putStrLn ("\27[31m"++"Error"++"\27[37m"++" parsing schema file:") 
-                       putStrLn $ foldr1 (\x -> \y -> x ++ "\n" ++ y) $
-                                         (map (\x -> "  " ++ x)) $ 
-                                         (splitOn "\n" $ show err)
-    (Right clauses, Right schema) ->
-      case goal opts of
-        "" -> do
-           if (verbose opts)
-           then do
-             putStrLn replBanner
-           else return ()
-           repl opts clauses schema
-        input -> processUserInput input opts clauses schema >> return ()
+  -- Get the version from the cabal file at compile-time.
+  let v = $(getVersionFromCabal)
+  case v of 
+    Nothing -> putStrLn $ "\27[31m"++"Error loading version info from cabal file. Aborting."++"\27[37m"
+    Just version -> do
+      opts <- cmdArgs $ startOptions version
+      -- If file not specified, start with an empty set of clauses.
+      p <- case program opts of
+        "" -> return $ Right []
+        _  -> P.clausesFromFile $ program opts
+      s <- case schema opts of
+        "" -> return $ Right []
+        _  -> schemaFromFile $ schema opts
+      case (p,s) of 
+        (Left err,_) -> do putStrLn ("\27[31m"++"Error"++"\27[37m"++" parsing prolog file:") 
+                           putStrLn $ foldr1 (\x -> \y -> x ++ "\n" ++ y) $
+                                             (map (\x -> "  " ++ x)) $ 
+                                             (splitOn "\n" $ show err)
+        (_,Left err) -> do putStrLn ("\27[31m"++"Error"++"\27[37m"++" parsing schema file:") 
+                           putStrLn $ foldr1 (\x -> \y -> x ++ "\n" ++ y) $
+                                             (map (\x -> "  " ++ x)) $ 
+                                             (splitOn "\n" $ show err)
+        (Right clauses, Right schema) ->
+          case goal opts of
+            "" -> do
+               if (verbose opts)
+               then do
+                 putStrLn $ replBanner version
+               else return ()
+               repl opts clauses schema
+            input -> processUserInput input opts clauses schema >> return ()

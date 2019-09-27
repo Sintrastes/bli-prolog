@@ -37,6 +37,7 @@ library
       src
   build-depends:
       base <5
+    , split
     , containers
     , parsec
     , parser-combinators
@@ -48,6 +49,7 @@ library
     , cmdargs
   extensions:
       DeriveDataTypeable
+      TemplateHaskell
   default-language: Haskell2010
 
 executable bli-prolog
@@ -60,6 +62,8 @@ executable bli-prolog
     , readline
     , split
     , bli-prolog
+  extensions:
+    TemplateHaskell
   default-language: Haskell2010
 
 test-suite bli-prolog-test-suite
