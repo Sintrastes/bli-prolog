@@ -3,7 +3,7 @@
 --   via HTTP requests, rather than via command line
 --   arguments and the repl.
 
-module Bli.App.Server where
+module Bli.App.Server (newServer) where
 
 import Network.Shed.Httpd
 import qualified Data.ByteString.Lazy.UTF8 as B
@@ -22,12 +22,22 @@ data BliRequest =
 -- | A data type to model the types of responses
 --   that the server can return to clients.
 data BliResponse = 
--- | Respond with the appropriate JSON data.
-  BliResponse String
+  -- | Response to return when 
+   | SyntaxError InvalidClause
+  -- | Response to successful query
+   | QuerySuccess String
+
+parseRequest :: Request -> Maybe BliRequest
+
+processResponse :: BliResponse -> Response
+processResponse (BliResponse s) = 
+  Response { resCode = 0,
+             resHeaders = [],
+             resBody = s }
 
 -- Note: I'll want to wrap this in my own datatypes above,
 -- and then translate it to the "Request" and "Response" datatypes.
-requestHandler :: Request -> IO Response
+requestHandler :: BliRequest -> IO BliResponse
 requestHandler r = case reqMethod r of
   "GET"     -> return $ Response { resCode = 0, resHeaders = [], resBody = "" }
   "POST"    -> return $ Response { resCode = 0, resHeaders = [], resBody = "" }

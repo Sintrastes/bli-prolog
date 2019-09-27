@@ -15,6 +15,7 @@ import Prolog.Analysis
 import Bli.App.Config
 import Bli.App.Colors
 import Bli.App.Json
+import Bli.App.Server
 import Control.Monad.Bli
 
 import Control.Monad (when)
@@ -56,6 +57,7 @@ main = do
         -- Launch server
             True -> do
               putStrLn (red colorOpts "Server not implemented.")
+              -- newServer (port opts)
         -- If not configured to start server...
             False -> do
               case goal opts of
