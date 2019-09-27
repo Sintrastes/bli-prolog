@@ -1,4 +1,9 @@
 {-# LANGUAGE DeriveDataTypeable #-}
+
+--
+-- | Main entrypoint for the bli-prolog executable.
+--
+
 module Main where
 
 import System.Console.CmdArgs as CA hiding (program)

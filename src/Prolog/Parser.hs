@@ -12,14 +12,17 @@ import Data.Prolog.Ast
 -- Expernal Interface
 ---------------------------------------------------------------------
 
+-- | Loads a prolog file @filename@, and parses it into a list of clauses.
 clausesFromFile filename = parseFromFile programP filename
 
+-- | Parses a prolog file directly from a string into a list of clauses.
 clausesFromString context = parse programP context
 
 goalFromString string = parse goalP "<goalstring>" string
 
 lambdaGoalFromString string = parse lambdaGoalP "<goalstring>" string
 
+-- | Parse a bedelibry prolog command from a string
 parseBliCommand string = parse bliCommandP "" string
 
 ----------------------------------------------------------------------
@@ -50,7 +53,7 @@ spacesOrComments = skipMany ((space >> return()) <|> commentP)
 csymb c = (try(spacesOrComments >> char c) >> spacesOrComments)
 symb s = (try(spacesOrComments >> string s) >> spacesOrComments)
 
-
+-- | Parser for a bedelibry command.
 bliCommandP :: Parser BliCommand
 bliCommandP = do 
   result <- (try lambdaGoalP `eitherP` (try assertClauseP `eitherP` (try assertionP `eitherP` goalP))) 
@@ -62,7 +65,7 @@ bliCommandP = do
             Left  z -> return $ AssertMode z
             Right z -> return $ QueryMode z
     
-
+-- | Parser for a lambda query.
 lambdaGoalP :: Parser LambdaGoal
 lambdaGoalP = do symb "?-"
                  skipMany (space >> return ())
@@ -72,25 +75,28 @@ lambdaGoalP = do symb "?-"
                  ts <- termsP
                  csymb '.'
                  return (vars, ts)                
-                
+
+-- | Parser for a plain prolog goal.                
 goalP :: Parser Goal
 goalP = do symb "?-"
            ts <- termsP
            csymb '.'
            return ts
 
+-- | Parser for an assertion -- a prolog goal ending with a ! instead of a .
 assertionP :: Parser Goal
 assertionP = do symb "?-"
                 ts <- termsP
                 csymb '!'
                 return ts
 
- 
+-- | Parser for a pure prolog program. 
 programP :: Parser Program
 programP = do spacesOrComments
               clauses <- many1 clauseP
               return clauses
 
+-- | Parser for a plain prolog clause. Depreciated. 
 clauseP :: Parser Clause
 clauseP = do t <- termP
              body <- option []
@@ -98,6 +104,7 @@ clauseP = do t <- termP
              csymb '.'
              return (t, body)
 
+-- | Parser for the assertion of a prolog clause.
 assertClauseP :: Parser Clause
 assertClauseP = do symb "?-"
                    t <- termP
@@ -106,15 +113,18 @@ assertClauseP = do symb "?-"
                    csymb '!'
                    return (t, body)
 
+-- | Parser for a prolog term.
 termP :: Parser Term
 termP =  (variableP >>= return . Var)
     <|> literalP
     <|> (listP     <?> "list term")
 
 
+-- | Parser for a list of prolog terms.
 termsP :: Parser Terms
 termsP = sepBy1 termP (csymb ',')
 
+-- | Parser for a prolog literal. (What does this do?)
 literalP :: Parser Term
 literalP = do id <- atomP
               option (Comp id [])
@@ -128,6 +138,7 @@ literalP = do id <- atomP
 parens :: Parser p -> Parser p
 parens p = between (csymb '(') (csymb ')') p
 
+-- | Parser that handles lists as prolog terms.
 listP :: Parser Term
 listP = between (csymb '[') (csymb ']')
                (option emptyListTermP listTermsP)
@@ -145,6 +156,7 @@ emptyListTermP = Comp "[]" []
 consP :: Term -> Term -> Term
 consP h t = Comp "." [h,t]
 
+-- | Parser for a bedelibry prolog identifier.
 atomP :: Parser Atom
 atomP = plain <|> symbolic <|> quoted
   where
@@ -156,6 +168,7 @@ atomP = plain <|> symbolic <|> quoted
                  s <- manyTill anyChar (try $ char '\'')
                  return $ s ) <?> "quoted atom"  -- drop quotes; 'a' == a
 
+-- | Parser for a bedelibry prolog variable.
 variableP :: Parser String
 variableP = (do c <- upper <|> char '_'
                 cs <- many (alphaNum <|> char '_')

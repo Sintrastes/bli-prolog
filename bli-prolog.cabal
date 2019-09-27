@@ -6,8 +6,9 @@
 
 name:           bli-prolog
 version:        0.3.0
-synopsis:       Pure Prolog interpreter developed for use in bedelibry. Based on the
-                pure-prolog interpreter written by Ken Friis Larsen.
+synopsis:       Pure Prolog interpreter developed for use in bedelibry.
+description:    Bedelibry Prolog (also known as bli prolog) is a new dialect of Prolog developed for use in Bedelibry. This implementation is based on the pure-prolog interpreter written by Ken Friis Larsen, but adds a number of new features, which can be read more about on the project page.
+homepage:       https://github.com/Sintrastes/bli-prolog
 author:         Nathan Bedell
 maintainer:     nbedell@tulane.edu
 copyright:      Nathan Bedell, 2019

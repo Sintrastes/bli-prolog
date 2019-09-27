@@ -26,7 +26,6 @@ occursIn :: Variable -> Term -> Bool
 occursIn v (Var x)     = v == x
 occursIn v (Comp _ ms) = any (occursIn v) ms
 
-
 subs :: Unifier -> Term -> Term
 subs u t@(Var x)   = maybe t id (lookup x u)
 subs u (Comp n ts) = Comp n (map (subs u) ts)
@@ -61,6 +60,7 @@ freshen bound (tc, tb) = (subs sub tc, map (subs sub) tb)
                         if v' `elem` bound then nextVar (i+1) v
                         else v'
 
+-- | Datatype representing the solution to a prolog query.
 newtype Solution = Solution [(Variable, Term)]
                  deriving (Eq, Read)
 
@@ -130,19 +130,19 @@ makeReportTree prog goal = Node goal $ solve prog (goal ++ makeReportGoal goal)
 -- Traveral of Search Trees
 ----------------------------------------------------------------------
 
--- Depth first
+-- | Depth first search function.
 dfs :: SearchTree -> [Solution]
 dfs (Sol sols) = [sols]
 dfs (Node _ st) = [ s | t <- st, s <- dfs t]
 
--- Breath first
+-- | Breath first search function.
 bfs :: SearchTree -> [Solution]
 bfs t = trav [t]
     where trav [] = []
           trav ((Sol x) : q) = x : trav q
           trav ((Node _ st)  : q) = trav (q ++ st)
 
--- Limited depth first
+-- | Limited depth first search function.
 limitedDfs :: Int -> SearchTree -> [Solution]
 limitedDfs _ (Sol sols)  = [sols]
 limitedDfs 0 _           = []

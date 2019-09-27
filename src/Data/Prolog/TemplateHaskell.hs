@@ -1,5 +1,10 @@
 {-# LANGUAGE TemplateHaskell, QuasiQuotes #-}
 
+--
+-- | Some Template Haskell quasiquoters -- useful for running tests, and for
+--   using bedelibry prolog as an EDSL within Haskell.
+--
+
 module Data.Prolog.TemplateHaskell(
     goal,
     bli,
