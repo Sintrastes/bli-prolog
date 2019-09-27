@@ -20,7 +20,7 @@ import System.Console.Readline
 import Data.List.Split
 import System.Console.CmdArgs as CA hiding (program)
 
-processUserInput :: String -> Options -> Clauses -> Schema -> IO (Maybe (Either Goal Clause))
+processUserInput :: String -> Bli ()
 processUserInput input opts clauses schema = do
           let command = P.parseBliCommand input
           case command of   
@@ -95,7 +95,7 @@ processUserInput input opts clauses schema = do
                              putStrLn $ "\27[33m"++"All bli prolog commands end with either a '.' or an '!'."++"\27[37m"
                              return Nothing
 
-repl :: Options -> Clauses -> Schema -> IO ()
+repl :: Bli ()
 repl opts clauses schema = do
   maybeLine <- readline ("\27[36m"++"?- "++ "\27[37m")
   case maybeLine of
