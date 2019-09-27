@@ -14,6 +14,7 @@ import Prolog.Interp
 import Prolog.Analysis
 import Bli.App.Config
 import Bli.App.Colors
+import Bli.App.Json
 import Control.Monad.Bli
 
 import Control.Monad (when)
@@ -154,7 +155,7 @@ processBliCommand input' = do
                             then io $ putStrLn (green colorOpts "True.")
                             else return ()
                          _  -> do
-                            io $ mapM_ print solutions
+                            io $ mapM_ (putStrLn . solutionToJson) solutions
                      Left (AtomsNotInSchema atoms) -> do
                       io $ putStrLn $ (red colorOpts "Failure.")++" Query unsuccessful."
                       io $ putStrLn $ "    The identifiers "++ show atoms
