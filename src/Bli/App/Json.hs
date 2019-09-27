@@ -6,8 +6,13 @@ module Bli.App.Json where
 -- 
 
 import Data.Prolog.Ast
-import Prolog.Interp (Solution)
+import Prolog.Interp
+import Data.Aeson.Encode.Pretty
+import qualified Data.Map as Map
+import Data.ByteString.Lazy.UTF8
 
--- | For JSON formatting
--- solutionToJSON :: Solution -> JSON
--- solutionToJSON = undefined
+-- | Formats a solution as an encoded Json string.
+solutionToJson :: Solution -> String
+solutionToJson (Solution list) = 
+          (\xs -> toString $ encodePretty $ Map.fromList xs) 
+          (map (\(x,y) -> (x, show y)) list)

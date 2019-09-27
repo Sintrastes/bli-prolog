@@ -48,6 +48,9 @@ library
     , th-lift
     , template-haskell
     , cmdargs
+    , utf8-string
+    , aeson
+    , aeson-pretty
   extensions:
       DeriveDataTypeable
       TemplateHaskell
