@@ -143,16 +143,7 @@ main = do
         "" -> do
            if (verbose opts)
            then do
-             putStrLn ""
-             putStrLn "  |      |            |"
-             putStrLn "  |      |  .         |"
-             putStrLn "  |---|  |     |---|  |"
-             putStrLn "  |   |  |  |  |   |  |"
-             putStrLn "  |---|  |  |  |---|  |"
-             putStrLn "               |"
-             putStrLn "               |"
-             putStrLn "Welcome to the bli-prolog interpreter v0.3! (C) Nathan Bedell 2019"
-             putStrLn "Type \27[36m:h\27[37m for help, or \27[36m:exit\27[37m to quit."
+             putStrLn replBanner
            else return ()
            repl opts clauses schema
         input -> processUserInput input opts clauses schema >> return ()

@@ -23,6 +23,19 @@ searchFunction DFS _     = dfs
 searchFunction BFS _     = bfs
 searchFunction Limited n = limitedDfs n
 
+-- | The banner which is displayed when the user first loads the repl.
+replBanner = foldr1 (\x -> \y -> x ++ "\n" ++ y) $
+    [""
+    ,"  |      |            |"
+    ,"  |      |  .         |"
+    ,"  |---|  |     |---|  |"
+    ,"  |   |  |  |  |   |  |"
+    ,"  |---|  |  |  |---|  |"
+    ,"               |"
+    ,"               |"
+    ,"Welcome to the bli-prolog interpreter v0.3! (C) Nathan Bedell 2019"
+    ,"Type \27[36m:h\27[37m for help, or \27[36m:exit\27[37m to quit."]
+
 -- | Help scree to print when :h is called in the REPL
 replHelpScreen = foldr1 (\x -> \y -> x ++ "\n" ++ y) $
   ["Commands: "
