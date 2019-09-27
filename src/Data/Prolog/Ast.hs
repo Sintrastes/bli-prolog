@@ -8,11 +8,17 @@
 module Data.Prolog.Ast where
 
 import Language.Haskell.TH.Lift
+import Data.List (intercalate)
 
 -- | An internal representation of prolog terms.
 data Term = Var Variable
           | Comp Atom Terms
-          deriving (Eq, Show, Read, Lift)
+          deriving (Eq, Read, Lift)
+
+instance Show Term where
+  show (Var x) = show x
+  show (Comp id []) = show id
+  show (Comp id ts) = show id ++ "(" ++ (intercalate "," (map show ts)) ++ ")" 
 
 -- | Used for identifiers for entities and prolog relations/predicates.
 --   Must begin with a lowercase letter.
