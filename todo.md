@@ -19,4 +19,6 @@ Todo
   * Implement commands to :list-schema (short :ls)
     and to :list-knowledge-base (short :lkb) to list the working 
     schema and knowledge base of the REPL.
-  * Fix error messages in the repl for using a predicate with invalid arity.
+  * Check to see if my use of the Bli monad with the warp server works,
+    or if I need to use IORefs or something else to get it to work.
+  * Fix error messages for using a predicate with invalid arity.
