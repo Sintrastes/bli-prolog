@@ -7,6 +7,7 @@ module Prolog.Parser where
 import Text.ParserCombinators.Parsec
 import Control.Monad.Combinators (eitherP)
 import Data.Prolog.Ast
+import Data.Schema
 
 ---------------------------------------------------------------------
 -- Expernal Interface
@@ -174,3 +175,27 @@ variableP :: Parser String
 variableP = (do c <- upper <|> char '_'
                 cs <- many (alphaNum <|> char '_')
                 return (c:cs)) <?> "variable"
+
+-- Schema parsing
+
+schemaFromFile :: String -> IO (Either ParseError Schema)
+schemaFromFile filepath = parseFromFile schemaFileP filepath 
+
+schemaFileP :: Parser Schema
+schemaFileP = many schemaLineP
+
+schemaLineP :: Parser (String, Int)
+schemaLineP = do
+  id <- atomP
+  csymb ':'
+  arity <- read <$> many1 digit
+  ((try $ oneOf "\n") >> return ()) <|> eof
+  return (id, arity)
+  
+schemaCommandP :: Parser (String, Int)
+schemaCommandP = do
+  id <- atomP
+  csymb ':'
+  arity <- read <$> many1 digit
+  csymb '!'
+  return (id, arity)

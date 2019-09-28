@@ -7,7 +7,6 @@ module Bli.App where
 
 import Data.Prolog.Ast
 import Data.Schema
-import Schema.Parser
 import Prolog.Parser
 import Prolog.Interp
 import Prolog.Analysis

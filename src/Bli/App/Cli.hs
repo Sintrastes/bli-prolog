@@ -17,7 +17,6 @@ import Prolog.Analysis
 import Data.Prolog.Ast
 import Data.Schema
 import Data.Aeson
-import Schema.Parser
 import Prolog.Parser
 import Prolog.Interp
 import Data.List
