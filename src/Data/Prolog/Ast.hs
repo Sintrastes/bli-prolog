@@ -9,6 +9,7 @@ module Data.Prolog.Ast where
 
 import Language.Haskell.TH.Lift
 import Data.List (intercalate)
+import Data.Schema
 
 -- | An internal representation of prolog terms.
 data Term = Var Variable
@@ -49,6 +50,8 @@ type Clause = (Term, Terms)
 data BliCommand = QueryMode Goal 
                 | AssertMode Goal
                 | AssertClause Clause
+             -- Make new assertions into the active schema
+                | AssertTypePred SchemaEntry
                 | LambdaQuery LambdaGoal
   deriving(Show, Lift)
 
