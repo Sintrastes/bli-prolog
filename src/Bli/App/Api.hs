@@ -10,6 +10,7 @@
 module Bli.App.Api where
 
 import Prolog.Analysis
+import Prolog.Interp
 
 -- | A data type to model the types of 
 --   requests that can be made to the server
@@ -29,3 +30,9 @@ data BliResponse =
   -- | Response to successful query
    | QuerySuccess String
    | AssertionSuccess
+
+data BliResult =
+   Result_QueryFail InvalidClause
+ | Result_QuerySuccess [Solution]
+ | Result_AssertionSuccess
+ | Result_AssertionFail [String]

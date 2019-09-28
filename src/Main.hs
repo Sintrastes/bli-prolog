@@ -18,6 +18,7 @@ import Bli.App.Json
 import Bli.App.Server
 import Bli.App.Api
 import Control.Monad.Bli
+import Control.Monad.Bli.Reader
 
 import Control.Monad (when)
 import Data.List (intersperse, isPrefixOf)
@@ -99,6 +100,55 @@ repl = do
           | otherwise -> do
                 processBliCommand line
                 repl
+
+-- | New helper function for our refactoring
+processBliCommand' :: BliCommand -> BliReader BliResult
+processBliCommand' x = do
+  opts <- askOpts
+  clauses <- askProgram
+  schema <- askSchema
+  case x of
+    (AssertMode goal) -> do
+         case isBliCommandValid x schema of
+           Right Ok ->
+               return $ Result_AssertionSuccess
+           Left (AtomsNotInSchema atoms) ->
+               return $ Result_AssertionFail atoms
+    (AssertClause clause) -> do
+         case isBliCommandValid x schema of
+           Right Ok -> 
+               return $ Result_AssertionSuccess
+           Left (AtomsNotInSchema atoms) ->
+               return $ Result_AssertionFail atoms
+    (LambdaQuery (vars, goal)) -> do
+        case isBliCommandValid x schema of
+          Right Ok -> 
+            let t = makeReportTree clauses goal in
+              return $ Result_QuerySuccess $ 
+                           map Solution 
+                         $ map (filter (\(x,y) -> x `elem` vars)) 
+                         -- Note: This is currently fixed to use bfs.
+                         $ map (\(Solution x) -> x) $ bfs t
+          Left BoundVarNotInBody ->
+            return $ Result_QueryFail BoundVarNotInBody
+          Left (AtomsNotInSchema atoms) ->
+            return $ Result_QueryFail (AtomsNotInSchema atoms)
+    (QueryMode goal) ->
+        case isBliCommandValid x schema of
+          Right Ok ->
+            return $ Result_QuerySuccess (  
+              let limiting lst = case limit opts of
+                    Nothing -> lst
+                    Just n  -> take n lst
+                  searchF = searchFunction (search opts) $ depth opts
+                  t = makeReportTree clauses goal
+                  solutions = limiting $ searchF t
+              in solutions )
+          Left (AtomsNotInSchema atoms) ->
+            return $ Result_QueryFail (AtomsNotInSchema atoms)
+    -- This case should not be possible since we are not dealing with a
+    -- lambda query.
+          Left _ -> error $ "Invalid exception encountered."
 
 -- | Helper function to process bli-prolog commands in a running application.
 processBliCommand :: String -> Bli ()
