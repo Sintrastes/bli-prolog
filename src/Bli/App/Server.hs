@@ -23,31 +23,66 @@ import Prolog.Analysis
 import Prolog.Parser
 import Control.Applicative
 import Control.Monad.Bli
+import qualified Control.Monad.Bli.Pure as Pure
+
+import Bli.App
 import Bli.App.Api
 
-parseRequest :: Request -> IO (Maybe BliRequest)
+parseRequest :: Request -> Bli (Maybe BliRequest)
 parseRequest req 
     | (method == "GET") && (path == [pack "query"]) 
-        = do body <- body'
+        = do body <- io $ body'
              return $ Just $ MakeQuery $ BU.toString $ B.toStrict body
     | otherwise = return $ Nothing
   where path   = pathInfo req
         method = requestMethod req
         body'  = strictRequestBody req
 
-processResponse :: Maybe BliResponse -> IO Response
+processResponse :: Maybe BliResponse -> Bli Response
 processResponse (Just (SyntaxError err)) = return $ responseBuilder badRequest400 [] "Syntax error"
 processResponse (Just (QuerySuccess response)) = return $ jsonResponse $ byteString $ BU.fromString $ response
 processResponse (Just AssertionSuccess) = return $ responseBuilder status200 [] ""
 processResponse Nothing = return $ responseBuilder badRequest400 [] "Bad request"
 
 -- This is where the magic happens.
-requestHandler :: Maybe BliRequest -> IO (Maybe BliResponse)
+-- Note: This implementatio seems a bit inefficent at the moment.
+-- There are a lot of cases here that will never be reached.
+requestHandler :: Maybe BliRequest -> Bli (Maybe BliResponse)
 requestHandler (Just (MakeQuery query)) 
   = case (parseBliCommand query) of 
-      Left err -> return $ Just $ SyntaxError $ undefined
-      Right val -> undefined
-requestHandler (Just (MakeAssertion assertion)) = undefined
+      Left err -> return $ Just $ SyntaxError $ BoundVarNotInBody -- "Some error. Replace me!"
+      Right command -> do
+        result <- Pure.liftFromPure $ processBliCommand command
+        case result of
+          Result_QueryFail (AtomsNotInSchema atoms) -> do
+              return $ Just $ SyntaxError $ BoundVarNotInBody -- "Query fail, replace me."
+          Result_QueryFail BoundVarNotInBody -> do
+              return $ Just $ SyntaxError $ BoundVarNotInBody -- "Query fail, replace me."
+          Result_QuerySuccess solutions -> do
+              return $ Just $ SyntaxError $ BoundVarNotInBody -- "Query success, replace me."
+     -- These will never happen.
+          Result_AssertionSuccess -> do
+              return $ Just $ SyntaxError $ BoundVarNotInBody -- "replace me."
+          Result_AssertionFail atoms -> do
+              return $ Just $ SyntaxError $ BoundVarNotInBody -- "replace me."
+requestHandler (Just (MakeAssertion assertion))
+  = case (parseBliCommand assertion) of 
+      Left err -> return $ Just $ SyntaxError $ BoundVarNotInBody -- "replace me."
+      Right command -> do
+        result <- Pure.liftFromPure $ processBliCommand command
+        case result of
+       -- These will never happen
+          Result_QueryFail (AtomsNotInSchema atoms) -> do
+              return $ Just $ SyntaxError $ BoundVarNotInBody -- "replace me."
+          Result_QueryFail BoundVarNotInBody -> do
+              return $ Just $ SyntaxError $ BoundVarNotInBody -- "replace me."
+       -- These will happen.
+          Result_QuerySuccess solutions -> do
+              return $ Just $ SyntaxError $ BoundVarNotInBody -- "replace me."
+          Result_AssertionSuccess -> do
+              return $ Just $ SyntaxError $ BoundVarNotInBody -- "replace me."
+          Result_AssertionFail atoms -> do
+              return $ Just $ SyntaxError $ BoundVarNotInBody -- "replace me."
 -- If we recieve an unsupported request, return the appropriate
 -- response.
 requestHandler Nothing = return Nothing
@@ -56,16 +91,19 @@ requestHandler Nothing = return Nothing
 newServer :: Int -> Bli ()
 newServer port = do
   homeDir <- io $ getHomeDirectory
+  opts    <- getOpts
+  clauses <- getProgram
+  schema  <- getSchema
   -- Get keys and certificates.
   let tSet = tlsSettings (homeDir ++ "/.bedelibry/prolog-server/server.crt") 
                          (homeDir ++ "/.bedelibry/prolog-server/server.key")
   -- Run the server on the given port.
-  io $ runTLS tSet (setPort port defaultSettings) app
+  io $ runTLS tSet (setPort port defaultSettings) ( \x -> \y -> (runBli opts clauses schema) $ app x y)
 
 -- | Warp application for our server.
-app :: Request -> (Response -> IO ResponseReceived) -> IO ResponseReceived
+app :: Request -> (Response -> IO ResponseReceived) -> Bli ResponseReceived
 app req respond = 
-     respond
+     (io . respond)
  =<< processResponse
  =<< requestHandler
  =<< parseRequest req

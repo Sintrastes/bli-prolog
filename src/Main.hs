@@ -18,7 +18,6 @@ import qualified Control.Monad.Bli.Pure as Pure
 import System.Console.CmdArgs as CA hiding (program)
 import Schema.Parser
 import Prolog.Parser
-
 import Control.Monad (when)
 import Data.List (intersperse, isPrefixOf)
 import Data.List.Split
