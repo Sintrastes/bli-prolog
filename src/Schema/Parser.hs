@@ -20,4 +20,11 @@ line = do
   ((try $ oneOf "\n") >> return ()) <|> eof
   return (id, arity)
   
+schemaCommandP :: Parser (String, Int)
+schemaCommandP = do
+  id <- atomP
+  csymb ':'
+  arity <- read <$> many1 digit
+  csymb '!'
+  return (id, arity)
   

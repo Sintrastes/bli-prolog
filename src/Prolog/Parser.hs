@@ -56,15 +56,16 @@ symb s = (try(spacesOrComments >> string s) >> spacesOrComments)
 -- | Parser for a bedelibry command.
 bliCommandP :: Parser BliCommand
 bliCommandP = do 
-  result <- (try lambdaGoalP `eitherP` (try assertClauseP `eitherP` (try assertionP `eitherP` goalP))) 
+  result <- (try lambdaGoalP `eitherP` (try assertClauseP `eitherP` (try assertionP `eitherP` (goalP `eitherP` undefined))))
   case result of
      Left x  -> return $ LambdaQuery x
      Right x -> case x of 
          Left y  -> return $ AssertClause y
          Right y -> case y of 
             Left  z -> return $ AssertMode z
-            Right z -> return $ QueryMode z
-    
+            Right z -> case z of
+                Left w  -> return $ QueryMode w
+                Right w -> undefined
 -- | Parser for a lambda query.
 lambdaGoalP :: Parser LambdaGoal
 lambdaGoalP = do symb "?-"
