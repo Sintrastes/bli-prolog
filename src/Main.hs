@@ -18,7 +18,7 @@ import Bli.App.Json
 import Bli.App.Server
 import Bli.App.Api
 import Control.Monad.Bli
-import Control.Monad.Bli.Reader
+import qualified Control.Monad.Bli.Pure as Pure
 
 import Control.Monad (when)
 import Data.List (intersperse, isPrefixOf)
@@ -71,7 +71,7 @@ main = do
                    runBli opts clauses schema $ repl
                 -- If the user supplies a non-empty goal-string, run a single
                 -- command rather than starting the REPL.
-                input -> runBli opts clauses schema $ processBliCommand input
+                input -> runBli opts clauses schema $ processCliInput input
 
 -- | Main entrypoint for the bli-prolog REPL.
 repl :: Bli ()
@@ -98,25 +98,34 @@ repl = do
         -- If the user has not entered a REPL command, try processing
         -- their input as a standard Bedelibry Prolog command.
           | otherwise -> do
-                processBliCommand line
+                processCliInput line
                 repl
 
 -- | New helper function for our refactoring
-processBliCommand' :: BliCommand -> BliReader BliResult
-processBliCommand' x = do
-  opts <- askOpts
-  clauses <- askProgram
-  schema <- askSchema
+--   Note: To ensure for a consistent API
+--   and to best allow reuse between
+--   the cli and server interfaces, this
+--   function should also update the state of
+--   the running Bli instance.
+processBliCommand :: BliCommand -> Pure.Bli BliResult
+processBliCommand x = do
+  opts <- Pure.getOpts
+  clauses <- Pure.getProgram
+  schema  <- Pure.getSchema
   case x of
     (AssertMode goal) -> do
          case isBliCommandValid x schema of
-           Right Ok ->
+           Right Ok -> do
+               Pure.modifyProgram 
+                (\clauses -> clauses ++
+                   (map (\term -> (term,[])) goal))
                return $ Result_AssertionSuccess
            Left (AtomsNotInSchema atoms) ->
                return $ Result_AssertionFail atoms
     (AssertClause clause) -> do
          case isBliCommandValid x schema of
-           Right Ok -> 
+           Right Ok -> do
+               Pure.modifyProgram (\clauses -> clauses ++ [clause]) 
                return $ Result_AssertionSuccess
            Left (AtomsNotInSchema atoms) ->
                return $ Result_AssertionFail atoms
@@ -151,8 +160,8 @@ processBliCommand' x = do
           Left _ -> error $ "Invalid exception encountered."
 
 -- | Helper function to process bli-prolog commands in a running application.
-processBliCommand :: String -> Bli ()
-processBliCommand input' = do
+processCliInput :: String -> Bli ()
+processCliInput input' = do
           -- Get schema, clauses, and options from context.
           schema <- getSchema
           clauses <- getProgram
@@ -162,52 +171,28 @@ processBliCommand input' = do
           -- our parsers
           let input = "?- " ++ input'
           -- Parse and handle the command
-          let command = parseBliCommand input
-          case command of   
-              Right x@(AssertMode goal) -> do
-                   case isBliCommandValid x schema of
-                     Right Ok -> do
-                       io $ putStrLn $ (green colorOpts "OK.")++" Assertion successful."
-                       modifyProgram (\clauses -> clauses ++ (map (\term -> (term,[])) goal))
-                     Left (AtomsNotInSchema atoms) -> do
-                       io $ putStrLn $ (red colorOpts "Failure.")++" Assertion unsuccessful."
+          let parserOutput = parseBliCommand input
+          case parserOutput of
+            Left err -> do io $ putStrLn ((red colorOpts "Error")++" parsing query string:")
+                           io $ putStrLn $ foldr1 (\x -> \y -> x ++ "\n" ++ y) $
+                                             (map (\x -> "  " ++ x)) $ 
+                                             (splitOn "\n" $ show err)
+                           io $ putStrLn $ 
+                             (yellow colorOpts
+                                "All bli prolog commands end with either a '.' or an '!'.")
+            Right command -> do
+              result <- Pure.liftFromPure $ processBliCommand command
+              case result of
+                Result_QueryFail (AtomsNotInSchema atoms) -> do
+                       io $ putStrLn $ (red colorOpts "Failure.")++" Query unsuccessful."
                        io $ putStrLn $ "    The identifiers "++ show atoms
                        io $ putStrLn $ "    have not been declared in a schema."
-              Right x@(AssertClause clause) -> do
-                   case isBliCommandValid x schema of
-                     Right Ok -> do
-                       io $ putStrLn $ (green colorOpts "OK.")++" Assertion successful."
-                       modifyProgram (\clauses -> clauses ++ [clause])
-                     Left (AtomsNotInSchema atoms) -> do
-                       io $ putStrLn $ (red colorOpts "Failure.")++" Assertion unsuccessful."
-                       io $ putStrLn $ "    The identifiers "++ show atoms
-                       io $ putStrLn $ "    have not been declared in a schema."
-              Right x@(LambdaQuery (vars, goal)) -> do
-                  case isBliCommandValid x schema of
-                    Right Ok -> do
-                      let t = makeReportTree clauses goal
-                      io $ print $ map Solution 
-                                 $ map (filter (\(x,y) -> x `elem` vars)) 
-                                 -- Note: This is currently fixed to use bfs.
-                                 $ map (\(Solution x) -> x) $ bfs t
-                    Left (AtomsNotInSchema atoms) -> do
-                      io $ putStrLn $ (red colorOpts "Failure.")++" Query unsuccessful."
-                      io $ putStrLn $ "    The identifiers "++ show atoms
-                      io $ putStrLn $ "    have not been declared in a schema."
-                    Left (BoundVarNotInBody) -> do
+                Result_QueryFail BoundVarNotInBody -> do
                       io $ putStrLn $ (red colorOpts "Failure.")++" Query unsuccessful."
                       io $ putStrLn $ "    Variables bound by a lambda abstraction that do not appear"
-                      io $ putStrLn $ "    In the body of a query."
-              Right x@(QueryMode goal) -> do
-                   case isBliCommandValid x schema of
-                     Right Ok -> do
-                       let limiting lst = case limit opts of
-                             Nothing -> lst
-                             Just n  -> take n lst
-                       let searchF = searchFunction (search opts) $ depth opts
-                       let t = makeReportTree clauses goal
-                       let solutions = limiting $ searchF t
-                       case solutions of
+                      io $ putStrLn $ "    In the body of a query."                    
+                Result_QuerySuccess solutions -> do
+                    case solutions of
                          [] -> do
                             io $ putStrLn (yellow colorOpts "No solutions.")
                          (x:[]) -> do
@@ -216,18 +201,9 @@ processBliCommand input' = do
                             else return ()
                          _  -> do
                             io $ mapM_ (putStrLn . solutionToJson) solutions
-                     Left (AtomsNotInSchema atoms) -> do
-                      io $ putStrLn $ (red colorOpts "Failure.")++" Query unsuccessful."
-                      io $ putStrLn $ "    The identifiers "++ show atoms
-                      io $ putStrLn $ "    have not been declared in a schema."
-                   -- This case should not be possible since we are not dealing with a
-                   -- lambda query.
-                     Left _ -> do
-                       io $ error $ "Invalid exception encountered."
-              Left err -> do io $ putStrLn ((red colorOpts "Error")++" parsing query string:")
-                             io $ putStrLn $ foldr1 (\x -> \y -> x ++ "\n" ++ y) $
-                                               (map (\x -> "  " ++ x)) $ 
-                                               (splitOn "\n" $ show err)
-                             io $ putStrLn $ 
-                               (yellow colorOpts
-                                  "All bli prolog commands end with either a '.' or an '!'.")
+                Result_AssertionSuccess -> do
+                  io $ putStrLn $ (green colorOpts "OK.")++" Assertion successful."
+                Result_AssertionFail atoms -> do
+                       io $ putStrLn $ (red colorOpts "Failure.")++" Assertion unsuccessful."
+                       io $ putStrLn $ "    The identifiers "++ show atoms
+                       io $ putStrLn $ "    have not been declared in a schema."

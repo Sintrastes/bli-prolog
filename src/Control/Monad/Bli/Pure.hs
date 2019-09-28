@@ -14,6 +14,7 @@ import Control.Applicative
 import Data.Schema
 import Control.Monad.State.Lazy
 import Bli.App.Config (Options)
+import qualified Control.Monad.Bli as Bli
 
 -- | A monad for wrapping pure computations done (and run) in bli prolog.
 type Bli a = State (Options, Program, Schema) a
@@ -57,3 +58,12 @@ setOpts val = modify (\(x,y,z) -> (val, y, z))
 -- | Set the schema of a pure bli computation.
 setSchema :: Schema  -> Bli ()
 setSchema val = modify (\(x,y,z) -> (x, y, val))
+
+-- Helper function to go from the pure to the impure version of the Bli monad.
+liftFromPure :: Bli a -> Bli.Bli a
+liftFromPure x = do
+  o <- Bli.getOpts
+  c <- Bli.getProgram
+  s <- Bli.getSchema
+  let (opts, clauses, schema) = execState x (o,c,s)
+  return $ runBli opts clauses schema x
