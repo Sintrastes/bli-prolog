@@ -16,6 +16,7 @@ import Bli.App.Config
 import Bli.App.Colors
 import Bli.App.Json
 import Bli.App.Server
+import Bli.App.Api
 import Control.Monad.Bli
 
 import Control.Monad (when)
@@ -56,8 +57,9 @@ main = do
           case server opts of
         -- Launch server
             True -> do
-              putStrLn (red colorOpts "Server not implemented.")
-              -- newServer (port opts)
+              case (port opts) of
+                Just n -> runBli opts clauses schema (newServer n)
+                Nothing -> putStrLn "Please specify a port number to use the server."
         -- If not configured to start server...
             False -> do
               case goal opts of
