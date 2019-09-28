@@ -26,7 +26,9 @@ library
       Prolog.Parser
       Data.Schema
       Schema.Parser
+      Bli.App
       Bli.App.Server
+      Bli.App.Cli
       Bli.App.Api
       Bli.App.Config
       Bli.App.Json
@@ -49,12 +51,15 @@ library
     , mtl
     , transformers
     , th-lift
+    , aeson
+    , split
     , template-haskell
     , cmdargs
     , utf8-string
     , aeson
     , aeson-pretty
     , warp
+    , readline
     , warp-tls
     , http-types
     , directory
