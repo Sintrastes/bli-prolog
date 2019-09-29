@@ -92,10 +92,30 @@ repl = do
           repl
         ":exit" -> return ()
         _ | isPrefixOf ":load" line -> do
-               io $ putStrLn $ yellow colorOpts "Load command not implemented."
+               let filePath = drop 6 line
+               fileContents <- io $ readFile filePath
+               case fileExtension filePath of
+                 ".pl"   -> do
+                     putStrLn "Do the appropriate parsing."
+                 ".bpl"  -> do
+                     putStrLn "Do the appropriate parsing."
+                 ".bsch" -> do
+                     putStrLn "Do the appropriate parsing."
+               -- io $ putStrLn $ yellow colorOpts "Load command not implemented."
                repl
           | isPrefixOf ":export" line -> do
-               io $ putStrLn $ yellow colorOpts "Export command not implemented."
+               let filePath = drop 8 line
+               case fileExtension filePath of
+                 ".pl" -> do
+                   let contents = undefined
+                   io $ writeFile filePath contents
+                 ".bpl"  -> do
+                   let contents = undefined
+                   io $ writeFile filePath contents
+                 ".bsch" -> do
+                   let contents = undefined
+                   io $ writeFile filePath contents
+               -- io $ putStrLn $ yellow colorOpts "Export command not implemented."
                repl
          | (line == ":lkb" || line == ":list-knowledge-base") -> do
                io $ mapM_ (\x -> putStrLn ("  "++x)) $ map prettyShowClause clauses
