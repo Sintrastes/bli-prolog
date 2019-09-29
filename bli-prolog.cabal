@@ -25,6 +25,7 @@ library
       Prolog.Analysis
       Prolog.Parser
       Data.Schema
+      Data.BliSet
       Bli.App
       Bli.App.Server
       Bli.App.Cli

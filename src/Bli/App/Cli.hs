@@ -23,6 +23,9 @@ import Data.List
 import System.Console.CmdArgs as CA hiding (program)
 import System.Console.Readline
 
+-- Helper function to get the file extension of a filepath.
+fileExtension :: String -> String
+fileExtension = undefined
 
 -- | Helper function to process bli-prolog commands in a running application.
 processCliInput :: String -> Bli ()
@@ -96,11 +99,12 @@ repl = do
                fileContents <- io $ readFile filePath
                case fileExtension filePath of
                  ".pl"   -> do
-                     putStrLn "Do the appropriate parsing."
+                     io $ putStrLn "Do the appropriate parsing."
                  ".bpl"  -> do
-                     putStrLn "Do the appropriate parsing."
+                     io $ putStrLn "Do the appropriate parsing."
                  ".bsch" -> do
-                     putStrLn "Do the appropriate parsing."
+                     io $ putStrLn "Do the appropriate parsing."
+               -- Helper function to get the file extension of a file.
                -- io $ putStrLn $ yellow colorOpts "Load command not implemented."
                repl
           | isPrefixOf ":export" line -> do

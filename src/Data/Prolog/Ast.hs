@@ -14,7 +14,7 @@ import Data.Schema
 -- | An internal representation of prolog terms.
 data Term = Var Variable
           | Comp Atom Terms
-          deriving (Eq, Read, Lift)
+          deriving (Eq, Read, Ord, Lift)
 
 instance Show Term where
   show (Var x) = x
