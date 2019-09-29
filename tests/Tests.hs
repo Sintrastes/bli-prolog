@@ -11,6 +11,8 @@ import Prolog.Interp
 import Data.Prolog.Ast
 
 import Tests.Old.Siblings
+import Tests.Parsers
 
-main = defaultMain siblings_test
-
+main = defaultMain 
+   ( siblings_test
+  ++ parser_tests)

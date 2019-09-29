@@ -106,6 +106,7 @@ test-suite bli-prolog-test-suite
   other-modules:
       Paths_bli_prolog
       Tests.Old.Siblings
+      Tests.Parser
   hs-source-dirs:
       tests
   build-depends:
