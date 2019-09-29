@@ -37,6 +37,7 @@ library
       Control.Monad.Bli
       Control.Monad.Bli.Generic
       Control.Monad.Bli.Pure
+      Control.Monad.Bli.Pure.Generic
       Control.Monad.Bli.Reader
   other-modules:
       Paths_bli_prolog

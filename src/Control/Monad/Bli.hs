@@ -9,56 +9,54 @@ module Control.Monad.Bli where
 --   must be imported qualified to avoid name conflicts.
 --
 
-import Control.Monad.Trans.State
-import Control.Monad.Trans.Class (lift)
 import Data.Prolog.Ast
 import Data.Schema
-import Control.Applicative
 import Bli.App.Config (Options)
+import qualified Control.Monad.Bli.Generic as Generic
 
 -- | A monad for wrapping computations done (and run) in bli prolog.
-type Bli a = StateT (Options, Program, Schema) IO a
+type Bli a = Generic.Bli [] a
 
 -- | Lift io computations into the Bli monad.
 io :: IO a -> Bli a
-io = lift
+io = Generic.io
 
 -- | Run a Bli application with some initial state.
 runBli :: Options -> Program -> Schema -> Bli a -> IO a
-runBli options program schema app = evalStateT app (options, program, schema)
+runBli = Generic.runBli
 
 -- | Get the options from a running bli application
 getOpts    :: Bli Options
-getOpts = (\(x,y,z) -> x) <$> get
+getOpts = Generic.getOpts
 
 -- | Get the program from a running bli application.
 getProgram :: Bli Program
-getProgram = (\(x,y,z) -> y) <$> get
+getProgram = Generic.getProgram
 
 -- | Get the schema from a running bli application.
 getSchema  :: Bli Schema
-getSchema = (\(x,y,z) -> z) <$> get
+getSchema = Generic.getSchema
 
 -- | Modify the options of a running bli application. 
 modifyOpts :: (Options -> Options) -> Bli ()
-modifyOpts f = modify (\(x,y,z) -> (f x, y, z))
+modifyOpts = Generic.modifyOpts
 
 -- | Modify the program of a running bli application.
 modifyProgram :: (Program -> Program) -> Bli ()
-modifyProgram f = modify (\(x,y,z) -> (x, f y, z))
+modifyProgram = Generic.modifyProgram
 
 -- | Modify the schema of a running bli application.
 modifySchema :: (Schema -> Schema) -> Bli ()
-modifySchema f = modify (\(x,y,z) -> (x, y, f z))
+modifySchema = Generic.modifySchema
 
 -- | Set the program of a running bli application.
 setProgram :: Program -> Bli ()
-setProgram val = modify (\(x,y,z) -> (x, val, z))
+setProgram = Generic.setProgram
 
 -- | Set the options of a running bli application
 setOpts :: Options -> Bli ()
-setOpts val = modify (\(x,y,z) -> (val, y, z))
+setOpts = Generic.setOpts
 
 -- | Set the schema of a running bli application
 setSchema :: Schema  -> Bli ()
-setSchema val = modify (\(x,y,z) -> (x, y, val))
+setSchema = Generic.setSchema
