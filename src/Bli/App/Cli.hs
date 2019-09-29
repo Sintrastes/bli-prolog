@@ -130,9 +130,6 @@ repl = do
                          Left e -> io $ putStrLn "There has been a parse error."
                          Right entries -> do
                               modifySchema (\x -> x ++ entries)
-                             
-               -- Helper function to get the file extension of a file.
-               -- io $ putStrLn $ yellow colorOpts "Load command not implemented."
                repl
           | isPrefixOf ":export" line -> do
                let filePath = drop 8 line

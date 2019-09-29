@@ -34,7 +34,20 @@ data BliResponse =
 
 data BliResult =
    Result_QueryFail InvalidClause
+-- Note: The above should probably be refactored into something like:
+--   Result_SyntaxError
+--   Result_QueryFail_BoundVarNotInBody
+--   Result_QueryFail_AtomsNotInSchema [String]
+--   Result_QueryFail_WrongArities [(String,Int)]
+-- A syntax error (which can arrise from an InvalidClause)
+-- is not associated with either a query, or an assertion,
+-- and so the structure of out ADT should reflect this.    
+ | Result_QueryFail_
  | Result_QuerySuccess [Solution]
  | Result_AssertionSuccess
  | Result_AssertionFail [String]
  | Result_AssertionFail_AlreadyAsserted
+-- Error: X should have arity Y.
+--        Z should have arity W.
+--        ... etc...
+ | Result_AssertionFail_WrongArities [(String,Int)]
