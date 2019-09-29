@@ -10,48 +10,48 @@ import Data.Schema
 import Bli.App.Config
 import Data.BliSet
 
-type Bli t a = StateT (Options, t Clause, t SchemaEntry) IO a
+type Bli t1 t2 a = StateT (Options, t1 Clause, t2 SchemaEntry) IO a
 
 -- | Lift io computations into the Bli monad.
-io :: BliSet t => IO a -> Bli t a
+io :: (BliSet t1, BliSet t2) => IO a -> Bli t1 t2 a
 io = lift
 
 -- | Run a Bli application with some initial state.
-runBli :: BliSet t => Options -> t Clause -> t SchemaEntry -> Bli t a -> IO a
+runBli :: (BliSet t1, BliSet t2) => Options -> t1 Clause -> t2 SchemaEntry -> Bli t1 t2 a -> IO a
 runBli options program schema app = evalStateT app (options, program, schema)
 
 -- | Get the options from a running bli application
-getOpts    :: BliSet t => Bli t Options
+getOpts    :: (BliSet t1, BliSet t2) => Bli t1 t2 Options
 getOpts = (\(x,y,z) -> x) <$> get
 
 -- | Get the program from a running bli application.
-getProgram :: BliSet t => Bli t (t Clause)
+getProgram :: (BliSet t1, BliSet t2) => Bli t1 t2 (t1 Clause)
 getProgram = (\(x,y,z) -> y) <$> get
 
 -- | Get the schema from a running bli application.
-getSchema  :: BliSet t => Bli t (t SchemaEntry)
+getSchema  :: (BliSet t1, BliSet t2) => Bli t1 t2 (t2 SchemaEntry)
 getSchema = (\(x,y,z) -> z) <$> get
 
 -- | Modify the options of a running bli application. 
-modifyOpts :: BliSet t => (Options -> Options) -> Bli t ()
+modifyOpts :: (BliSet t1, BliSet t2) => (Options -> Options) -> Bli t1 t2 ()
 modifyOpts f = modify (\(x,y,z) -> (f x, y, z))
 
 -- | Modify the program of a running bli application.
-modifyProgram :: BliSet t => (t Clause -> t Clause) -> Bli t ()
+modifyProgram :: (BliSet t1, BliSet t2) => (t1 Clause -> t1 Clause) -> Bli t1 t2 ()
 modifyProgram f = modify (\(x,y,z) -> (x, f y, z))
 
 -- | Modify the schema of a running bli application.
-modifySchema :: BliSet t => (t SchemaEntry -> t SchemaEntry) -> Bli t ()
+modifySchema :: (BliSet t1, BliSet t2) => (t2 SchemaEntry -> t2 SchemaEntry) -> Bli t1 t2 ()
 modifySchema f = modify (\(x,y,z) -> (x, y, f z))
 
 -- | Set the program of a running bli application.
-setProgram :: BliSet t => t Clause -> Bli t ()
+setProgram :: (BliSet t1, BliSet t2) => t1 Clause -> Bli t1 t2 ()
 setProgram val = modify (\(x,y,z) -> (x, val, z))
 
 -- | Set the options of a running bli application
-setOpts :: BliSet t => Options -> Bli t ()
+setOpts :: (BliSet t1, BliSet t2) => Options -> Bli t1 t2 ()
 setOpts val = modify (\(x,y,z) -> (val, y, z))
 
 -- | Set the schema of a running bli application
-setSchema :: BliSet t => t SchemaEntry  -> Bli t ()
+setSchema :: (BliSet t1, BliSet t2) => t2 SchemaEntry -> Bli t1 t2 ()
 setSchema val = modify (\(x,y,z) -> (x, y, val))

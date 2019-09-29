@@ -15,7 +15,7 @@ import Bli.App.Config (Options)
 import qualified Control.Monad.Bli.Generic as Generic
 
 -- | A monad for wrapping computations done (and run) in bli prolog.
-type Bli a = Generic.Bli [] a
+type Bli a = Generic.Bli [] [] a
 
 -- | Lift io computations into the Bli monad.
 io :: IO a -> Bli a

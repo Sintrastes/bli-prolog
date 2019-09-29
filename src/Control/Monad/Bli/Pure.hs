@@ -18,7 +18,7 @@ import qualified Control.Monad.Bli.Pure.Generic as Generic
 import qualified Control.Monad.Bli as Bli
 
 -- | A monad for wrapping pure computations done (and run) in bli prolog.
-type Bli a = Generic.Bli [] a
+type Bli a = Generic.Bli [] [] a
 
 -- | Run a pure Bli computation with some initial state.
 runBli :: Options -> Program -> Schema -> Bli a -> a
