@@ -47,6 +47,7 @@ library
       base <5
     , split
     , containers
+    , unordered-containers
     , parsec
     , parser-combinators
     , pretty
