@@ -38,6 +38,9 @@ type LambdaGoal = ([Variable],[Term])
 -- | A prolog clause, representing a rule. i.e. [HEAD] :- [BODY].
 type Clause = (Term, Terms)
 
+prettyShowClause (head, []) = show head ++ "."
+prettyShowClause (head, body) = (show head) ++ " :-\n  " ++ intercalate ", " (map show body) ++ "."   
+
 -- | A data type for bli prolog commands, which can either
 --   be a query, or an assertion. Note that here,
 --   a plain query/assertion such as 

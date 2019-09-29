@@ -12,4 +12,6 @@ module Data.Schema where
 --   this will be a more complex datatype.
 type Schema = [SchemaEntry]
 
+prettyShowSchemaEntry (id, n) = id ++ ": " ++ show n ++ "."
+
 type SchemaEntry = (String, Int)

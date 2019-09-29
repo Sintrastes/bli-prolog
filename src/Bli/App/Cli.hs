@@ -77,7 +77,9 @@ processCliInput input' = do
 repl :: Bli ()
 repl = do
   -- Just get colorOpts, version doesn't matter here.
-  opts <- getOpts
+  opts    <- getOpts
+  clauses <- getProgram
+  schema  <- getSchema
   let colorOpts = not $ nocolor opts
   maybeLine <- io $ readline (blue colorOpts "?- ")
   case maybeLine of
@@ -95,6 +97,12 @@ repl = do
           | isPrefixOf ":export" line -> do
                io $ putStrLn $ yellow colorOpts "Export command not implemented."
                repl
+         | (line == ":lkb" || line == ":list-knowledge-base") -> do
+               io $ mapM_ (\x -> putStrLn ("  "++x)) $ map prettyShowClause clauses
+               repl
+         | (line == ":ls" || line == ":list-schema") -> do
+               io $ mapM_ (\x -> putStrLn ("  "++x)) $ map prettyShowSchemaEntry schema
+               repl 
         -- If the user has not entered a REPL command, try processing
         -- their input as a standard Bedelibry Prolog command.
           | otherwise -> do
