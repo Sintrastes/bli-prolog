@@ -1,9 +1,6 @@
 
 Todo
 ====
-  * Note: I'll probably want an alternate syntax for asserting schema declarations at the REPL. Writing "!" at the end of every
-    line seems unnessesary.
-  * Note: In the future, I might allow users to make multiple schema declarations, and assertions on the same line, for brevity.
   * Implement schemas with types.
   * Implement configuration with bedelibry server, using data from ~/.bedelibry/config.yaml by default. (same as with bli tool)
     * Implement side-effects with asserting types. (first need to configure the entity server).
@@ -12,14 +9,17 @@ Todo
              an alternative syntax for assertions. Maybe !!. So, e.x. person(nate)!! will add a new
              entity to the schema of type person.
   * Integrate implicit predication with REPL.
-     * Note: I think we'll probably want to use an alternative syntax for this.
-       While we could keep the behavior of plain lambda queries, we could also 
-       allow for the application of lambda queries (predicates) to terms.
-       Although, we may want to consider using different binders for this.
-  * Implement the :export and :load commands for the REPL.
-  * Note: I'll probably want to use some sort of typeclass for the clause and schema storage
-    in the Bli monad so I can experiment with different implementations for efficency reasons.
-    I can use type applications to make it easy to swap these out.
   * Check to see if my use of the Bli monad with the warp server works,
     or if I need to use IORefs or something else to get it to work.
   * Fix error messages for using a predicate with invalid arity.
+       * Refactor the main codebase to use the BliSet (or some related) interface.
+  * Add test cases for parsing files so that I can work on refactoring some of our parsing code.
+
+Notes
+-----
+
+  * In the future, I might allow users to make multiple schema declarations, and assertions on the same line, for brevity.
+      * Related: Fix issue where data can be entered beyond the "." or the "!" in the repl.
+  * I think we'll probably want to use an alternative syntax for implicit predication.
+    While we could keep the behavior of plain lambda queries, we could also 
+    allow for the application of lambda queries (predicates) to terms.

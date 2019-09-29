@@ -226,5 +226,4 @@ schemaCommandP = do
   id <- atomP
   csymb ':'
   arity <- read <$> many1 digit
-  csymb '!'
   return (id, arity)
