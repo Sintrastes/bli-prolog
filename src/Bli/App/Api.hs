@@ -30,9 +30,11 @@ data BliResponse =
   -- | Response to successful query
    | QuerySuccess String
    | AssertionSuccess
+   | AssertionFail_AlreadyAsserted
 
 data BliResult =
    Result_QueryFail InvalidClause
  | Result_QuerySuccess [Solution]
  | Result_AssertionSuccess
  | Result_AssertionFail [String]
+ | Result_AssertionFail_AlreadyAsserted
