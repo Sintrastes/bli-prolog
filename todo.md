@@ -17,6 +17,9 @@ Todo
        allow for the application of lambda queries (predicates) to terms.
        Although, we may want to consider using different binders for this.
   * Implement the :export and :load commands for the REPL.
+  * Note: I'll probably want to use some sort of typeclass for the clause and schema storage
+    in the Bli monad so I can experiment with different implementations for efficency reasons.
+    I can use type applications to make it easy to swap these out.
   * Check to see if my use of the Bli monad with the warp server works,
     or if I need to use IORefs or something else to get it to work.
   * Fix error messages for using a predicate with invalid arity.
