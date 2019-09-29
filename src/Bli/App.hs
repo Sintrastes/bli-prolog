@@ -73,3 +73,6 @@ processBliCommand x = do
     -- This case should not be possible since we are not dealing with a
     -- lambda query.
           Left _ -> error $ "Invalid exception encountered."
+    (AssertTypePred schemaEntry) -> do
+        Pure.modifySchema (\x -> x ++ [schemaEntry])
+        return $ Result_AssertionSuccess

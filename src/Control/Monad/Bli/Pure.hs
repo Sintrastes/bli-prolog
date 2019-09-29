@@ -66,4 +66,7 @@ liftFromPure x = do
   c <- Bli.getProgram
   s <- Bli.getSchema
   let (opts, clauses, schema) = execState x (o,c,s)
+  Bli.setOpts opts
+  Bli.setProgram clauses
+  Bli.setSchema schema
   return $ runBli opts clauses schema x
