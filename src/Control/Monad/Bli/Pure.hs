@@ -11,53 +11,54 @@ module Control.Monad.Bli.Pure where
 
 import Data.Prolog.Ast
 import Control.Applicative
-import Data.Schema
 import Control.Monad.State.Lazy
+import Data.Schema
 import Bli.App.Config (Options)
+import qualified Control.Monad.Bli.Pure.Generic as Generic
 import qualified Control.Monad.Bli as Bli
 
 -- | A monad for wrapping pure computations done (and run) in bli prolog.
-type Bli a = State (Options, Program, Schema) a
+type Bli a = Generic.Bli [] a
 
 -- | Run a pure Bli computation with some initial state.
 runBli :: Options -> Program -> Schema -> Bli a -> a
-runBli options program schema app = evalState app (options, program, schema)
+runBli = Generic.runBli
 
 -- | Get the options from a pure bli computation.
 getOpts    :: Bli Options
-getOpts = (\(x,y,z) -> x) <$> get
+getOpts = Generic.getOpts
 
 -- | Get the program from a pure bli computation.
 getProgram :: Bli Program
-getProgram = (\(x,y,z) -> y) <$> get
+getProgram = Generic.getProgram
 
 -- | Get the schema from a pure bli computation.
 getSchema  :: Bli Schema
-getSchema = (\(x,y,z) -> z) <$> get
+getSchema = Generic.getSchema
 
 -- | Modify the options of a pure bli computation. 
 modifyOpts :: (Options -> Options) -> Bli ()
-modifyOpts f = modify (\(x,y,z) -> (f x, y, z))
+modifyOpts = Generic.modifyOpts
 
 -- | Modify the program of a pure bli computation.
 modifyProgram :: (Program -> Program) -> Bli ()
-modifyProgram f = modify (\(x,y,z) -> (x, f y, z))
+modifyProgram = Generic.modifyProgram
 
 -- | Modify the schema of a pure bli computation.
 modifySchema :: (Schema -> Schema) -> Bli ()
-modifySchema f = modify (\(x,y,z) -> (x, y, f z))
+modifySchema = Generic.modifySchema
 
 -- | Set the program of a pure bli computation.
 setProgram :: Program -> Bli ()
-setProgram val = modify (\(x,y,z) -> (x, val, z))
+setProgram = Generic.setProgram
 
 -- | Set the options of a pure bli computation.
 setOpts :: Options -> Bli ()
-setOpts val = modify (\(x,y,z) -> (val, y, z))
+setOpts = Generic.setOpts
 
 -- | Set the schema of a pure bli computation.
 setSchema :: Schema  -> Bli ()
-setSchema val = modify (\(x,y,z) -> (x, y, val))
+setSchema = Generic.setSchema
 
 -- Helper function to go from the pure to the impure version of the Bli monad.
 liftFromPure :: Bli a -> Bli.Bli a
