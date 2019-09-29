@@ -35,6 +35,7 @@ library
       Bli.App.Colors
       Prolog.Interp
       Control.Monad.Bli
+      Control.Monad.Bli.Generic
       Control.Monad.Bli.Pure
       Control.Monad.Bli.Reader
   other-modules:
