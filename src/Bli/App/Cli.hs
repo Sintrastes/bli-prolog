@@ -25,7 +25,12 @@ import System.Console.Readline
 
 -- Helper function to get the file extension of a filepath.
 fileExtension :: String -> String
-fileExtension = undefined
+fileExtension filePath = "." ++ (last $ splitOn "." filePath)
+
+groupSchemaClauses commands = go commands [] [] 
+ where go [] ss cs = (ss,cs)
+       go ((AssertClause c):xs) ss cs   = go xs ss (c:cs)
+       go ((AssertTypePred s):xs) ss cs = go xs (s:ss) cs
 
 -- | Helper function to process bli-prolog commands in a running application.
 processCliInput :: String -> Bli ()
@@ -93,17 +98,39 @@ repl = do
         ":h"   -> do 
           io $ putStrLn $ replHelpScreen colorOpts
           repl
+        ":clear-kb" -> do
+            io $ putStrLn "Clearing all in-memory facts."
+            setProgram []
+        ":clear-schema" -> do
+            -- Note: This should also clear everything in the schema, since
+            -- if have no entities which we can query about, then
+            -- we also know no facts about those entities.
+            io $ putStrLn "Clearing all in-memory facts and schema data"
+            setProgram []
+            setSchema  []
         ":exit" -> return ()
         _ | isPrefixOf ":load" line -> do
                let filePath = drop 6 line
                fileContents <- io $ readFile filePath
                case fileExtension filePath of
                  ".pl"   -> do
-                     io $ putStrLn "Do the appropriate parsing."
+                     case clausesFromString fileContents of
+                         Left e -> io $ putStrLn "There has been a parse error."
+                         Right clauses -> do
+                             modifyProgram (\x -> x ++ clauses)
                  ".bpl"  -> do
-                     io $ putStrLn "Do the appropriate parsing."
+                     case parseBliFile fileContents of
+                         Left e -> io $ putStrLn "There has been a parse error."
+                         Right lines -> do
+                             let (entries, clauses) = groupSchemaClauses lines
+                             modifyProgram (\x -> x ++ clauses)
+                             modifySchema  (\x -> x ++ entries)
                  ".bsch" -> do
-                     io $ putStrLn "Do the appropriate parsing."
+                     case parseSchemaFile fileContents of
+                         Left e -> io $ putStrLn "There has been a parse error."
+                         Right entries -> do
+                              modifySchema (\x -> x ++ entries)
+                             
                -- Helper function to get the file extension of a file.
                -- io $ putStrLn $ yellow colorOpts "Load command not implemented."
                repl

@@ -21,6 +21,11 @@ import Control.Monad (when)
 import Data.List (intersperse, isPrefixOf)
 import Data.List.Split
 
+{-@ type NonEmpty a = {v:[a] | 0 < len v} @-}
+
+{-@ x :: NonEmpty a @-}
+x = []
+
 main = do
   -- Get the version from the cabal file at compile-time.
   let v = $(getVersionFromCabal)

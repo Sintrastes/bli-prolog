@@ -1,0 +1,11 @@
+Resolving dependencies...
+In order, the following will be installed:
+bli-prolog-0.3.0 (reinstall)
+Configuring bli-prolog-0.3.0...
+Preprocessing library for bli-prolog-0.3.0..
+Building library for bli-prolog-0.3.0..
+Preprocessing executable 'bli-prolog' for bli-prolog-0.3.0..
+Building executable 'bli-prolog' for bli-prolog-0.3.0..
+Installing library in /home/nate/.cabal/lib/x86_64-linux-ghc-8.4.4/bli-prolog-0.3.0-4ioirKGsR9FBNb5BotgBcb
+Installing executable bli-prolog in /home/nate/.cabal/bin
+Installed bli-prolog-0.3.0

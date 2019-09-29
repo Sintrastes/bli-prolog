@@ -8,6 +8,7 @@ import Text.ParserCombinators.Parsec
 import Control.Monad.Combinators (eitherP)
 import Data.Prolog.Ast
 import Data.Schema
+import Control.Monad (join)
 
 ---------------------------------------------------------------------
 -- Expernal Interface
@@ -17,7 +18,7 @@ import Data.Schema
 clausesFromFile filename = parseFromFile programP filename
 
 -- | Parses a prolog file directly from a string into a list of clauses.
-clausesFromString context = parse programP context
+clausesFromString context = parse programP "" context
 
 goalFromString string = parse goalP "<goalstring>" string
 
@@ -25,6 +26,9 @@ lambdaGoalFromString string = parse lambdaGoalP "<goalstring>" string
 
 -- | Parse a bedelibry prolog command from a string
 parseBliCommand string = parse bliCommandP "" string
+
+-- | Parse a .bli file
+parseBliFile string = parse bliFileP "" string
 
 ----------------------------------------------------------------------
 -- Parser
@@ -53,6 +57,27 @@ spacesOrComments = skipMany ((space >> return()) <|> commentP)
 -- to drop space both before and after a token.
 csymb c = (try(spacesOrComments >> char c) >> spacesOrComments)
 symb s = (try(spacesOrComments >> string s) >> spacesOrComments)
+
+-- | Parser for a pure prolog program. 
+bliFileP :: Parser [BliCommand]
+bliFileP = do spacesOrComments
+              clauses <- many1 bliFileLineP
+              return $ join clauses
+
+bliFileLineP :: Parser [BliCommand]
+bliFileLineP = do
+  result <- try schemaLineP `eitherP` (try goalP `eitherP` try clauseP)
+  case result of
+      Left x -> do
+          spacesOrComments
+          return $ [AssertTypePred x]
+      Right x -> case x of
+          Left y  -> do
+              spacesOrComments
+              return $ map (\x -> AssertClause (x,[])) y
+          Right y -> do
+              spacesOrComments
+              return $ [AssertClause y]
 
 -- | Parser for a bedelibry command.
 bliCommandP :: Parser BliCommand
@@ -179,7 +204,10 @@ variableP = (do c <- upper <|> char '_'
 -- Schema parsing
 
 schemaFromFile :: String -> IO (Either ParseError Schema)
-schemaFromFile filepath = parseFromFile schemaFileP filepath 
+schemaFromFile filepath = parseFromFile schemaFileP filepath
+
+parseSchemaFile :: String -> (Either ParseError Schema)
+parseSchemaFile fileContents = parse schemaFileP "" fileContents 
 
 schemaFileP :: Parser Schema
 schemaFileP = many schemaLineP
