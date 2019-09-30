@@ -24,7 +24,7 @@ type SchemaEntry = (String, Int)
 data TypedSchemaEntry = 
     Pred String [String]
   | Type   String
-  | TypeOf String String
+  | TypeOf String String deriving(Eq, Show)
 
 type TypedSchema = [TypedSchemaEntry]
 

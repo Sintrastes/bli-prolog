@@ -132,17 +132,23 @@ repl = do
                          Right clauses -> do
                              modifyProgram (\x -> x ++ clauses)
                  ".bpl"  -> do
-                     case parseBliFile fileContents of
+                     -- Currently this will only parse the typed version
+                     case parseTypedBli fileContents of
                          Left e -> io $ putStrLn "There has been a parse error."
                          Right lines -> do
-                             let (entries, clauses) = groupSchemaClauses lines
-                             modifyProgram (\x -> x ++ clauses)
-                             modifySchema  (\x -> x ++ entries)
+                             -- debugging
+                             io $ print $ lines
+                             -- This is the old version.
+                             -- let (entries, clauses) = groupSchemaClauses lines
+                             -- modifyProgram (\x -> x ++ clauses)
+                             -- modifySchema  (\x -> x ++ entries)
                  ".bsch" -> do
-                     case parseSchemaFile fileContents of
+                  -- Currently this will only parse the typed version.
+                     case parseTypedSchema fileContents of
                          Left e -> io $ putStrLn "There has been a parse error."
                          Right entries -> do
-                              modifySchema (\x -> x ++ entries)
+                              io $ print $ entries
+                              modifySchema (\x -> x ++ (getArities entries))
                repl
           | isPrefixOf ":export" line -> do
                let filePath = drop 8 line

@@ -233,6 +233,9 @@ schemaCommandP = do
 
 -- Typed schema parsing
 
+parseTypedSchemaFile = parseFromFile typedSchemaFileP 
+parseTypedSchema = parse typedSchemaFileP ""
+
 typedSchemaFileP :: Parser TypedSchema
 typedSchemaFileP = do
   lines <- many (try schemaRelnP <|> try schemaEntityP <|> typeDeclP)
@@ -261,3 +264,16 @@ typeDeclP = do
   typeId <- atomP
   csymb '.'
   return $ Type typeId
+
+----------- Typed .bpl file parser
+
+parseTypedBliFile = parseFromFile typedBliFileP 
+parseTypedBli = parse typedBliFileP ""
+
+typedBliFileP :: Parser [BliCommandTyped]
+typedBliFileP = do
+  lines' <- many $ try (try schemaRelnP <|> try schemaEntityP <|> typeDeclP) `eitherP` clauseP
+  let lines = map (\line -> case line of
+                              Left sEntry  -> T_AssertSchema sEntry
+                              Right clause -> T_AssertClause clause) lines'
+  return lines

@@ -12,6 +12,8 @@ Todo
     or if I need to use IORefs or something else to get it to work.
   * Refactor the main codebase to use the BliSet (or some related) interface.
   * Add test cases for parsing files so that I can work on refactoring some of our parsing code.
+  * Refactor the Bli monads so that the set of types is stored seperately
+    from the set of relation declarations.
   * Refactor isBliCommandValid to avoid code duplication.
 
 Notes

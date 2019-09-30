@@ -1,0 +1,5 @@
+
+type person.
+nate: person.
+
+rel likes: person, person.
