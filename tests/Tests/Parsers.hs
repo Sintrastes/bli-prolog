@@ -21,7 +21,7 @@ parser_tests = testGroup "Parsers"
   , testCase ".pl parsing" $ do
       let expected = undefined
       let parsedFile = undefined
-      expected @=? parsedFile      
+      expected @=? parsedFile       
   , testCase ".pl comments" $ do
       let file1 = undefined
       let file2 = undefined

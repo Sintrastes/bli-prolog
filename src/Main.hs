@@ -27,13 +27,12 @@ import Data.List.Split
 x = []
 
 main = do
-  -- Get the version from the cabal file at compile-time.
-  let v = $(getVersionFromCabal)
+  result <- configureApplication
   -- Make sure version loaded from file successfully.
-  case v of 
-    Nothing -> putStrLn $ (red True) "Error loading version info from cabal file. Aborting."
-    Just version -> do
-      opts <- cmdArgs $ startOptions version
+  case result of 
+    Left err -> putStrLn $ (red True) "Error loading command line options. Aborting."
+    Right opts -> do
+      let versionStr = version opts
       let colorOpts = not $ nocolor opts
       -- If prolog file not specified, start with an empty set of clauses.
       p <- case program opts of
@@ -66,7 +65,7 @@ main = do
               case goal opts of
                 "" -> do
                    -- Print the main banner if options set to verbose.
-                   if (verbose opts) then putStrLn $ replBanner version colorOpts else return ()
+                   if (verbose opts) then putStrLn $ replBanner versionStr colorOpts else return ()
                    -- Run a bli prolog REPL with the user configuration.
                    runBli opts clauses schema $ repl
                 -- If the user supplies a non-empty goal-string, run a single

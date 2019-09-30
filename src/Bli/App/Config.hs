@@ -7,6 +7,7 @@ module Bli.App.Config where
 
 import System.Console.CmdArgs as CA hiding (program)
 import Prolog.Interp
+import Bli.App.Config.Version
 import Language.Haskell.TH
 import Language.Haskell.TH.Quote
 import Data.List.Split
@@ -63,21 +64,43 @@ replHelpScreen colorOpts = foldr1 (\x -> \y -> x ++ "\n" ++ y) $
 -- | A datatype for the possible options that can be configured by the user for the
 --   bli-prolog executable. 
 data Options =
-  Options { search    :: Search
-          , program   :: FilePath
-          , schema    :: FilePath
-          , goal      :: String
-          , limit     :: Maybe Int
-          , depth     :: Int
-          , verbose   :: Bool
-          , nocolor   :: Bool
-          , json      :: Bool
-          , server    :: Bool
-          , port     :: Maybe Int
-          , burl      :: String
+  Options { search'    :: Search
+          , program'   :: FilePath
+          , schema'    :: FilePath
+          , goal'      :: String
+          , limit'     :: Maybe Int
+          , depth'     :: Int
+          , verbose'   :: Bool
+          , nocolor'   :: Bool
+          , json'      :: Bool
+          , server'    :: Bool
+          , port'      :: Maybe Int
+          , burl'      :: String
           }
   deriving (Show, Data, Typeable)
 
+-- | Datatype for the application configuration
+data AppConfig = 
+  AppConfig {
+  -- Options configured at the command line 
+    options :: Options,
+  -- Other options
+    version :: String
+  }
+
+search (AppConfig options _) = search' options
+program (AppConfig options _) = program' options
+schema (AppConfig options _) = schema' options
+goal (AppConfig options _) = goal' options
+limit (AppConfig options _) = limit' options
+depth (AppConfig options _) = depth' options
+verbose (AppConfig options _) = verbose' options
+nocolor (AppConfig options _) = nocolor' options
+json (AppConfig options _) = json' options
+server (AppConfig options _) = server' options
+port (AppConfig options _) = port' options
+burl (AppConfig options _) = burl' options
+ 
 -- | Note: These are things which should not be able to be configured through
 --   the command line. Or, if they are, it should be through a very specific interface
 --   (like Haskell's -XWhateverExtension).
@@ -130,27 +153,31 @@ data LanguageOption =
 
 -- | Starting options for the bli-prolog exectuable.
 startOptions version =
-  Options { search = def &= help "Specify wether to use DFS, BFS, or Limited"
-          , program = def &= typFile &= help "Prolog file with clauses"
-          , schema = "" &= typFile &= help "Schema file"
-          , limit = def &= help "Limit the number of solutions found"
-          , depth = 100 &= help "Maximum depth to traverse when using limited search"
-          , goal = def &= args &= typ "GOALSTRING"
-          , nocolor = False &= help "Turn off colors in the REPL."
-          , verbose = True &= help "Specify whether or not to use verbose output (on by default)"
-          , json = False &= help "Specify whether or not json output formatting is used for queries."
-          , server = False &= help "Starts a REST server for processing bli prolog queries if set."
-          , port = Nothing &= help "Port number to start the server."
-          , burl = "" &= help "URL of the bedelibry server configured to work with bli-prolog." 
+  Options { search' = def &= help "Specify wether to use DFS, BFS, or Limited"
+          , program' = def &= typFile &= help "Prolog file with clauses"
+          , schema' = "" &= typFile &= help "Schema file"
+          , limit' = def &= help "Limit the number of solutions found"
+          , depth' = 100 &= help "Maximum depth to traverse when using limited search"
+          , goal' = def &= args &= typ "GOALSTRING"
+          , nocolor' = False &= help "Turn off colors in the REPL."
+          , verbose' = True &= help "Specify whether or not to use verbose output (on by default)"
+          , json' = False &= help "Specify whether or not json output formatting is used for queries."
+          , server' = False &= help "Starts a REST server for processing bli prolog queries if set."
+          , port' = Nothing &= help "Port number to start the server."
+          , burl' = "" &= help "URL of the bedelibry server configured to work with bli-prolog." 
           }
   &= summary ("bli-prolog interpreter v" ++ version ++ ", (C) Nathan Bedell 2019")
 
--- | Template for getting version number from cabal file
-getVersionFromCabal :: Q Exp
-getVersionFromCabal = join $ runIO $
-     do version <- fmap (filter (\x -> x /= ' ')) 
-               <$> fmap (\x -> snd $ splitAt 8 x) 
-               <$> find (\line -> isPrefixOf "version:" line) 
-               <$> splitOn "\n" 
-               <$> readFile "bli-prolog.cabal"
-        return [e| version |]
+configureApplication :: IO (Either String AppConfig)
+configureApplication = do
+  -- Get the version from the cabal file at compile-time.
+  let v = $(getVersionFromCabal)
+  case v of 
+    Nothing -> return $ Left "Error getting version from cabal file."
+    Just version -> do
+      opts <- cmdArgs $ startOptions version
+      -- Todo: Do better error handling here.
+      --       Parse yaml file.
+      config <- readFile "~/.bedelibry/config.yaml"
+      putStrLn config
+      return $ Right $ AppConfig { version = version, options = opts }

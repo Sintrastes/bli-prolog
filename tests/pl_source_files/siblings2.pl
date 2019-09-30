@@ -1,14 +1,23 @@
+% -*- prolog -*-
+
 member(X, [X|_]).
 member(X, [_|T]) :- member(X,T).
+
 mother_children(marge, [bart, lisa, maggie]).
 mother_children(mona, [homer, jay]).
+
 mother_child(X, Y) :- mother_children(X, C), member(Y, C).
+
 father_child(homer, bart).
 father_child(homer, lisa).
 father_child(homer, maggie).
 father_child(abe, homer).
 father_child(abe, herb).
 father_child(abe, abbie).
+
+% here is a comment
+
 sibling(X, Y)      :- parent_child(Z, X), parent_child(Z, Y).
+
 parent_child(X, Y) :- father_child(X, Y).
 parent_child(X, Y) :- mother_child(X, Y).

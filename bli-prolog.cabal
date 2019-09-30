@@ -38,6 +38,7 @@ library
       Bli.App.Cli
       Bli.App.Api
       Bli.App.Config
+      Bli.App.Config.Version
       Bli.App.Json
       Bli.App.Colors
       Prolog.Interp
