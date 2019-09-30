@@ -164,6 +164,18 @@ repl = do
                    io $ writeFile filePath contents
                -- io $ putStrLn $ yellow colorOpts "Export command not implemented."
                repl
+         | isPrefixOf ":alias" line -> do
+             let args' = drop 7 line
+             let args = words $ args'
+             if (length args == 2)
+             then do
+               let arg1 = args !! 0
+               let arg2 = args !! 1
+               io $ putStrLn $ "Made alias of " ++ arg1 ++ " to " ++ arg2 ++ "."
+               repl
+             else do
+               io $ putStrLn "Invalid argument format to :alias."
+               repl
          | (line == ":lkb" || line == ":list-knowledge-base") -> do
                io $ mapM_ (\x -> putStrLn ("  "++x)) $ map prettyShowClause clauses
                repl

@@ -4,6 +4,8 @@ Todo
   * Implement schemas with types.
       * Refactor the Bli monads so that the set of types is stored seperately
         from the set of relation declarations.
+          * Note: I think we'll also need a container for aliases. We'll also need to configure
+            how adding aliases works with the bedelibry server.
   * Integrate implicit predication with REPL.
       * Write a contextual parser for implicit predications.
   * Implement side-effects with asserting types. (first need to configure the entity server).
