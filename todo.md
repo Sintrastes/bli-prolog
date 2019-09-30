@@ -2,8 +2,7 @@
 Todo
 ====
   * Implement schemas with types.
-  * Implement configuration with bedelibry server, using data from ~/.bedelibry/config.yaml by default. (same as with bli tool)
-    * Implement side-effects with asserting types. (first need to configure the entity server).
+  * Implement side-effects with asserting types. (first need to configure the entity server).
      * Note: I think that for assertions that produce a side effect (including adding a new entity
              to the schema -- either in memory, or part of the bedelibry server -- we should use
              an alternative syntax for assertions. Maybe !!. So, e.x. person(nate)!! will add a new

@@ -14,6 +14,7 @@ import Data.List.Split
 import Data.List
 import Control.Monad (join)
 import Bli.App.Colors
+import System.Directory
 
 -- | An ADT representing all of the different search 
 --   algorithms bli prolog can be configured to run with.
@@ -171,13 +172,13 @@ startOptions version =
 configureApplication :: IO (Either String AppConfig)
 configureApplication = do
   -- Get the version from the cabal file at compile-time.
+  homeDir <- getHomeDirectory
   let v = $(getVersionFromCabal)
   case v of 
     Nothing -> return $ Left "Error getting version from cabal file."
     Just version -> do
       opts <- cmdArgs $ startOptions version
       -- Todo: Do better error handling here.
-      --       Parse yaml file.
-      config <- readFile "~/.bedelibry/config.yaml"
-      putStrLn config
+      config <- readFile $ homeDir ++ "/.bedelibry/config.yaml"
+      -- Parse yaml
       return $ Right $ AppConfig { version = version, options = opts }
