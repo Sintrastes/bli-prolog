@@ -91,6 +91,8 @@ processCliInput input' = do
                                   " exists in the schema, but should not be used with an arity of "
                                   ++ show arity ++".")
                                  xs
+                Result_AssertionFail_AlreadyAsserted -> do
+                    io $ putStrLn $ (yellow colorOpts "Already asserted.")
 
 -- | Main entrypoint for the bli-prolog REPL.
 repl :: Bli ()

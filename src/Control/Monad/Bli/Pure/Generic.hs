@@ -64,4 +64,5 @@ liftFromPure x = do
   Bli.setOpts opts
   Bli.setProgram clauses
   Bli.setSchema schema
-  return $ runBli opts clauses schema x
+  return $ runBli o c s x
+  

@@ -62,12 +62,4 @@ setSchema = Generic.setSchema
 
 -- Helper function to go from the pure to the impure version of the Bli monad.
 liftFromPure :: Bli a -> Bli.Bli a
-liftFromPure x = do
-  o <- Bli.getOpts
-  c <- Bli.getProgram
-  s <- Bli.getSchema
-  let (opts, clauses, schema) = execState x (o,c,s)
-  Bli.setOpts opts
-  Bli.setProgram clauses
-  Bli.setSchema schema
-  return $ runBli opts clauses schema x
+liftFromPure = Generic.liftFromPure 

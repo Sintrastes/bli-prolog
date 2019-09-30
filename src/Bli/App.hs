@@ -15,6 +15,8 @@ import Bli.App.Api
 import Bli.App.Config
 import Data.Aeson
 import Data.List.Split
+import Data.List
+import Debug.Trace
 
 -- | New helper function for our refactoring
 --   Note: To ensure for a consistent API
@@ -31,18 +33,22 @@ processBliCommand x = do
     (AssertMode goal) -> do
          case isBliCommandValid x schema of
            Right Ok -> do
-               Pure.modifyProgram 
-                (\clauses -> clauses ++
-                   (map (\term -> (term,[])) goal))
-               return $ Result_AssertionSuccess
+               if any (\term -> not $ (term, []) `elem` clauses) goal
+               then do Pure.modifyProgram 
+                         (\clauses -> clauses ++
+                            (map (\term -> (term,[])) goal))
+                       return $ Result_AssertionSuccess
+               else return $ Result_AssertionFail_AlreadyAsserted
            Left (AtomsNotInSchema atoms) ->
                return $ Result_AssertionFail atoms
            Left (WrongArities xs) -> return $ Result_QueryFail_WrongArities xs
     (AssertClause clause) -> do
          case isBliCommandValid x schema of
            Right Ok -> do
-               Pure.modifyProgram (\clauses -> clauses ++ [clause]) 
-               return $ Result_AssertionSuccess
+               if clause `elem` clauses
+               then return $ Result_AssertionFail_AlreadyAsserted
+               else do Pure.modifyProgram (\clauses -> clauses ++ [clause]) 
+                       return $ Result_AssertionSuccess
            Left (AtomsNotInSchema atoms) ->
                return $ Result_AssertionFail atoms
            Left (WrongArities xs) -> return $ Result_QueryFail_WrongArities xs
@@ -78,5 +84,7 @@ processBliCommand x = do
     -- lambda query.
           Left _ -> error $ "Invalid exception encountered."
     (AssertTypePred schemaEntry) -> do
-        Pure.modifySchema (\x -> x ++ [schemaEntry])
-        return $ Result_AssertionSuccess
+        if schemaEntry `elem` schema
+        then return $ Result_AssertionFail_AlreadyAsserted
+        else do Pure.modifySchema (\x -> x ++ [schemaEntry])
+                return $ Result_AssertionSuccess
