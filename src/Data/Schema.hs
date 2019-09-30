@@ -15,3 +15,13 @@ type Schema = [SchemaEntry]
 prettyShowSchemaEntry (id, n) = id ++ ": " ++ show n ++ "."
 
 type SchemaEntry = (String, Int)
+
+-- | For our typed schema entry, we can either declare that a predicate
+--   with a given identity can take arguments of the supplied types,
+--   we can declare a new type, or, we can declare new entities of 
+--   a given type.
+--
+data TypedSchemaEntry = 
+    Pred String [String]
+  | Type   String
+  | TypeOf String String
