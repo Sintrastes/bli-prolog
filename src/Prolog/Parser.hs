@@ -230,3 +230,34 @@ schemaCommandP = do
   csymb ':'
   arity <- read <$> many1 digit
   return (id, arity)
+
+-- Typed schema parsing
+
+typedSchemaFileP :: Parser TypedSchema
+typedSchemaFileP = do
+  lines <- many (try schemaRelnP <|> try schemaEntityP <|> typeDeclP)
+  return lines
+
+schemaRelnP :: Parser TypedSchemaEntry
+schemaRelnP = do
+  symb "rel"
+  id <- atomP
+  csymb ':'
+  args <- atomP `sepBy1` (csymb ',')
+  csymb '.'
+  return $ Pred id args
+
+schemaEntityP :: Parser TypedSchemaEntry
+schemaEntityP = do
+  id <- atomP
+  csymb ':'
+  entityType <- atomP
+  csymb '.'
+  return $ TypeOf id entityType
+
+typeDeclP :: Parser TypedSchemaEntry
+typeDeclP = do
+  symb "type"
+  typeId <- atomP
+  csymb '.'
+  return $ Type typeId
