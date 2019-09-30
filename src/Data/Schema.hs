@@ -25,3 +25,12 @@ data TypedSchemaEntry =
     Pred String [String]
   | Type   String
   | TypeOf String String
+
+type TypedSchema = [TypedSchemaEntry]
+
+-- | Helper function for converting from the new format for schemas to the old format.
+getArities :: [TypedSchemaEntry] -> [SchemaEntry]
+getArities [] = []
+getArities ((Pred x ts):xs)  = (x, length ts):(getArities xs)
+getArities ((Type x):xs)     = getArities xs
+getArities ((TypeOf _ _):xs) = getArities xs
