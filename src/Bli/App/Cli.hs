@@ -64,6 +64,11 @@ processCliInput input' = do
                       io $ putStrLn $ (red colorOpts "Failure.")++" Query unsuccessful."
                       io $ putStrLn $ "    Variables bound by a lambda abstraction that do not appear"
                       io $ putStrLn $ "    In the body of a query."                    
+                Result_QueryFail_WrongArities xs -> do
+                      io $ putStrLn $ (red colorOpts "Failure.")++" Query unsuccessful."
+                      io $ mapM_ (\(id,arity) -> putStrLn $ "    The identifier "++id++
+                            " exists in the schema, but should not be used with an arity of "++show arity ++".")
+                            xs
                 Result_QuerySuccess solutions -> do
                     case solutions of
                          [] -> do
@@ -80,6 +85,12 @@ processCliInput input' = do
                        io $ putStrLn $ (red colorOpts "Failure.")++" Assertion unsuccessful."
                        io $ putStrLn $ "    The identifiers "++ show atoms
                        io $ putStrLn $ "    have not been declared in a schema."
+                Result_AssertionFail_WrongArities xs -> do
+                      io $ putStrLn $ (red colorOpts "Failure.")++" Assertion unsuccessful."
+                      io $ mapM_ (\(id,arity) -> putStrLn $ "    The identifier "++id++
+                                  " exists in the schema, but should not be used with an arity of "
+                                  ++ show arity ++".")
+                                 xs
 
 -- | Main entrypoint for the bli-prolog REPL.
 repl :: Bli ()

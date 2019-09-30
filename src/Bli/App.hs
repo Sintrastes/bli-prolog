@@ -37,6 +37,7 @@ processBliCommand x = do
                return $ Result_AssertionSuccess
            Left (AtomsNotInSchema atoms) ->
                return $ Result_AssertionFail atoms
+           Left (WrongArities xs) -> return $ Result_QueryFail_WrongArities xs
     (AssertClause clause) -> do
          case isBliCommandValid x schema of
            Right Ok -> do
@@ -44,6 +45,7 @@ processBliCommand x = do
                return $ Result_AssertionSuccess
            Left (AtomsNotInSchema atoms) ->
                return $ Result_AssertionFail atoms
+           Left (WrongArities xs) -> return $ Result_QueryFail_WrongArities xs
     (LambdaQuery (vars, goal)) -> do
         case isBliCommandValid x schema of
           Right Ok -> 
@@ -55,6 +57,7 @@ processBliCommand x = do
                          $ map (\(Solution x) -> x) $ bfs t
           Left BoundVarNotInBody ->
             return $ Result_QueryFail BoundVarNotInBody
+          Left (WrongArities xs) -> return $ Result_QueryFail_WrongArities xs
           Left (AtomsNotInSchema atoms) ->
             return $ Result_QueryFail (AtomsNotInSchema atoms)
     (QueryMode goal) ->
@@ -70,6 +73,7 @@ processBliCommand x = do
               in solutions )
           Left (AtomsNotInSchema atoms) ->
             return $ Result_QueryFail (AtomsNotInSchema atoms)
+          Left (WrongArities xs) -> return $ Result_QueryFail_WrongArities xs
     -- This case should not be possible since we are not dealing with a
     -- lambda query.
           Left _ -> error $ "Invalid exception encountered."

@@ -11,9 +11,9 @@ Todo
   * Integrate implicit predication with REPL.
   * Check to see if my use of the Bli monad with the warp server works,
     or if I need to use IORefs or something else to get it to work.
-  * Fix error messages for using a predicate with invalid arity.
-       * Refactor the main codebase to use the BliSet (or some related) interface.
+  * Refactor the main codebase to use the BliSet (or some related) interface.
   * Add test cases for parsing files so that I can work on refactoring some of our parsing code.
+  * Refactor isBliCommandValid to avoid code duplication.
 
 Notes
 -----

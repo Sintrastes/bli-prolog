@@ -42,7 +42,7 @@ data BliResult =
 -- A syntax error (which can arrise from an InvalidClause)
 -- is not associated with either a query, or an assertion,
 -- and so the structure of out ADT should reflect this.    
- | Result_QueryFail_
+ | Result_QueryFail_WrongArities [(String,Int)]
  | Result_QuerySuccess [Solution]
  | Result_AssertionSuccess
  | Result_AssertionFail [String]
