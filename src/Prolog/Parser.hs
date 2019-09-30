@@ -30,6 +30,9 @@ parseBliCommand string = parse bliCommandP "" string
 -- | Parse a .bli file
 parseBliFile string = parse bliFileP "" string
 
+-- | Parse a .bli file given the path to the file
+parseBliFromFile filename = parseFromFile bliFileP filename
+
 ----------------------------------------------------------------------
 -- Parser
 ----------------------------------------------------------------------

@@ -12,7 +12,9 @@ import Data.Prolog.Ast
 
 import Tests.Old.Siblings
 import Tests.Parsers
+import Tests.App
 
-main = defaultMain 
-   ( siblings_test
-  ++ parser_tests)
+main = defaultMain $ testGroup "Bli prolog main test suite." $
+     [siblings_test,
+      parser_tests,
+      app_tests]

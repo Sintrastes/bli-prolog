@@ -23,3 +23,4 @@ Notes
   * I think we'll probably want to use an alternative syntax for implicit predication.
     While we could keep the behavior of plain lambda queries, we could also 
     allow for the application of lambda queries (predicates) to terms.
+  * It might be fun to add fuzzy string matching support.

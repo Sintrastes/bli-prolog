@@ -106,7 +106,8 @@ test-suite bli-prolog-test-suite
   other-modules:
       Paths_bli_prolog
       Tests.Old.Siblings
-      Tests.Parser
+      Tests.Parsers
+      Tests.App
   hs-source-dirs:
       tests
   build-depends:
@@ -114,4 +115,6 @@ test-suite bli-prolog-test-suite
     , bli-prolog
     , tasty
     , tasty-hunit
+  extensions:
+      TemplateHaskell, QuasiQuotes
   default-language: Haskell2010

@@ -28,7 +28,7 @@ goal = QuasiQuoter {
             things ++ " are not handled by the regex quasiquoter."
         parserTH :: String -> Q Exp
         parserTH s =
-          case parse goalP "" ("?- "++s) of
+          case parse goalP "" s of
             Left  err    -> fail (show err)
             Right x      -> [e| x |]
 

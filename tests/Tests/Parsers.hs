@@ -11,27 +11,27 @@ import Prolog.Parser
 parser_tests = testGroup "Parsers" 
   [
     testCase ".bpl comments" $ do
-      let siblings1 = undefined
-      let siblings2 = undefined
-      Right $ siblings1 @=? siblings2
+      siblings1 <- parseBliFromFile "./tests/pl_source_files/siblings.bpl"
+      siblings2 <- parseBliFromFile "./tests/pl_source_files/siblings2.bpl"
+      siblings1 @=? siblings2 {-
   , testCase ".bpl parsing" $ do
       let expected = undefined
       let parsedFile = undefined
-      Right $ expected @=? parsedFile
+      expected @=? parsedFile
   , testCase ".pl parsing" $ do
       let expected = undefined
       let parsedFile = undefined
-      Right $ expected @=? parsedFile      
+      expected @=? parsedFile      
   , testCase ".pl comments" $ do
       let file1 = undefined
       let file2 = undefined
-      Right $ file1 @=? file2     
+      file1 @=? file2     
   , testCase ".bsch parsing" $ do
       let expected = undefined
       let parsedFile = undefined
-      Right $ expected @=? parsedFile      
+      expected @=? parsedFile      
   , testCase ".bsch comments" $ do
       let file1 = undefined
       let file2 = undefined
-      Right $ file1 @=? file2
+      file1 @=? file2 -}
   ]

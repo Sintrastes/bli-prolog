@@ -56,7 +56,7 @@ data BliCommand = QueryMode Goal
              -- Make new assertions into the active schema
                 | AssertTypePred SchemaEntry
                 | LambdaQuery LambdaGoal
-  deriving(Show, Lift)
+  deriving(Show, Eq, Lift)
 
 type Program = Clauses
 type Clauses = [Clause]

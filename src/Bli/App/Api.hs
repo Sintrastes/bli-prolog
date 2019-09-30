@@ -20,7 +20,7 @@ data BliRequest =
 --   results of that query.
      MakeQuery String
 -- | Request that an assertion be made.
-   | MakeAssertion String
+   | MakeAssertion String deriving(Eq, Show)
 
 -- | A data type to model the types of responses
 --   that the server can return to clients.
@@ -30,7 +30,7 @@ data BliResponse =
   -- | Response to successful query
    | QuerySuccess String
    | AssertionSuccess
-   | AssertionFail_AlreadyAsserted
+   | AssertionFail_AlreadyAsserted deriving(Eq, Show)
 
 data BliResult =
    Result_QueryFail InvalidClause
@@ -56,4 +56,4 @@ data BliResult =
 -- Error: X should have arity Y.
 --        Z should have arity W.
 --        ... etc...
- | Result_AssertionFail_WrongArities [(String,Int)]
+ | Result_AssertionFail_WrongArities [(String,Int)] deriving(Eq, Show)

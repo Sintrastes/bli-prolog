@@ -76,7 +76,7 @@ data InvalidClause =
      --   identifiers which do not exist in any of the imported schemas.
    | AtomsNotInSchema [Atom]
    -- | A list of atoms with invalid arities.
-   | WrongArities [(Atom,Int)]
+   | WrongArities [(Atom,Int)] deriving(Eq, Show)
 
 -- | Utility function to find the arity usages of atoms that 
 --   are not declared as valid in a schema, given a list of atoms
