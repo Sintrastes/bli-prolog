@@ -43,6 +43,12 @@ data BliResult =
 -- is not associated with either a query, or an assertion,
 -- and so the structure of out ADT should reflect this.    
  | Result_QueryFail_WrongArities [(String,Int)]
+-- ... Encountered type errors:
+--         In predicate X, argument n is not of type Y, but rather of type W.
+ | Result_QueryFail_TypeError [(String, Int, String, String)]
+-- ... Identifier X is being used as an Nary predicate, but is declared to
+--     be a term of type Y in the schema.
+ | Result_QueryFail_NotAPredicate [(String, Int, String)]
  | Result_QuerySuccess [Solution]
  | Result_AssertionSuccess
  | Result_AssertionFail [String]
