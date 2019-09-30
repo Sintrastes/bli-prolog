@@ -26,7 +26,14 @@ data TypedSchemaEntry =
   | Type   String
   | TypeOf String String deriving(Eq, Show)
 
+-- Note: We should probably refactor these all into newtypes, incase we
+-- want to make use of smart construtors later.
+type TypeDecl   = String
+type EntityDecl = (String, String)
+type RelDecl    = (String, [String])
+
 type TypedSchema = [TypedSchemaEntry]
+
 
 -- | Helper function for converting from the new format for schemas to the old format.
 getArities :: [TypedSchemaEntry] -> [SchemaEntry]

@@ -24,4 +24,7 @@ Notes
   * I think we'll probably want to use an alternative syntax for implicit predication.
     While we could keep the behavior of plain lambda queries, we could also 
     allow for the application of lambda queries (predicates) to terms.
+  * Note: "rel p: 2", or even "rel p arity 2" could by syntatic sugar for
+    "rel p: entity, entity", where "entity" is a catchall type which typechecks with
+    any input. Kind of like "Any" in some OOP languages.
   * It might be fun to add fuzzy string matching support.
