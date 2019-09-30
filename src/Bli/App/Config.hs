@@ -65,18 +65,19 @@ replHelpScreen colorOpts = foldr1 (\x -> \y -> x ++ "\n" ++ y) $
 -- | A datatype for the possible options that can be configured by the user for the
 --   bli-prolog executable. 
 data Options =
-  Options { search'    :: Search
-          , program'   :: FilePath
-          , schema'    :: FilePath
-          , goal'      :: String
-          , limit'     :: Maybe Int
-          , depth'     :: Int
-          , verbose'   :: Bool
-          , nocolor'   :: Bool
-          , json'      :: Bool
-          , server'    :: Bool
-          , port'      :: Maybe Int
-          , burl'      :: String
+  Options { search'        :: Search
+          , program'       :: FilePath
+          , schema'        :: FilePath
+          , goal'          :: String
+          , limit'         :: Maybe Int
+          , depth'         :: Int
+          , verbose'       :: Bool
+          , nocolor'       :: Bool
+          , json'          :: Bool
+          , server'        :: Bool
+          , bedelibryMode' :: String
+          , port'          :: Maybe Int
+          , burl'          :: String
           }
   deriving (Show, Data, Typeable)
 
@@ -165,7 +166,11 @@ startOptions version =
           , json' = False &= help "Specify whether or not json output formatting is used for queries."
           , server' = False &= help "Starts a REST server for processing bli prolog queries if set."
           , port' = Nothing &= help "Port number to start the server."
-          , burl' = "" &= help "URL of the bedelibry server configured to work with bli-prolog." 
+          , burl' = "" &= help "URL of the bedelibry server configured to work with bli-prolog."
+          -- For example, bli-prolog can be configured to only send assertions to the server
+          -- on an explicit :export-bedelibry command, or this can be done automatically.
+          -- In addition, we have this option both for entities, and for facts.
+          , bedelibryMode' = "" &= help "Sets the mode of interaction between bli-prolog and the bedebliry server."
           }
   &= summary ("bli-prolog interpreter v" ++ version ++ ", (C) Nathan Bedell 2019")
 
