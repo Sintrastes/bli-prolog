@@ -270,10 +270,31 @@ typeDeclP = do
 parseTypedBliFile = parseFromFile typedBliFileP 
 parseTypedBli = parse typedBliFileP ""
 
+typedSchemaLineP :: Parser BliCommandTyped
+typedSchemaLineP = do
+    xxline <- (try schemaRelnP <|> try schemaEntityP <|> typeDeclP)
+    return (T_AssertSchema res)
+
 typedBliFileP :: Parser [BliCommandTyped]
 typedBliFileP = do
-  lines' <- many $ try (try schemaRelnP <|> try schemaEntityP <|> typeDeclP) `eitherP` clauseP
+  lines' <- many $ try typedSchemaLineP `eitherP` clauseP
   let lines = map (\line -> case line of
-                              Left sEntry  -> T_AssertSchema sEntry
+                              Left sEntry  -> sEntry
                               Right clause -> T_AssertClause clause) lines'
   return lines
+
+------------ Typed bli command parser
+
+-- | Parser for a bedelibry command.
+bliCommandTypedP :: Parser BliCommandTyped
+bliCommandTypedP = do 
+  result <- (try lambdaGoalP `eitherP` (try assertClauseP `eitherP` (try assertionP `eitherP` (try goalP `eitherP` typedSchemaLineP))))
+  case result of
+     Left x  -> return $ LambdaQuery x
+     Right x -> case x of 
+         Left y  -> return $ AssertClause y
+         Right y -> case y of 
+            Left  z -> return $ AssertMode z
+            Right z -> case z of
+                Left w  -> return $ QueryMode w
+                Right w -> return $ AssertSchema w
