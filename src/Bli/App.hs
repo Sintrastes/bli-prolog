@@ -24,13 +24,13 @@ import Debug.Trace
 --   the cli and server interfaces, this
 --   function should also update the state of
 --   the running Bli instance.
-processBliCommand :: BliCommand -> Pure.Bli BliResult
+processBliCommand :: BliCommandTyped -> Pure.Bli BliResult
 processBliCommand x = do
   opts <- Pure.getOpts
   clauses <- Pure.getProgram
   schema  <- Pure.getSchema
   case x of
-    (AssertMode goal) -> do
+    (T_AssertMode goal) -> do
          case isBliCommandValid x schema of
            Right Ok -> do
                if any (\term -> not $ (term, []) `elem` clauses) goal
@@ -42,7 +42,7 @@ processBliCommand x = do
            Left (AtomsNotInSchema atoms) ->
                return $ Result_AssertionFail atoms
            Left (WrongArities xs) -> return $ Result_QueryFail_WrongArities xs
-    (AssertClause clause) -> do
+    (T_AssertClause clause) -> do
          case isBliCommandValid x schema of
            Right Ok -> do
                if clause `elem` clauses
@@ -52,7 +52,7 @@ processBliCommand x = do
            Left (AtomsNotInSchema atoms) ->
                return $ Result_AssertionFail atoms
            Left (WrongArities xs) -> return $ Result_QueryFail_WrongArities xs
-    (LambdaQuery (vars, goal)) -> do
+    (T_LambdaQuery (vars, goal)) -> do
         case isBliCommandValid x schema of
           Right Ok -> 
             let t = makeReportTree clauses goal in
@@ -66,7 +66,7 @@ processBliCommand x = do
           Left (WrongArities xs) -> return $ Result_QueryFail_WrongArities xs
           Left (AtomsNotInSchema atoms) ->
             return $ Result_QueryFail (AtomsNotInSchema atoms)
-    (QueryMode goal) ->
+    (T_QueryMode goal) ->
         case isBliCommandValid x schema of
           Right Ok ->
             return $ Result_QuerySuccess (  
@@ -83,8 +83,19 @@ processBliCommand x = do
     -- This case should not be possible since we are not dealing with a
     -- lambda query.
           Left _ -> error $ "Invalid exception encountered."
-    (AssertTypePred schemaEntry) -> do
-        if schemaEntry `elem` schema
-        then return $ Result_AssertionFail_AlreadyAsserted
-        else do Pure.modifySchema (\x -> x ++ [schemaEntry])
-                return $ Result_AssertionSuccess
+    (T_AssertSchema schemaEntry) -> do
+        case schemaEntry of
+            Pred predName argTyped -> do
+                io $ putStrLn "Adding predicate to schema if not in schema."
+                -- ...
+            Type typeName -> do
+                io $ putStrLn "Adding type to schema if not in schema."
+                -- ...
+            TypeOf termId typeId -> do
+                io $ "Adding term to schema if type is already in schema, and term not already in schema."
+                -- ...
+        -- Old logic:
+        -- if schemaEntry `elem` schema
+        -- then return $ Result_AssertionFail_AlreadyAsserted
+        -- else do Pure.modifySchema (\x -> x ++ [schemaEntry])
+        --        return $ Result_AssertionSuccess
