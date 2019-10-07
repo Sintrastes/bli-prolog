@@ -3,12 +3,13 @@ module Alias where
 
 import Data.Map (Map)
 import qualified Data.Map as Map
+import Control.Empty
 
-class Alias a where                                            
-    getPrimaryId' :: a -> String -> Maybe String
-    addNewAlias' :: a -> (String, String) -> Maybe a
+class (Traversable t, HasEmpty t) => AliasSet t where                                            
+    getPrimaryId' :: (t String) -> String -> Maybe String
+    addNewAlias'  :: (t String) -> (String, String) -> Maybe (t String)
 
-instance Alias (Map String String)  where
+instance AliasSet (Map String)  where
     getPrimaryId' store id = lookup id store
     addNewAlias' store (id1, id2) =
       case (getPrimaryId' store id1) of
