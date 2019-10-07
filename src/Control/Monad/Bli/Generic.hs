@@ -1,5 +1,6 @@
 
 module Control.Monad.Bli.Generic(
+  -- Basic interface
   runBli,
   getConfig,
   getFacts,
@@ -7,6 +8,12 @@ module Control.Monad.Bli.Generic(
   getEntities,
   getTypes,
   getAliases,
+  -- High-level interface
+  newAlias,
+  newType,
+  newEntity,
+  newRelation,
+  -- Low level interfact
   modifyConfig,
   modifyFacts,
   modifyRelations,
@@ -27,18 +34,55 @@ import Data.Prolog.Ast
 import Data.Schema
 import Bli.App.Config
 import Data.BliSet
-
-data BliStore t1 t2 t3 t4 alias = BliStore {
-  config :: AppConfig,
-  facts  :: t1 Clause,
-  relations :: t2 RelDecl,
-  entities :: t3 EntityDecl,
-  types :: t4 TypeDecl,
-  aliases :: alias
-}
+import Control.Monad.Bli.Common (BliStore)
 
 type Bli t1 t2 t3 t4 alias a = 
  StateT (BliStore t1 t2 t3 t4 alias) IO a
+
+-- | Attempts to add a new alias to the store. Returns a boolean flag to indicate success or failure.
+newAlias :: (BliSet t1, BliSet t2, BliSet t3, BliSet t4, Alias alias) 
+ => String -> String -> Bli t1 t2 t3 t4 alias Bool
+newAlias id1 id2 = do
+  aliases <- getAliases
+  case addNewAlias' aliases (id1, id2) of
+    Nothing -> return False
+    Just result -> 
+      setAliases result
+      return True
+
+-- | Attempts to add a new type to the store. Returns a boolean flag to indicate success or failure.
+newType :: (BliSet t1, BliSet t2, BliSet t3, BliSet t4, Alias alias)
+ => String ->  Bli t1 t2 t3 t4 alias Bool
+newType typeName = do
+  types <- getTypes
+  case tryInsert typeName types of
+    Left  _ -> return False
+    Right result -> do
+      setTypes result
+      return True
+
+-- | Attempts to add a new entity to the store. Returns a boolean flag to indicate success or failure.
+newEntity :: (BliSet t1, BliSet t2, BliSet t3, BliSet t4, Alias alias)
+ => String -> String -> Bli t1 t2 t3 t4 alias Bool
+newEntity name entityType = do
+  entities <- getEntities
+  case tryInsert (name, entityType) entities of
+    Left _       -> return False
+    Right result -> do
+      setEntities result
+      return True
+
+-- | Attempts to add a new relation to the store. Returns a boolean flag to indicate success or failure.
+newRelation :: (BliSet t1, BliSet t2, BliSet t3, BliSet t4, Alias alias)
+ => String -> [String] -> Bli t1 t2 t3 t4 alias Bool
+newRelation name argumentTypes = do
+  relns <- getRelations
+  case tryInsert (name, argumentTypes) relns of
+    Left result -> return False
+    Right result -> do
+      setRelations result
+      return True
+
 
 -- | Lift io computations into the Bli monad.
 --   NOTE: We should just be able to use liftIO here instead, from the 
