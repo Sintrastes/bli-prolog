@@ -22,6 +22,7 @@ import Prolog.Interp
 import Data.List
 import System.Console.CmdArgs as CA hiding (program)
 import System.Console.Readline
+import Control.Monad.IO.Class
 
 -- Helper function to get the file extension of a filepath.
 fileExtension :: String -> String
@@ -46,27 +47,27 @@ processCliInput input' = do
           -- Parse and handle the command
           let parserOutput = parseBliCommand input
           case parserOutput of
-            Left err -> do io $ putStrLn ((red colorOpts "Error")++" parsing query string:")
-                           io $ putStrLn $ foldr1 (\x -> \y -> x ++ "\n" ++ y) $
+            Left err -> do liftIO $ putStrLn ((red colorOpts "Error")++" parsing query string:")
+                           liftIO $ putStrLn $ foldr1 (\x -> \y -> x ++ "\n" ++ y) $
                                              (map (\x -> "  " ++ x)) $ 
                                              (splitOn "\n" $ show err)
-                           io $ putStrLn $ 
+                           liftIO $ putStrLn $ 
                              (yellow colorOpts
                                 "All bli prolog commands end with either a '.' or an '!'.")
             Right command -> do
               result <- Pure.liftFromPure $ processBliCommand command
               case result of
                 Result_QueryFail (AtomsNotInSchema atoms) -> do
-                       io $ putStrLn $ (red colorOpts "Failure.")++" Query unsuccessful."
-                       io $ putStrLn $ "    The identifiers "++ show atoms
-                       io $ putStrLn $ "    have not been declared in a schema."
+                       liftIO $ putStrLn $ (red colorOpts "Failure.")++" Query unsuccessful."
+                       liftIO $ putStrLn $ "    The identifiers "++ show atoms
+                       liftIO $ putStrLn $ "    have not been declared in a schema."
                 Result_QueryFail BoundVarNotInBody -> do
-                      io $ putStrLn $ (red colorOpts "Failure.")++" Query unsuccessful."
-                      io $ putStrLn $ "    Variables bound by a lambda abstraction that do not appear"
-                      io $ putStrLn $ "    In the body of a query."                    
+                      liftIO $ putStrLn $ (red colorOpts "Failure.")++" Query unsuccessful."
+                      liftIO $ putStrLn $ "    Variables bound by a lambda abstraction that do not appear"
+                      liftIO $ putStrLn $ "    In the body of a query."                    
                 Result_QueryFail_WrongArities xs -> do
-                      io $ putStrLn $ (red colorOpts "Failure.")++" Query unsuccessful."
-                      io $ mapM_ (\(id,arity) -> putStrLn $ "    The identifier "++id++
+                      liftIO $ putStrLn $ (red colorOpts "Failure.")++" Query unsuccessful."
+                      liftIO $ mapM_ (\(id,arity) -> putStrLn $ "    The identifier "++id++
                             " exists in the schema, but should not be used with an arity of "++show arity ++".")
                             xs
                 Result_QuerySuccess solutions -> do
@@ -80,19 +81,19 @@ processCliInput input' = do
                          _  -> do
                             io $ mapM_ (putStrLn . solutionToJson) solutions
                 Result_AssertionSuccess -> do
-                  io $ putStrLn $ (green colorOpts "OK.")++" Assertion successful."
+                  liftIO $ putStrLn $ (green colorOpts "OK.")++" Assertion successful."
                 Result_AssertionFail atoms -> do
-                       io $ putStrLn $ (red colorOpts "Failure.")++" Assertion unsuccessful."
-                       io $ putStrLn $ "    The identifiers "++ show atoms
-                       io $ putStrLn $ "    have not been declared in a schema."
+                       liftIO $ putStrLn $ (red colorOpts "Failure.")++" Assertion unsuccessful."
+                       liftIO $ putStrLn $ "    The identifiers "++ show atoms
+                       liftIO $ putStrLn $ "    have not been declared in a schema."
                 Result_AssertionFail_WrongArities xs -> do
-                      io $ putStrLn $ (red colorOpts "Failure.")++" Assertion unsuccessful."
-                      io $ mapM_ (\(id,arity) -> putStrLn $ "    The identifier "++id++
+                      liftIO $ putStrLn $ (red colorOpts "Failure.")++" Assertion unsuccessful."
+                      liftIO $ mapM_ (\(id,arity) -> putStrLn $ "    The identifier "++id++
                                   " exists in the schema, but should not be used with an arity of "
                                   ++ show arity ++".")
                                  xs
                 Result_AssertionFail_AlreadyAsserted -> do
-                    io $ putStrLn $ (yellow colorOpts "Already asserted.")
+                    liftIO $ putStrLn $ (yellow colorOpts "Already asserted.")
 
 -- | Main entrypoint for the bli-prolog REPL.
 repl :: Bli ()
@@ -102,42 +103,42 @@ repl = do
   clauses <- getProgram
   schema  <- getSchema
   let colorOpts = not $ nocolor opts
-  maybeLine <- io $ readline (blue colorOpts "?- ")
+  maybeLine <- liftIO $ readline (blue colorOpts "?- ")
   case maybeLine of
     Nothing -> repl
     Just line -> do
       case line of 
         -- First,handle user REPL commands (beginning with a semicolon).
         ":h"   -> do 
-          io $ putStrLn $ replHelpScreen colorOpts
+          liftIO $ putStrLn $ replHelpScreen colorOpts
           repl
         ":clear-kb" -> do
-            io $ putStrLn "Clearing all in-memory facts."
+            liftIO $ putStrLn "Clearing all in-memory facts."
             setProgram []
         ":clear-schema" -> do
             -- Note: This should also clear everything in the schema, since
             -- if have no entities which we can query about, then
             -- we also know no facts about those entities.
-            io $ putStrLn "Clearing all in-memory facts and schema data"
+            liftIO $ putStrLn "Clearing all in-memory facts and schema data"
             setProgram []
             setSchema  []
         ":exit" -> return ()
         _ | isPrefixOf ":load" line -> do
                let filePath = drop 6 line
-               fileContents <- io $ readFile filePath
+               fileContents <- liftIO $ readFile filePath
                case fileExtension filePath of
                  ".pl"   -> do
                      case clausesFromString fileContents of
-                         Left e -> io $ putStrLn "There has been a parse error."
+                         Left e -> liftIO $ putStrLn "There has been a parse error."
                          Right clauses -> do
                              modifyProgram (\x -> x ++ clauses)
                  ".bpl"  -> do
                      -- Currently this will only parse the typed version
                      case parseTypedBli fileContents of
-                         Left e -> io $ putStrLn "There has been a parse error."
+                         Left e -> liftIO $ putStrLn "There has been a parse error."
                          Right lines -> do
                              -- debugging
-                             io $ print $ lines
+                             liftIO $ print $ lines
                              -- This is the old version.
                              -- let (entries, clauses) = groupSchemaClauses lines
                              -- modifyProgram (\x -> x ++ clauses)
@@ -145,9 +146,9 @@ repl = do
                  ".bsch" -> do
                   -- Currently this will only parse the typed version.
                      case parseTypedSchema fileContents of
-                         Left e -> io $ putStrLn "There has been a parse error."
+                         Left e -> liftIO $ putStrLn "There has been a parse error."
                          Right entries -> do
-                              io $ print $ entries
+                              liftIO $ print $ entries
                               modifySchema (\x -> x ++ (getArities entries))
                repl
           | isPrefixOf ":export" line -> do
@@ -171,16 +172,16 @@ repl = do
              then do
                let arg1 = args !! 0
                let arg2 = args !! 1
-               io $ putStrLn $ "Made alias of " ++ arg1 ++ " to " ++ arg2 ++ "."
+               liftIO $ putStrLn $ "Made alias of " ++ arg1 ++ " to " ++ arg2 ++ "."
                repl
              else do
-               io $ putStrLn "Invalid argument format to :alias."
+               liftIO $ putStrLn "Invalid argument format to :alias."
                repl
          | (line == ":lkb" || line == ":list-knowledge-base") -> do
-               io $ mapM_ (\x -> putStrLn ("  "++x)) $ map prettyShowClause clauses
+               liftIO $ mapM_ (\x -> putStrLn ("  "++x)) $ map prettyShowClause clauses
                repl
          | (line == ":ls" || line == ":list-schema") -> do
-               io $ mapM_ (\x -> putStrLn ("  "++x)) $ map prettyShowSchemaEntry schema
+               liftIO $ mapM_ (\x -> putStrLn ("  "++x)) $ map prettyShowSchemaEntry schema
                repl 
         -- If the user has not entered a REPL command, try processing
         -- their input as a standard Bedelibry Prolog command.

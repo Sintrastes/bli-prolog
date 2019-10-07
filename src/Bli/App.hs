@@ -17,6 +17,7 @@ import Data.Aeson
 import Data.List.Split
 import Data.List
 import Debug.Trace
+import Control.Monad.IO.Class
 
 -- | New helper function for our refactoring
 --   Note: To ensure for a consistent API
@@ -86,13 +87,13 @@ processBliCommand x = do
     (T_AssertSchema schemaEntry) -> do
         case schemaEntry of
             Pred predName argTyped -> do
-                io $ putStrLn "Adding predicate to schema if not in schema."
+                liftIO $ putStrLn "Adding predicate to schema if not in schema."
                 -- ...
             Type typeName -> do
-                io $ putStrLn "Adding type to schema if not in schema."
+                liftIO $ putStrLn "Adding type to schema if not in schema."
                 -- ...
             TypeOf termId typeId -> do
-                io $ "Adding term to schema if type is already in schema, and term not already in schema."
+                liftIO $ "Adding term to schema if type is already in schema, and term not already in schema."
                 -- ...
         -- Old logic:
         -- if schemaEntry `elem` schema
