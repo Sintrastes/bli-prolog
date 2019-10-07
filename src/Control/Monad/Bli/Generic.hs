@@ -33,6 +33,7 @@ import Control.Monad.Trans.Class (lift)
 import Data.Prolog.Ast
 import Data.Schema
 import Bli.App.Config
+import Data.Alias
 import Data.BliSet
 import Control.Monad.Bli.Common (BliStore)
 
@@ -129,7 +130,7 @@ getTypes :: (BliSet t1, BliSet t2, BliSet t3, BliSet t4, Alias alias)
 getTypes = types <$> get
 
 getAliases :: (BliSet t1, BliSet t2, BliSet t3, BliSet t4, Alias alias)
- => Bli t1 t2 t3 t3 t4 alias (t4 TypeDecl)
+ => Bli t1 t2 t3 t3 t4 alias alias
 getAliases = aliases <$> get
 
 -- | Modify the configuration of a running bli application. 

@@ -1,5 +1,30 @@
 
-module Control.Monad.Bli where
+module Control.Monad.Bli(
+  -- Basic interface
+  runBli,
+  getConfig,
+  getFacts,
+  getRelations,
+  getEntities,
+  getTypes,
+  getAliases,
+  -- High-level interface
+  newAlias,
+  newType,
+  newEntity,
+  newRelation,
+  -- Low level interface
+  modifyConfig,
+  modifyFacts,
+  modifyRelations,
+  modifyEntities,
+  modifyTypes,
+  setConfig,
+  setFacts,
+  setRelations,
+  setEntities,
+  setTypes,
+  setAliases) where
 
 --
 -- | A monad for IO computations preformed in the context of a 
@@ -13,50 +38,46 @@ import Data.Prolog.Ast
 import Data.Schema
 import Bli.App.Config (AppConfig)
 import qualified Control.Monad.Bli.Generic as Generic
+import Control.Monad.Bli.Common
 
 -- | A monad for wrapping computations done (and run) in bli prolog.
-type Bli a = Generic.Bli [] [] a
+type Bli a = Generic.Bli 
+ -- | The container to use for the fact store
+    FactContainer
+ -- | The container to use for the relational store 
+    RelationContainer
+ -- | The container to use for the entity store
+    EntityContainer
+ -- | The container to use for the type store
+    TypeContainer
+ -- | The datastructure to use for storing aliases
+    AliasDatastructure 
+    a
 
 -- | Lift io computations into the Bli monad.
+--   NOTE: This is depreciated
 io :: IO a -> Bli a
 io = Generic.io
 
--- | Run a Bli application with some initial state.
-runBli :: AppConfig -> Program -> Schema -> Bli a -> IO a
 runBli = Generic.runBli
-
--- | Get the options from a running bli application
-getOpts    :: Bli AppConfig
-getOpts = Generic.getOpts
-
--- | Get the program from a running bli application.
-getProgram :: Bli Program
-getProgram = Generic.getProgram
-
--- | Get the schema from a running bli application.
-getSchema  :: Bli Schema
-getSchema = Generic.getSchema
-
--- | Modify the options of a running bli application. 
-modifyOpts :: (AppConfig -> AppConfig) -> Bli ()
-modifyOpts = Generic.modifyOpts
-
--- | Modify the program of a running bli application.
-modifyProgram :: (Program -> Program) -> Bli ()
-modifyProgram = Generic.modifyProgram
-
--- | Modify the schema of a running bli application.
-modifySchema :: (Schema -> Schema) -> Bli ()
-modifySchema = Generic.modifySchema
-
--- | Set the program of a running bli application.
-setProgram :: Program -> Bli ()
-setProgram = Generic.setProgram
-
--- | Set the options of a running bli application
-setOpts :: AppConfig -> Bli ()
-setOpts = Generic.setOpts
-
--- | Set the schema of a running bli application
-setSchema :: Schema  -> Bli ()
-setSchema = Generic.setSchema
+getConfig = Generic.getConfig
+getFacts = Generic.getFacts
+getRelations = Generic.getRelations
+getEntities = Generic.getEntities
+getTypes = Generic.getTypes
+getAliases = Generic.getAliases
+newAlias = Generic.newAlias
+newType = Generic.newType
+newEntity = Generic.newEntity
+newRelation = Generic.newRelation
+modifyConfig = Generic.modifyConfig
+modifyFacts = Generic.modifyFacts
+modifyRelations = Generic.modifyRelations
+modifyEntities = Generic.modifyEntities
+modifyTypes = Generic.modifyTypes
+setConfig = Generic.setConfig
+setFacts = Generic.setFacts
+setRelations = Generic.setRelations
+setEntities = Generic.setEntities
+setTypes = Generic.setTypes
+setAliases = Generic.setAliases
