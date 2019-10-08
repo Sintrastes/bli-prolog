@@ -73,13 +73,13 @@ processCliInput input' = do
                 Result_QuerySuccess solutions -> do
                     case solutions of
                          [] -> do
-                            io $ putStrLn (yellow colorOpts "No solutions.")
+                            liftIO $ putStrLn (yellow colorOpts "No solutions.")
                          (x:[]) -> do
                             if (show x == "true")
-                            then io $ putStrLn (green colorOpts "True.")
+                            then liftIO $ putStrLn (green colorOpts "True.")
                             else return ()
                          _  -> do
-                            io $ mapM_ (putStrLn . solutionToJson) solutions
+                            liftIO $ mapM_ (putStrLn . solutionToJson) solutions
                 Result_AssertionSuccess -> do
                   liftIO $ putStrLn $ (green colorOpts "OK.")++" Assertion successful."
                 Result_AssertionFail atoms -> do
@@ -156,13 +156,13 @@ repl = do
                case fileExtension filePath of
                  ".pl" -> do
                    let contents = undefined
-                   io $ writeFile filePath contents
+                   liftIO $ writeFile filePath contents
                  ".bpl"  -> do
                    let contents = undefined
-                   io $ writeFile filePath contents
+                   liftIO $ writeFile filePath contents
                  ".bsch" -> do
                    let contents = undefined
-                   io $ writeFile filePath contents
+                   liftIO $ writeFile filePath contents
                -- io $ putStrLn $ yellow colorOpts "Export command not implemented."
                repl
          | isPrefixOf ":alias" line -> do

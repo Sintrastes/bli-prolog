@@ -23,6 +23,8 @@ import Prolog.Analysis
 import Prolog.Parser
 import Control.Applicative
 import Control.Monad.Bli
+import Control.Monad.IO.Class
+
 import qualified Control.Monad.Bli.Pure as Pure
 
 import Bli.App
@@ -31,7 +33,7 @@ import Bli.App.Api
 parseRequest :: Request -> Bli (Maybe BliRequest)
 parseRequest req 
     | (method == "GET") && (path == [pack "query"]) 
-        = do body <- io $ body'
+        = do body <- liftIO $ body'
              return $ Just $ MakeQuery $ BU.toString $ B.toStrict body
     | otherwise = return $ Nothing
   where path   = pathInfo req
@@ -49,7 +51,7 @@ processResponse Nothing = return $ responseBuilder badRequest400 [] "Bad request
 -- There are a lot of cases here that will never be reached.
 requestHandler :: Maybe BliRequest -> Bli (Maybe BliResponse)
 requestHandler (Just (MakeQuery query)) 
-  = case (parseBliCommand query) of 
+  = case (parseBliCommandTyped query) of 
       Left err -> return $ Just $ SyntaxError $ BoundVarNotInBody -- "Some error. Replace me!"
       Right command -> do
         result <- Pure.liftFromPure $ processBliCommand command
@@ -66,7 +68,7 @@ requestHandler (Just (MakeQuery query))
           Result_AssertionFail atoms -> do
               return $ Just $ SyntaxError $ BoundVarNotInBody -- "replace me."
 requestHandler (Just (MakeAssertion assertion))
-  = case (parseBliCommand assertion) of 
+  = case (parseBliCommandTyped assertion) of 
       Left err -> return $ Just $ SyntaxError $ BoundVarNotInBody -- "replace me."
       Right command -> do
         result <- Pure.liftFromPure $ processBliCommand command
@@ -90,20 +92,18 @@ requestHandler Nothing = return Nothing
 -- | Initialize a new bli-prolog server on @port@. 
 newServer :: Int -> Bli ()
 newServer port = do
-  homeDir <- io $ getHomeDirectory
-  opts    <- getOpts
-  clauses <- getProgram
-  schema  <- getSchema
+  homeDir <- liftIO $ getHomeDirectory
+  store   <- getStore
   -- Get keys and certificates.
   let tSet = tlsSettings (homeDir ++ "/.bedelibry/prolog-server/server.crt") 
                          (homeDir ++ "/.bedelibry/prolog-server/server.key")
   -- Run the server on the given port.
-  io $ runTLS tSet (setPort port defaultSettings) ( \x -> \y -> (runBli opts clauses schema) $ app x y)
+  liftIO $ runTLS tSet (setPort port defaultSettings) ( \x -> \y -> (runBliWithStore store) $ app x y)
 
 -- | Warp application for our server.
 app :: Request -> (Response -> IO ResponseReceived) -> Bli ResponseReceived
 app req respond = 
-     (io . respond)
+     (liftIO . respond)
  =<< processResponse
  =<< requestHandler
  =<< parseRequest req

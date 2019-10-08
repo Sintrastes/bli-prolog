@@ -10,13 +10,14 @@ import Data.Schema
 import Prolog.Parser
 import Prolog.Interp
 import Prolog.Analysis
-import qualified Control.Monad.Bli.Pure as Pure
+import Control.Monad.Bli.Pure
 import Bli.App.Api
 import Bli.App.Config
 import Data.Aeson
 import Data.List.Split
 import Data.BliSet
-import Data.List
+import Data.List hiding (foldr1)
+import Data.Foldable (foldr1)
 import Debug.Trace
 import Control.Monad
 import Control.Monad.IO.Class
@@ -27,24 +28,25 @@ import Control.Monad.IO.Class
 --   the cli and server interfaces, this
 --   function should also update the state of
 --   the running Bli instance.
-processBliCommand :: BliCommandTyped -> Pure.Bli BliResult
+processBliCommand :: BliCommandTyped -> Bli BliResult
 processBliCommand command = do
-  opts      <- Pure.getConfig
-  clauses   <- Pure.getFacts
-  types     <- Pure.getTypes 
-  relations <- Pure.getRelations
-  entities  <- Pure.getEntities
-  aliases   <- Pure.getAliases
+  opts      <- getConfig
+  clauses   <- getFacts
+  types     <- getTypes 
+  relations <- getRelations
+  entities  <- getEntities
+  aliases   <- getAliases
   case command of
     (T_AssertMode goal) -> do
          isValid <- isBliCommandValid command
          case isValid of
            Right Ok -> do
+
                -- Try inserting each of the terms individually, collecting errors
-               case foldr1 (>=>) (map (\term -> \result -> tryInsert (term, []) result) goal) $ Right clauses of
+               case foldr1 (>=>) (map (\term -> \result -> tryInsert (term, []) result) goal) =<< Right clauses of
                -- If all is well, update the store.
                  Right result -> do 
-                         Pure.modifyFacts result 
+                         setFacts result 
                          return $ Result_AssertionSuccess
                  -- We can probably refine this to get it to tell us whihc of the terms
                  -- was already asserted.
@@ -58,7 +60,7 @@ processBliCommand command = do
            Right Ok -> do
                case tryInsert clause clauses of
                  Left _ -> return $ Result_AssertionFail_AlreadyAsserted 
-                 Right result -> do Pure.setFacts result
+                 Right result -> do setFacts result
                                     return $ Result_AssertionSuccess
            Left (AtomsNotInSchema atoms) ->
                return $ Result_AssertionFail atoms
@@ -99,23 +101,23 @@ processBliCommand command = do
     (T_AssertSchema schemaEntry) -> do
         case schemaEntry of
             Pred predName argTypes -> do
-                liftIO $ putStrLn "Adding predicate to schema if not in schema."
+                -- Add predicate to schema if not already in schema.
                 case tryInsert (predName, argTypes) relations of
                     Left _       -> return $ Result_AssertionFail_AlreadyAsserted
                     Right result -> do
-                        Pure.setRelations result
+                        setRelations result
                         return $ Result_AssertionSuccess
             Type typeName -> do
-                liftIO $ putStrLn "Adding type to schema if not in schema."
+                -- Add type to schema if not in schema.
                 case tryInsert typeName types of
                     Left _ -> return $ Result_AssertionFail_AlreadyAsserted
                     Right result -> do
-                        Pure.setTypes result
+                        setTypes result
                         return $ Result_AssertionSuccess
             TypeOf termId typeId -> do
-                liftIO $ "Adding term to schema if type is already in schema, and term not already in schema."
+                -- Add term to schema if type is already in schema, and term not already in schema.
                 case tryInsert (termId, typeId) entities of
                     Left _ -> return $ Result_AssertionFail_AlreadyAsserted
                     Right result -> do
-                        Pure.setEntities result
+                        setEntities result
                         return $ Result_AssertionSuccess

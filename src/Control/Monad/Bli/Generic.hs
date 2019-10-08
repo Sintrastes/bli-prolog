@@ -3,6 +3,9 @@ module Control.Monad.Bli.Generic(
   -- Basic interface
   Bli(..),
   runBli,
+  runBliWithStore,
+  setStore,
+  getStore,
   getConfig,
   getFacts,
   getRelations,
@@ -52,6 +55,11 @@ getStore = get
 modifyStore :: (BliSet t1, BliSet t2, BliSet t3, BliSet t4, Alias alias) 
  => ((BliStore t1 t2 t3 t4 alias) -> (BliStore t1 t2 t3 t4 alias)) -> Bli t1 t2 t3 t4 alias ()
 modifyStore = modify
+
+
+setStore :: (BliSet t1, BliSet t2, BliSet t3, BliSet t4, Alias alias) 
+ => (BliStore t1 t2 t3 t4 alias) -> Bli t1 t2 t3 t4 alias ()
+setStore store = modify (\x -> store)
 
 -- | Attempts to add a new fact to the store. Returns a boolean flag to indicate success or failure.
 newFact :: (BliSet t1, BliSet t2, BliSet t3, BliSet t4, Alias alias) 
@@ -125,6 +133,11 @@ runBli :: (BliSet t1, BliSet t2, BliSet t3, BliSet t4, Alias alias)
   -> IO a
 runBli config facts relns ents types aliases app =
   evalStateT app (BliStore config facts relns ents types aliases)
+
+-- | 
+runBliWithStore :: (BliSet t1, BliSet t2, BliSet t3, BliSet t4, Alias alias)
+ => BliStore t1 t2 t3 t4 alias -> Bli t1 t2 t3 t4 alias a -> IO a
+runBliWithStore store app = evalStateT app store
 
 -- | Get the configuration data from a running bli application
 getConfig :: (BliSet t1, BliSet t2, BliSet t3, BliSet t4, Alias alias)

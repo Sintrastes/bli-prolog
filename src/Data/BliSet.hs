@@ -1,7 +1,8 @@
 
 module Data.BliSet where
 
-import Data.List
+import Prelude   hiding (filter)
+import Data.List hiding (filter)
 import Data.Set (Set)
 import Data.HashSet (HashSet)
 import qualified Data.HashSet as HashSet
@@ -9,9 +10,10 @@ import qualified Data.Set as Set
 import Data.Sequence (Seq(..), (|>), (!?), dropWhileL, findIndexL)
 import qualified Data.Sequence as Seq
 import Control.Empty
+import Data.Witherable
 
 -- | Generic interface for a Set-like container.
-class (Traversable t, HasEmpty t) => BliSet t where
+class (Traversable t, Filterable t, HasEmpty t) => BliSet t where
   tryInsert :: Eq a => a -> t a -> Either (t a) (t a)
   tryRemove :: Eq a => a -> t a -> Either (t a) (t a)
   lookup :: Eq a => (a -> Bool) -> t a -> Maybe a

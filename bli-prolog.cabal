@@ -63,11 +63,11 @@ library
     , parser-combinators
     , liquidhaskell-cabal >= 0.2.1
     , pretty
+    , witherable
     , mtl
     , transformers
     , th-lift
     , aeson
-    -- , liquidhaskell-cabal >= 0.2.1
     , split
     , template-haskell
     , cmdargs

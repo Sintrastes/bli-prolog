@@ -27,6 +27,9 @@ lambdaGoalFromString string = parse lambdaGoalP "<goalstring>" string
 -- | Parse a bedelibry prolog command from a string
 parseBliCommand string = parse bliCommandP "" string
 
+-- | Parse a typed bedelibry prolog command from a string.
+parseBliCommandTyped string = parse bliCommandTypedP "" string
+
 -- | Parse a .bli file
 parseBliFile string = parse bliFileP "" string
 

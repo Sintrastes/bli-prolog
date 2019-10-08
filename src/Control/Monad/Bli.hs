@@ -1,7 +1,11 @@
 
 module Control.Monad.Bli(
+  Bli,
   -- Basic interface
   runBli,
+  runBliWithStore,
+  getStore,
+  setStore,
   getConfig,
   getFacts,
   getRelations,
@@ -54,6 +58,14 @@ type Bli a = Generic.Bli
     AliasDatastructure 
     a
 
+
+getStore = Generic.getStore @FactContainer @RelationContainer @EntityContainer @TypeContainer @AliasDatastructure
+
+setStore = Generic.setStore @FactContainer @RelationContainer @EntityContainer @TypeContainer @AliasDatastructure
+
+modifyStore = Generic.modifyStore @FactContainer @RelationContainer @EntityContainer @TypeContainer @AliasDatastructure
+
+runBliWithStore = Generic.runBliWithStore @FactContainer @RelationContainer @EntityContainer @TypeContainer @AliasDatastructure
 
 runBli = Generic.runBli @FactContainer @RelationContainer @EntityContainer @TypeContainer @AliasDatastructure
 
