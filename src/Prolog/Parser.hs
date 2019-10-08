@@ -100,8 +100,7 @@ bliCommandP = do
                 Right w -> return $ AssertTypePred w
 -- | Parser for a lambda query.
 lambdaGoalP :: Parser LambdaGoal
-lambdaGoalP = do symb "?-"
-                 skipMany (space >> return ())
+lambdaGoalP = do skipMany (space >> return ())
                  csymb '\\' <|> csymb 'λ' <|> csymb 'Λ'
                  vars <- variableP `sepBy` (csymb ',')
                  csymb '.'
@@ -111,15 +110,13 @@ lambdaGoalP = do symb "?-"
 
 -- | Parser for a plain prolog goal.                
 goalP :: Parser Goal
-goalP = do symb "?-"
-           ts <- termsP
+goalP = do ts <- termsP
            csymb '.'
            return ts
 
 -- | Parser for an assertion -- a prolog goal ending with a ! instead of a .
 assertionP :: Parser Goal
-assertionP = do symb "?-"
-                ts <- termsP
+assertionP = do ts <- termsP
                 csymb '!'
                 return ts
 
@@ -139,8 +136,7 @@ clauseP = do t <- termP
 
 -- | Parser for the assertion of a prolog clause.
 assertClauseP :: Parser Clause
-assertClauseP = do symb "?-"
-                   t <- termP
+assertClauseP = do t <- termP
                    body <- option []
                         (symb ":-" >> termsP)
                    csymb '!'
@@ -228,7 +224,6 @@ schemaLineP = do
   
 schemaCommandP :: Parser (String, Int)
 schemaCommandP = do
-  symb "?-"
   id <- atomP
   csymb ':'
   arity <- read <$> many1 digit
@@ -291,13 +286,13 @@ typedBliFileP = do
 -- | Parser for a bedelibry command.
 bliCommandTypedP :: Parser BliCommandTyped
 bliCommandTypedP = do 
-  result <- (try lambdaGoalP `eitherP` (try assertClauseP `eitherP` (try assertionP `eitherP` (try goalP `eitherP` typedSchemaLineP))))
+  result <- (try typedSchemaLineP `eitherP` (try assertClauseP `eitherP` (try assertionP `eitherP` (try goalP `eitherP` lambdaGoalP))))
   case result of
-     Left x  -> return $ T_LambdaQuery x
+     Left x  -> return $ x
      Right x -> case x of 
          Left y  -> return $ T_AssertClause y
          Right y -> case y of 
             Left  z -> return $ T_AssertMode z
             Right z -> case z of
                 Left w  -> return $ T_QueryMode w
-                Right w -> return $ w
+                Right w -> return $ T_LambdaQuery w

@@ -35,7 +35,7 @@ groupSchemaClauses commands = go commands [] []
 
 -- | Helper function to process bli-prolog commands in a running application.
 processCliInput :: String -> Bli ()
-processCliInput input' = do
+processCliInput input = do
           -- Get schema, clauses, and options from context.
           -- Temporary, to get this to compile.
           let schema = []
@@ -45,9 +45,6 @@ processCliInput input' = do
           clauses   <- getFacts
           opts      <- getConfig
           let colorOpts = not $ nocolor opts
-          -- Prepend the user input with the required symbol for
-          -- our parsers
-          let input = "?- " ++ input'
           -- Parse and handle the command
           let parserOutput = parseBliCommandTyped input
           case parserOutput of
@@ -108,7 +105,7 @@ repl = do
   -- Temporary, to get this to compile
   let schema = [] 
   let colorOpts = not $ nocolor opts
-  maybeLine <- liftIO $ readline (blue colorOpts "?- ")
+  maybeLine <- liftIO $ readline (blue colorOpts command_prompt)
   case maybeLine of
     Nothing -> repl
     Just line -> do

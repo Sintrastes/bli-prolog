@@ -16,6 +16,9 @@ import Control.Monad (join)
 import Bli.App.Colors
 import System.Directory
 
+-- The command prompt to use for the application.
+command_prompt = "?- "
+
 -- | An ADT representing all of the different search 
 --   algorithms bli prolog can be configured to run with.
 data Search = DFS | BFS | Limited
