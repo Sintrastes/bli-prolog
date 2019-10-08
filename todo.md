@@ -2,10 +2,6 @@
 Todo
 ====
   * Implement schemas with types.
-      * Refactor the Bli monads so that the set of types is stored seperately
-        from the set of relation declarations.
-          * Note: I think we'll also need a container for aliases. We'll also need to configure
-            how adding aliases works with the bedelibry server.
   * Integrate implicit predication with REPL.
       * Write a contextual parser for implicit predications.
   * Implement side-effects with asserting types. (first need to configure the entity server).
@@ -15,7 +11,6 @@ Todo
              entity to the schema of type person.
   * Check to see if my use of the Bli monad with the warp server works,
     or if I need to use IORefs or something else to get it to work.
-  * Refactor the main codebase to use the BliSet (or some related) interface.
   * Add test cases for parsing files so that I can work on refactoring some of our parsing code.
   * Refactor isBliCommandValid to avoid code duplication.
 
@@ -35,4 +30,12 @@ Notes
   * Note: "rel p: 2", or even "rel p arity 2" could by syntatic sugar for
     "rel p: entity, entity", where "entity" is a catchall type which typechecks with
     any input. Kind of like "Any" in some OOP languages.
+  * Note: There are several different strategies that we could use for parsing
+    bli prolog files -- i.e. do we want to have a declaration before use
+    policy, do we require entity declarations, relation declarations, etc... to be at the
+    top of the file? 
+      * I think what I want to (ideally) do here is to use the most
+        lax parsing strategy possible, but allow the user to supply flags
+        that allow for different parsing strategies (which might be more efficent
+        for larger files).
   * It might be fun to add fuzzy string matching support.

@@ -7,6 +7,9 @@ father_child: person, person.
 sibling:      person, person.
 parent_child: person, person.
 
+% Note that this should not compile unless we first declare
+% that all of the entities in the list below are people.
+
 mother_child(marge, bart).
 mother_child(marge, lisa).
 mother_child(marge, maggie).
