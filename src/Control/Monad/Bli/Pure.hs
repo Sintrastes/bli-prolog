@@ -14,52 +14,44 @@ import Control.Applicative
 import Control.Monad.State.Lazy
 import Data.Schema
 import Bli.App.Config (AppConfig)
+import Control.Monad.Bli.Common
 import qualified Control.Monad.Bli.Pure.Generic as Generic
 import qualified Control.Monad.Bli as Bli
 
--- | A monad for wrapping pure computations done (and run) in bli prolog.
-type Bli a = Generic.Bli [] [] a
+-- | A monad for wrapping computations done (and run) in bli prolog.
+type Bli a = Generic.Bli 
+ -- | The container to use for the fact store
+    FactContainer
+ -- | The container to use for the relational store 
+    RelationContainer
+ -- | The container to use for the entity store
+    EntityContainer
+ -- | The container to use for the type store
+    TypeContainer
+ -- | The datastructure to use for storing aliases
+    AliasDatastructure 
+    a
 
--- | Run a pure Bli computation with some initial state.
-runBli :: AppConfig -> Program -> Schema -> Bli a -> a
-runBli = Generic.runBli
-
--- | Get the options from a pure bli computation.
-getOpts    :: Bli AppConfig
-getOpts = Generic.getOpts
-
--- | Get the program from a pure bli computation.
-getProgram :: Bli Program
-getProgram = Generic.getProgram
-
--- | Get the schema from a pure bli computation.
-getSchema  :: Bli Schema
-getSchema = Generic.getSchema
-
--- | Modify the options of a pure bli computation. 
-modifyOpts :: (AppConfig -> AppConfig) -> Bli ()
-modifyOpts = Generic.modifyOpts
-
--- | Modify the program of a pure bli computation.
-modifyProgram :: (Program -> Program) -> Bli ()
-modifyProgram = Generic.modifyProgram
-
--- | Modify the schema of a pure bli computation.
-modifySchema :: (Schema -> Schema) -> Bli ()
-modifySchema = Generic.modifySchema
-
--- | Set the program of a pure bli computation.
-setProgram :: Program -> Bli ()
-setProgram = Generic.setProgram
-
--- | Set the options of a pure bli computation.
-setOpts :: AppConfig -> Bli ()
-setOpts = Generic.setOpts
-
--- | Set the schema of a pure bli computation.
-setSchema :: Schema  -> Bli ()
-setSchema = Generic.setSchema
-
--- Helper function to go from the pure to the impure version of the Bli monad.
-liftFromPure :: Bli a -> Bli.Bli a
-liftFromPure = Generic.liftFromPure 
+runBli = Generic.runBli  @FactContainer @RelationContainer @EntityContainer @TypeContainer @AliasDatastructure
+getConfig = Generic.getConfig @FactContainer @RelationContainer @EntityContainer @TypeContainer @AliasDatastructure
+getFacts = Generic.getFacts @FactContainer @RelationContainer @EntityContainer @TypeContainer @AliasDatastructure
+getRelations = Generic.getRelations @FactContainer @RelationContainer @EntityContainer @TypeContainer @AliasDatastructure
+getEntities = Generic.getEntities @FactContainer @RelationContainer @EntityContainer @TypeContainer @AliasDatastructure
+getTypes = Generic.getTypes @FactContainer @RelationContainer @EntityContainer @TypeContainer @AliasDatastructure
+getAliases = Generic.getAliases @FactContainer @RelationContainer @EntityContainer @TypeContainer @AliasDatastructure
+newAlias = Generic.newAlias @FactContainer @RelationContainer @EntityContainer @TypeContainer @AliasDatastructure
+newType = Generic.newType @FactContainer @RelationContainer @EntityContainer @TypeContainer @AliasDatastructure
+newEntity = Generic.newEntity @FactContainer @RelationContainer @EntityContainer @TypeContainer @AliasDatastructure
+newRelation = Generic.newRelation @FactContainer @RelationContainer @EntityContainer @TypeContainer @AliasDatastructure
+modifyConfig = Generic.modifyConfig @FactContainer @RelationContainer @EntityContainer @TypeContainer @AliasDatastructure
+modifyFacts = Generic.modifyFacts @FactContainer @RelationContainer @EntityContainer @TypeContainer @AliasDatastructure
+modifyRelations = Generic.modifyRelations @FactContainer @RelationContainer @EntityContainer @TypeContainer @AliasDatastructure
+modifyEntities = Generic.modifyEntities @FactContainer @RelationContainer @EntityContainer @TypeContainer @AliasDatastructure
+modifyTypes = Generic.modifyTypes @FactContainer @RelationContainer @EntityContainer @TypeContainer @AliasDatastructure
+setConfig = Generic.setConfig @FactContainer @RelationContainer @EntityContainer @TypeContainer @AliasDatastructure
+setFacts = Generic.setFacts @FactContainer @RelationContainer @EntityContainer @TypeContainer @AliasDatastructure
+setRelations = Generic.setRelations @FactContainer @RelationContainer @EntityContainer @TypeContainer @AliasDatastructure
+setEntities = Generic.setEntities @FactContainer @RelationContainer @EntityContainer @TypeContainer @AliasDatastructure
+setTypes = Generic.setTypes @FactContainer @RelationContainer @EntityContainer @TypeContainer @AliasDatastructure
+setAliases = Generic.setAliases @FactContainer @RelationContainer @EntityContainer @TypeContainer @AliasDatastructure
+liftFromPure = Generic.liftFromPure  @FactContainer @RelationContainer @EntityContainer @TypeContainer @AliasDatastructure

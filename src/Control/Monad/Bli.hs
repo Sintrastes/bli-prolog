@@ -1,5 +1,30 @@
 
-module Control.Monad.Bli where
+module Control.Monad.Bli(
+  -- Basic interface
+  runBli,
+  getConfig,
+  getFacts,
+  getRelations,
+  getEntities,
+  getTypes,
+  getAliases,
+  -- High-level interface
+  newAlias,
+  newType,
+  newEntity,
+  newRelation,
+  -- Low level interface
+  modifyConfig,
+  modifyFacts,
+  modifyRelations,
+  modifyEntities,
+  modifyTypes,
+  setConfig,
+  setFacts,
+  setRelations,
+  setEntities,
+  setTypes,
+  setAliases) where
 
 --
 -- | A monad for IO computations preformed in the context of a 
@@ -13,50 +38,55 @@ import Data.Prolog.Ast
 import Data.Schema
 import Bli.App.Config (AppConfig)
 import qualified Control.Monad.Bli.Generic as Generic
+import Control.Monad.Bli.Common
 
 -- | A monad for wrapping computations done (and run) in bli prolog.
-type Bli a = Generic.Bli [] [] a
+type Bli a = Generic.Bli 
+ -- | The container to use for the fact store
+    FactContainer
+ -- | The container to use for the relational store 
+    RelationContainer
+ -- | The container to use for the entity store
+    EntityContainer
+ -- | The container to use for the type store
+    TypeContainer
+ -- | The datastructure to use for storing aliases
+    AliasDatastructure 
+    a
 
--- | Lift io computations into the Bli monad.
-io :: IO a -> Bli a
-io = Generic.io
 
--- | Run a Bli application with some initial state.
-runBli :: AppConfig -> Program -> Schema -> Bli a -> IO a
-runBli = Generic.runBli
+runBli = Generic.runBli @FactContainer @RelationContainer @EntityContainer @TypeContainer @AliasDatastructure
 
--- | Get the options from a running bli application
-getOpts    :: Bli AppConfig
-getOpts = Generic.getOpts
+getConfig = Generic.getConfig  @FactContainer @RelationContainer @EntityContainer @TypeContainer @AliasDatastructure
 
--- | Get the program from a running bli application.
-getProgram :: Bli Program
-getProgram = Generic.getProgram
+getFacts = Generic.getFacts @FactContainer @RelationContainer @EntityContainer @TypeContainer @AliasDatastructure
 
--- | Get the schema from a running bli application.
-getSchema  :: Bli Schema
-getSchema = Generic.getSchema
+getRelations = Generic.getRelations @FactContainer @RelationContainer @EntityContainer @TypeContainer @AliasDatastructure
 
--- | Modify the options of a running bli application. 
-modifyOpts :: (AppConfig -> AppConfig) -> Bli ()
-modifyOpts = Generic.modifyOpts
+getEntities = Generic.getEntities @FactContainer @RelationContainer @EntityContainer @TypeContainer @AliasDatastructure
 
--- | Modify the program of a running bli application.
-modifyProgram :: (Program -> Program) -> Bli ()
-modifyProgram = Generic.modifyProgram
+getTypes = Generic.getTypes @FactContainer @RelationContainer @EntityContainer @TypeContainer @AliasDatastructure
 
--- | Modify the schema of a running bli application.
-modifySchema :: (Schema -> Schema) -> Bli ()
-modifySchema = Generic.modifySchema
+getAliases = Generic.getAliases @FactContainer @RelationContainer @EntityContainer @TypeContainer @AliasDatastructure
 
--- | Set the program of a running bli application.
-setProgram :: Program -> Bli ()
-setProgram = Generic.setProgram
+-- | Attempts to add a new alias to the store. Returns a boolean flag to indicate success or failure.
+newAlias = Generic.newAlias @FactContainer @RelationContainer @EntityContainer @TypeContainer @AliasDatastructure
 
--- | Set the options of a running bli application
-setOpts :: AppConfig -> Bli ()
-setOpts = Generic.setOpts
+-- | Attempts to add a new type to the store. Returns a boolean flag to indicate success or failure.
+newType = Generic.newType @FactContainer @RelationContainer @EntityContainer @TypeContainer @AliasDatastructure
 
--- | Set the schema of a running bli application
-setSchema :: Schema  -> Bli ()
-setSchema = Generic.setSchema
+-- | Attempts to add a new entity to the store. Returns a boolean flag to indicate success or failure.
+newEntity = Generic.newEntity @FactContainer @RelationContainer @EntityContainer @TypeContainer @AliasDatastructure
+
+newRelation = Generic.newRelation @FactContainer @RelationContainer @EntityContainer @TypeContainer @AliasDatastructure
+modifyConfig = Generic.modifyConfig  @FactContainer @RelationContainer @EntityContainer @TypeContainer @AliasDatastructure
+modifyFacts = Generic.modifyFacts  @FactContainer @RelationContainer @EntityContainer @TypeContainer @AliasDatastructure
+modifyRelations = Generic.modifyRelations @FactContainer @RelationContainer @EntityContainer @TypeContainer @AliasDatastructure
+modifyEntities = Generic.modifyEntities @FactContainer @RelationContainer @EntityContainer @TypeContainer @AliasDatastructure
+modifyTypes = Generic.modifyTypes @FactContainer @RelationContainer @EntityContainer @TypeContainer @AliasDatastructure
+setConfig = Generic.setConfig @FactContainer @RelationContainer @EntityContainer @TypeContainer @AliasDatastructure
+setFacts = Generic.setFacts @FactContainer @RelationContainer @EntityContainer @TypeContainer @AliasDatastructure
+setRelations = Generic.setRelations @FactContainer @RelationContainer @EntityContainer @TypeContainer @AliasDatastructure
+setEntities = Generic.setEntities @FactContainer @RelationContainer @EntityContainer @TypeContainer @AliasDatastructure
+setTypes = Generic.setTypes @FactContainer @RelationContainer @EntityContainer @TypeContainer @AliasDatastructure
+setAliases = Generic.setAliases @FactContainer @RelationContainer @EntityContainer @TypeContainer @AliasDatastructure

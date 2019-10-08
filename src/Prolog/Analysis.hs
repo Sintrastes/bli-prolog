@@ -11,6 +11,7 @@ import qualified Data.Set as S
 import Data.List((\\), nub)
 import Control.Monad (join)
 import Data.Schema
+import Control.Monad.Bli.Pure
 
 -- | Helper function. Checks to see which identifiers are used in a pure prolog term.
 collectTermAtoms :: Term -> [(Atom, Int)]
@@ -91,59 +92,62 @@ nonMatchingArities atomsWithValidArities atoms =
         fromBool True   = Just ()
         fromBool False  = Nothing 
 
--- | Checks to see if a bli clause is valid with regard to a given schema.
-isBliCommandValid :: BliCommand -> Schema -> Either InvalidClause Ok
-isBliCommandValid x@(QueryMode goal) schema  
-   | atoms `subset` schema = Right Ok
-   | nonMatchingArities atomsWithArities atoms /= [] =
-        Left $ WrongArities $ nonMatchingArities atomsWithArities atoms
-   | otherwise = Left $ AtomsNotInSchema $
-                     map (\(x,y) -> x) 
-                           (filter (\x -> not $ x `elem` schema) 
-                            atoms)
- where atoms = collectBliCommandAtoms x
-       subset xs ys = all (\x -> x `elem` ys) xs
-       getArities val schema = (val, map snd $ filter (\(x,y) -> x == val) schema)
-       atomsWithArities = map (\x -> getArities (fst x) schema) atoms
-isBliCommandValid x@(AssertMode goal) schema 
-   | atoms `subset` schema = Right Ok
-   | nonMatchingArities atomsWithArities atoms /= [] =
+-- Note: There is a lot of refactoring I can do here regardless of the refactoring to the
+-- typed version.
+
+-- Helper functions used below.
+subset xs ys = all (\x -> x `elem` ys) xs
+getArities val schema = (val, map snd $ filter (\(x,y) -> x == val) schema)
+
+-- | Checks to see if a bli clause is valid in the given applicationContext.
+isBliCommandValid :: BliCommandTyped -> Bli (Either InvalidClause Ok)
+isBliCommandValid x@(T_QueryMode goal) = do
+  case () of
+    _ | atoms `subset` schema -> Right Ok
+      | nonMatchingArities atomsWithArities atoms /= [] ->
            Left $ WrongArities $ nonMatchingArities atomsWithArities atoms
-   | otherwise = Left $ AtomsNotInSchema $
-                     map (\(x,y) -> x) 
-                           (filter (\x -> not $ x `elem` schema) 
-                            atoms)
+      | otherwise -> Left $ AtomsNotInSchema $
+                         map (\(x,y) -> x) 
+                               (filter (\x -> not $ x `elem` schema) 
+                                atoms)
+ where atoms = collectBliCommandAtoms x
+       atomsWithArities = map (\x -> getArities (fst x) schema) atoms
+isBliCommandValid x@(T_AssertMode goal) = do
+  case () of
+   _ | atoms `subset` schema -> Right Ok
+     | nonMatchingArities atomsWithArities atoms /= [] ->
+             Left $ WrongArities $ nonMatchingArities atomsWithArities atoms
+     | otherwise -> Left $ AtomsNotInSchema $
+                       map (\(x,y) -> x) 
+                             (filter (\x -> not $ x `elem` schema) 
+                              atoms)
   where atoms = collectBliCommandAtoms x
-        subset xs ys = all (\x -> x `elem` ys) xs
-        getArities val schema = (val, map snd $ filter (\(x,y) -> x == val) schema)
         atomsWithArities = map (\x -> getArities (fst x) schema) atoms
-isBliCommandValid x@(AssertClause clause) schema 
-   | atoms `subset` schema = Right Ok
-   | nonMatchingArities atomsWithArities atoms /= [] =
-        Left $ WrongArities $ nonMatchingArities atomsWithArities atoms
-   | otherwise = Left $ AtomsNotInSchema $
-                     map (\(x,y) -> x) 
-                           (filter (\x -> not $ x `elem` schema) 
-                            atoms)
+isBliCommandValid x@(T_AssertClause clause) = do
+  case () of
+   _ | atoms `subset` schema -> Right Ok
+     | nonMatchingArities atomsWithArities atoms /= [] ->
+          Left $ WrongArities $ nonMatchingArities atomsWithArities atoms
+     | otherwise -> Left $ AtomsNotInSchema $
+                       map (\(x,y) -> x) 
+                             (filter (\x -> not $ x `elem` schema) 
+                              atoms)
   where atoms = collectBliCommandAtoms x
-        subset xs ys = all (\x -> x `elem` ys) xs
-        getArities val schema = (val, map snd $ filter (\(x,y) -> x == val) schema)
         atomsWithArities = map (\x -> getArities (fst x) schema) atoms
-isBliCommandValid x@(LambdaQuery (bindingVars,goal)) schema 
-   | (bindingVars `subset` bodyVars) && (atoms `subset` schema) = Right Ok
-   | not (bindingVars `subset` bodyVars) = Left $ BoundVarNotInBody
-   | nonMatchingArities atomsWithArities atoms /= [] =
-        Left $ WrongArities $ nonMatchingArities atomsWithArities atoms
-   | otherwise = Left $ AtomsNotInSchema $
-                     map (\(x,y) -> x) 
-                           (filter (\x -> not $ x `elem` schema) 
-                            atoms) 
+isBliCommandValid x@(T_LambdaQuery (bindingVars,goal)) = do 
+  case () of
+    _ | (bindingVars `subset` bodyVars) && (atoms `subset` schema) -> Right Ok
+      | not (bindingVars `subset` bodyVars) -> Left $ BoundVarNotInBody
+      | nonMatchingArities atomsWithArities atoms /= [] ->
+           Left $ WrongArities $ nonMatchingArities atomsWithArities atoms
+      | otherwise -> Left $ AtomsNotInSchema $
+                        map (\(x,y) -> x) 
+                               (filter (\x -> not $ x `elem` schema) 
+                                atoms) 
   where atoms = collectBliCommandAtoms x
         bodyVars = collectBliCommandVars x 
-        subset xs ys = all (\x -> x `elem` ys) xs
-        getArities val schema = (val, map snd $ filter (\(x,y) -> x == val) schema)
         atomsWithArities = map (\x -> getArities (fst x) schema) atoms
 
--- | Checks to see if a bli program is valid with respect to the given schema.
-isBliProgramValid :: BliProgram -> Schema -> Bool
+-- | Checks to see if a bli program is valid in the given application context.
+isBliProgramValid :: BliProgram -> Bli Bool
 isBliProgramValid = undefined
