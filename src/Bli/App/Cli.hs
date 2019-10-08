@@ -24,6 +24,73 @@ import System.Console.CmdArgs as CA hiding (program)
 import System.Console.Readline
 import Control.Monad.IO.Class
 
+-- | An abstract representation of the commands which
+--   can be entered at the bli-prolog REPL.
+data BliReplCommand =
+   Help
+ | Exit
+ | ExportFile String
+ | LoadFile String
+ | Alias String String
+ | ClearSchema
+   | ClearRelations
+   | ClearTypes
+   | ClearEntities
+   | ClearFacts
+ | ListSchema
+   | ListRelations
+   | ListTypes
+   | ListEntities
+   | ListFacts
+ | ListAliases
+
+-- | Takes a BliReplCommand, and returns a list of the strings 
+--   which can be used to invoke that command.
+bliReplCommandStrings :: BliReplCommand -> [String]
+bliReplCommandStrings cmd = 
+  case cmd of
+    Help           -> [":h",":help"]
+    Exit           -> [":exit",":quit",":q"]
+    ExportFile _   -> [":export"]
+    LoadFile _     -> [":load"]
+    Alias _ _      -> [":alias"]
+    ClearFacts     -> [":clr-facts"] 
+    ClearSchema    -> [":clr-schema"]
+    ClearRelations -> [":clr-relations",":clr-rels"]
+    ClearTypes     -> [":clr-types"]
+    ClearEntities  -> [":clr-entities",":clr-ents"]
+    ListSchema     -> [":ls-schema"]
+    ListRelations  -> [":ls-relations", ":ls-rels"]
+    ListEntities   -> [":ls-entities",":ls-ents"]
+    ListFacts      -> [":ls-facts"]
+    ListAliases    -> [":ls-aliases"]
+
+-- | Takes a BliReplCommand, and returns a short description of
+--   what that command does. 
+bliReplCommandDescriptions :: BliReplCommand -> String
+bliReplCommandDescriptions cmd =
+  case cmd of
+    Help           -> ""
+    Exit           -> ""
+    ExportFile _   -> ""
+    LoadFile _     -> ""
+    Alias _ _      -> ""
+    ClearRelations -> ""
+    ClearTypes     -> ""
+    ClearEntities  -> ""
+    ClearFacts     -> ""
+    ListSchema     -> ""
+    ListRelations  -> ""
+    ListEntities   -> ""
+    ListFacts      -> ""
+    ListAliases    -> ""
+
+parseBliReplCommands :: String -> Maybe BliReplCommand
+parseBliReplCommands input = undefined
+
+displayBliReplHelpScreen :: IO ()
+displayBliReplHelpScreen = undefined
+
 -- Helper function to get the file extension of a filepath.
 fileExtension :: String -> String
 fileExtension filePath = "." ++ (last $ splitOn "." filePath)
