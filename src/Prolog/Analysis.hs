@@ -120,7 +120,10 @@ getAritiesTerm val schema = (val, map snd $ filter (\(x,y) -> x == val) schema)
 -- | Checks to see if a bli clause is valid in the given applicationContext.
 isBliCommandValid :: BliCommandTyped -> Bli (Either InvalidClause Ok)
 isBliCommandValid cmd@(T_QueryMode goal) = do
-  case () of
+  predicates <- getRelations
+  let schema = fmap (\(x, ts) -> (x, length ts)) predicates
+  let atomsWithArities = map (\x -> getAritiesTerm (fst x) schema) atoms
+  return $ case () of
     _ | atoms `subset` schema -> Right Ok
       | nonMatchingArities atomsWithArities atoms /= [] ->
            Left $ WrongArities $ nonMatchingArities atomsWithArities atoms
@@ -129,9 +132,11 @@ isBliCommandValid cmd@(T_QueryMode goal) = do
                                (filter (\x -> not $ x `elem` schema) 
                                 atoms)
  where atoms = collectTypedBliCommandAtoms cmd
-       atomsWithArities = map (\x -> getAritiesTerm (fst x) schema) atoms
 isBliCommandValid cmd@(T_AssertMode goal) = do
-  case () of
+  predicates <- getRelations
+  let schema = fmap (\(x, ts) -> (x, length ts)) predicates
+  let atomsWithArities = map (\x -> getAritiesTerm (fst x) schema) atoms
+  return $ case () of
    _ | atoms `subset` schema -> Right Ok
      | nonMatchingArities atomsWithArities atoms /= [] ->
              Left $ WrongArities $ nonMatchingArities atomsWithArities atoms
@@ -140,9 +145,11 @@ isBliCommandValid cmd@(T_AssertMode goal) = do
                              (filter (\x -> not $ x `elem` schema) 
                               atoms)
   where atoms = collectTypedBliCommandAtoms cmd
-        atomsWithArities = map (\x -> getAritiesTerm (fst x) schema) atoms
 isBliCommandValid cmd@(T_AssertClause clause) = do
-  case () of
+  predicates <- getRelations
+  let schema = fmap (\(x, ts) -> (x, length ts)) predicates
+  let atomsWithArities = map (\x -> getAritiesTerm (fst x) schema) atoms
+  return $ case () of
    _ | atoms `subset` schema -> Right Ok
      | nonMatchingArities atomsWithArities atoms /= [] ->
           Left $ WrongArities $ nonMatchingArities atomsWithArities atoms
@@ -151,9 +158,11 @@ isBliCommandValid cmd@(T_AssertClause clause) = do
                              (filter (\x -> not $ x `elem` schema) 
                               atoms)
   where atoms = collectTypedBliCommandAtoms cmd
-        atomsWithArities = map (\x -> getAritiesTerm (fst x) schema) atoms
 isBliCommandValid cmd@(T_LambdaQuery (bindingVars,goal)) = do 
-  case () of
+  predicates <- getRelations
+  let schema = fmap (\(x, ts) -> (x, length ts)) predicates
+  let atomsWithArities = map (\x -> getAritiesTerm (fst x) schema) atoms
+  return $ case () of
     _ | (bindingVars `subset` bodyVars) && (atoms `subset` schema) -> Right Ok
       | not (bindingVars `subset` bodyVars) -> Left $ BoundVarNotInBody
       | nonMatchingArities atomsWithArities atoms /= [] ->
@@ -164,8 +173,6 @@ isBliCommandValid cmd@(T_LambdaQuery (bindingVars,goal)) = do
                                 atoms) 
   where atoms = collectTypedBliCommandAtoms cmd
         bodyVars = collectTypedBliCommandVars cmd 
-        atomsWithArities = map (\x -> getAritiesTerm (fst x) schema) atoms
-
 -- | Checks to see if a bli program is valid in the given application context.
 isBliProgramValid :: BliProgram -> Bli Bool
 isBliProgramValid = undefined
