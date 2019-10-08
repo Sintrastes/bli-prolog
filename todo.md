@@ -13,6 +13,11 @@ Todo
     or if I need to use IORefs or something else to get it to work.
   * Add test cases for parsing files so that I can work on refactoring some of our parsing code.
   * Refactor isBliCommandValid to avoid code duplication.
+  * Make :ls and :lkb give a specific output when the knowledge base and schema are empty.
+  * Refactor the configuration code to work with my new scheme.
+  * Write a system for automating the formatting of the :h command so I don't have to manually update it
+    whenever I write a new command.
+      * On a related note, create an algebraic data type for cli commands.
 
 Notes
 -----
