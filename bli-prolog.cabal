@@ -32,6 +32,7 @@ library
       Prolog.Analysis
       Prolog.Parser
       Data.Schema
+      Data.Alias
       Data.BliSet
       Bli.App
       Bli.App.Server
@@ -49,6 +50,7 @@ library
       Control.Monad.Bli.Pure.Generic
       Control.Monad.Bli.Reader
   other-modules:
+      Control.Empty
       Paths_bli_prolog
   hs-source-dirs:
       src
@@ -83,6 +85,8 @@ library
     , wai-extra
     , text
   extensions:
+      TypeApplications
+      FlexibleInstances
       DeriveDataTypeable
       TemplateHaskell
       OverloadedStrings

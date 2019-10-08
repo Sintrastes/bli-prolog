@@ -54,30 +54,39 @@ type Bli a = Generic.Bli
     AliasDatastructure 
     a
 
--- | Lift io computations into the Bli monad.
---   NOTE: This is depreciated
-io :: IO a -> Bli a
-io = Generic.io
 
-runBli = Generic.runBli
-getConfig = Generic.getConfig
-getFacts = Generic.getFacts
-getRelations = Generic.getRelations
-getEntities = Generic.getEntities
-getTypes = Generic.getTypes
-getAliases = Generic.getAliases
-newAlias = Generic.newAlias
-newType = Generic.newType
-newEntity = Generic.newEntity
-newRelation = Generic.newRelation
-modifyConfig = Generic.modifyConfig
-modifyFacts = Generic.modifyFacts
-modifyRelations = Generic.modifyRelations
-modifyEntities = Generic.modifyEntities
-modifyTypes = Generic.modifyTypes
-setConfig = Generic.setConfig
-setFacts = Generic.setFacts
-setRelations = Generic.setRelations
-setEntities = Generic.setEntities
-setTypes = Generic.setTypes
-setAliases = Generic.setAliases
+runBli = Generic.runBli @FactContainer @RelationContainer @EntityContainer @TypeContainer @AliasDatastructure
+
+getConfig = Generic.getConfig  @FactContainer @RelationContainer @EntityContainer @TypeContainer @AliasDatastructure
+
+getFacts = Generic.getFacts @FactContainer @RelationContainer @EntityContainer @TypeContainer @AliasDatastructure
+
+getRelations = Generic.getRelations @FactContainer @RelationContainer @EntityContainer @TypeContainer @AliasDatastructure
+
+getEntities = Generic.getEntities @FactContainer @RelationContainer @EntityContainer @TypeContainer @AliasDatastructure
+
+getTypes = Generic.getTypes @FactContainer @RelationContainer @EntityContainer @TypeContainer @AliasDatastructure
+
+getAliases = Generic.getAliases @FactContainer @RelationContainer @EntityContainer @TypeContainer @AliasDatastructure
+
+-- | Attempts to add a new alias to the store. Returns a boolean flag to indicate success or failure.
+newAlias = Generic.newAlias @FactContainer @RelationContainer @EntityContainer @TypeContainer @AliasDatastructure
+
+-- | Attempts to add a new type to the store. Returns a boolean flag to indicate success or failure.
+newType = Generic.newType @FactContainer @RelationContainer @EntityContainer @TypeContainer @AliasDatastructure
+
+-- | Attempts to add a new entity to the store. Returns a boolean flag to indicate success or failure.
+newEntity = Generic.newEntity @FactContainer @RelationContainer @EntityContainer @TypeContainer @AliasDatastructure
+
+newRelation = Generic.newRelation @FactContainer @RelationContainer @EntityContainer @TypeContainer @AliasDatastructure
+modifyConfig = Generic.modifyConfig  @FactContainer @RelationContainer @EntityContainer @TypeContainer @AliasDatastructure
+modifyFacts = Generic.modifyFacts  @FactContainer @RelationContainer @EntityContainer @TypeContainer @AliasDatastructure
+modifyRelations = Generic.modifyRelations @FactContainer @RelationContainer @EntityContainer @TypeContainer @AliasDatastructure
+modifyEntities = Generic.modifyEntities @FactContainer @RelationContainer @EntityContainer @TypeContainer @AliasDatastructure
+modifyTypes = Generic.modifyTypes @FactContainer @RelationContainer @EntityContainer @TypeContainer @AliasDatastructure
+setConfig = Generic.setConfig @FactContainer @RelationContainer @EntityContainer @TypeContainer @AliasDatastructure
+setFacts = Generic.setFacts @FactContainer @RelationContainer @EntityContainer @TypeContainer @AliasDatastructure
+setRelations = Generic.setRelations @FactContainer @RelationContainer @EntityContainer @TypeContainer @AliasDatastructure
+setEntities = Generic.setEntities @FactContainer @RelationContainer @EntityContainer @TypeContainer @AliasDatastructure
+setTypes = Generic.setTypes @FactContainer @RelationContainer @EntityContainer @TypeContainer @AliasDatastructure
+setAliases = Generic.setAliases @FactContainer @RelationContainer @EntityContainer @TypeContainer @AliasDatastructure

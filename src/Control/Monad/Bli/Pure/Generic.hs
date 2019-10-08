@@ -4,27 +4,29 @@ module Control.Monad.Bli.Pure.Generic where
 -- | Generic version of the pure Bli monad
 
 import Data.Prolog.Ast
-import Control.Applicative
+import Control.Applicative hiding (empty)
 import Data.Schema
+import Data.Alias
 import Data.BliSet
 import Control.Monad.State.Lazy
 import Control.Monad.Bli.Common
 import Bli.App.Config (AppConfig)
+import Control.Empty
 
 -- For writing liftFromPure
 import qualified Control.Monad.Bli.Generic as Bli
 
 -- | A monad for wrapping pure computations done (and run) in bli prolog.
-type Bli t1 t2 t3 t4 alias a = State BliStore a
+type Bli t1 t2 t3 t4 alias a = State (BliStore t1 t2 t3 t4 alias) a
 
 -- | Run a Bli computation with some initial application configuration data.
 initBli :: (BliSet t1, BliSet t2, BliSet t3, BliSet t4, Alias alias) 
- => AppConfig
-initBli config = evalState (BliStore config empty empty empty empty) 
+ => AppConfig -> Bli t1 t2 t3 t4 alias a -> a
+initBli config app = evalState app (BliStore config empty empty empty empty empty) 
 
 -- | Run a pure Bli computation with some initial state.
 runBli :: (BliSet t1, BliSet t2, BliSet t3, BliSet t4, Alias alias) 
- => AppConfig -> t1 Clause -> t2 RelDecl -> t3 EntityDecl -> t4 TypeDecl -> alias -> Bli t1 t2 a -> a
+ => AppConfig -> t1 Clause -> t2 RelDecl -> t3 EntityDecl -> t4 TypeDecl -> alias String -> Bli t1 t2 t3 t4 alias a -> a
 runBli config facts relations entities types aliases app =
   evalState app (BliStore config facts relations entities types aliases)
 
@@ -35,7 +37,7 @@ newAlias id1 id2 = do
   aliases <- getAliases
   case addNewAlias' aliases (id1, id2) of
     Nothing -> return False
-    Just result -> 
+    Just result -> do
       setAliases result
       return True
 
@@ -89,17 +91,17 @@ getRelations = relations <$> get
 
 -- | Get the schema from a pure bli computation.
 getEntities  :: (BliSet t1, BliSet t2, BliSet t3, BliSet t4, Alias alias)
- => Bli t1 t2 t3 t4 alias (t2 EntityDecl)
+ => Bli t1 t2 t3 t4 alias (t3 EntityDecl)
 getEntities = entities <$> get
 
 -- | Get the schema from a pure bli computation.
 getTypes  :: (BliSet t1, BliSet t2, BliSet t3, BliSet t4, Alias alias)
- => Bli t1 t2 t3 t4 alias (t2 TypeDecl)
+ => Bli t1 t2 t3 t4 alias (t4 TypeDecl)
 getTypes = types <$> get
 
 -- | Get the schema from a pure bli computation.
 getAliases  :: (BliSet t1, BliSet t2, BliSet t3, BliSet t4, Alias alias)
- => Bli t1 t2 t3 t4 alias alias
+ => Bli t1 t2 t3 t4 alias (alias String)
 getAliases = aliases <$> get
 
 -- | Modify the configuration of a running bli application. 
@@ -114,20 +116,20 @@ modifyFacts f = modify (\bliCtx -> bliCtx { facts = f (facts bliCtx) } )
 
 -- | Modify the schema of a running bli application.
 modifyRelations :: (BliSet t1, BliSet t2, BliSet t3, BliSet t4, Alias alias)
- => (t2 SchemaEntry -> t2 SchemaEntry) -> Bli t1 t2 t3 t4 alias ()
+ => (t2 RelDecl -> t2 RelDecl) -> Bli t1 t2 t3 t4 alias ()
 modifyRelations f = modify (\bliCtx -> bliCtx { relations = f (relations bliCtx) } )
 
 modifyEntities :: (BliSet t1, BliSet t2, BliSet t3, BliSet t4, Alias alias)
- => (t3 RelDecl -> t3 RelDecl) -> Bli t1 t2 t3 t4 alias ()
+ => (t3 EntityDecl -> t3 EntityDecl) -> Bli t1 t2 t3 t4 alias ()
 modifyEntities f = modify (\bliCtx -> bliCtx { entities = f (entities bliCtx) } )
 
 modifyTypes :: (BliSet t1, BliSet t2, BliSet t3, BliSet t4, Alias alias)
- => (t4 TypeDecl -> t4 TypeDecl) ->
-modifyTypes = modify (\bliCtx -> bliCtx { types = f (types bliCtx) } )
+ => (t4 TypeDecl -> t4 TypeDecl) -> Bli t1 t2 t3 t4 alias ()
+modifyTypes f = modify (\bliCtx -> bliCtx { types = f (types bliCtx) } )
 
 modifyAliases :: (BliSet t1, BliSet t2, BliSet t3, BliSet t4, Alias alias)
- => (alias -> alias) -> Bli t1 t2 t3 t4 t5 alias ()
-modifyAliases = modify (\bliCtx -> bliCtx { aliases = f (aliases bliCtx) } )
+ => (alias String -> alias String) -> Bli t1 t2 t3 t4 alias ()
+modifyAliases f = modify (\bliCtx -> bliCtx { aliases = f (aliases bliCtx) } )
 
 -- | Set the facts of a running bli application.
 setFacts :: (BliSet t1, BliSet t2, BliSet t3, BliSet t4, Alias alias) 
@@ -141,29 +143,29 @@ setConfig val = modify (\bliCtx -> bliCtx { config = val } )
 
 -- | Set the relations of a running bli application
 setRelations :: (BliSet t1, BliSet t2, BliSet t3, BliSet t4, Alias alias)
- => t2 SchemaEntry -> Bli t1 t2 t3 t4 alias ()
+ => t2 RelDecl -> Bli t1 t2 t3 t4 alias ()
 setRelations val = modify (\bliCtx -> bliCtx { relations = val } )
 
 -- | Set the relations of a running bli application
 setEntities :: (BliSet t1, BliSet t2, BliSet t3, BliSet t4, Alias alias)
- => t2 SchemaEntry -> Bli t1 t2 t3 t4 alias ()
+ => t3 EntityDecl -> Bli t1 t2 t3 t4 alias ()
 setEntities val = modify (\bliCtx -> bliCtx { entities = val } )
 
 -- | Set the relations of a running bli application
 setTypes :: (BliSet t1, BliSet t2, BliSet t3, BliSet t4, Alias alias)
- => t2 SchemaEntry -> Bli t1 t2 t3 t4 alias ()
+ => t4 TypeDecl -> Bli t1 t2 t3 t4 alias ()
 setTypes val = modify (\bliCtx -> bliCtx { types = val } )
 
 setAliases :: (BliSet t1, BliSet t2, BliSet t3, BliSet t4, Alias alias)
- => alias -> Bli t1 t2 t3 t4 alias ()
-setTypes val = (\bliCtx -> bliCtx { aliases = val } )
+ => alias String -> Bli t1 t2 t3 t4 alias ()
+setAliases val = modify (\bliCtx -> bliCtx { aliases = val } )
 
 -- Helper function to go from the pure to the impure version of the Bli monad.
 liftFromPure :: (BliSet t1, BliSet t2, BliSet t3, BliSet t4, Alias alias)
- => Bli t1 t2 t3 t3 alias a -> Bli.Bli t1 t2 t3 t4 alias a
+ => Bli t1 t2 t3 t4 alias a -> Bli.Bli t1 t2 t3 t4 alias a
 liftFromPure x = do
-  store <- Bli.get
+  store <- Bli.getStore
   let store' = execState x store
-  Bli.modify (\_ -> store')
+  Bli.modifyStore (\_ -> store')
   return $ evalState x store
   

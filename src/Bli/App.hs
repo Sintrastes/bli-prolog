@@ -27,15 +27,22 @@ import Control.Monad.IO.Class
 --   the running Bli instance.
 processBliCommand :: BliCommandTyped -> Pure.Bli BliResult
 processBliCommand x = do
-  opts <- Pure.getOpts
-  clauses <- Pure.getProgram
-  schema  <- Pure.getSchema
+  opts     <- Pure.getConfig
+  clauses  <- Pure.getFacts
+  types    <- Pure.getTypes 
+  entities <- Pure.getEntities
+  aliases  <- Pure.getAliases
+  
+  -- Just to get this to compile -- this is depreciated.
+  let schema = []
+  
   case x of
     (T_AssertMode goal) -> do
          case isBliCommandValid x schema of
            Right Ok -> do
                if any (\term -> not $ (term, []) `elem` clauses) goal
-               then do Pure.modifyProgram 
+               -- Change this to use the new generic interface
+               then do Pure.modifyFacts 
                          (\clauses -> clauses ++
                             (map (\term -> (term,[])) goal))
                        return $ Result_AssertionSuccess
