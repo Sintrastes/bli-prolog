@@ -1,7 +1,6 @@
 
 Todo
 ====
-  * Implement schemas with types.
   * Integrate implicit predication with REPL.
       * Write a contextual parser for implicit predications.
   * Implement side-effects with asserting types. (first need to configure the entity server).
@@ -13,11 +12,14 @@ Todo
     or if I need to use IORefs or something else to get it to work.
   * Add test cases for parsing files so that I can work on refactoring some of our parsing code.
   * Refactor isBliCommandValid to avoid code duplication.
-  * Make :ls and :lkb give a specific output when the knowledge base and schema are empty.
+  * Modify BliResult to take into account the type-specific errors that I want to consider.
+  * Make sure the typed bli command parsers are taking into account reserved words (like type, entity, rel) correctly.
+  * Modify our test cases to take into account the new parsers.
+  * Add new test cases for the new BliResult options
+  * Make :ls commands give a specific output when the relevant store is empty.
   * Refactor the configuration code to work with my new scheme.
   * Write a system for automating the formatting of the :h command so I don't have to manually update it
     whenever I write a new command.
-      * On a related note, create an algebraic data type for cli commands.
   * Refactor the server code to use servant.
   * Note: I should probably change the module structure and names slightly of some of the old
     modules from pure prolog to better fit my needs. i.e. 
