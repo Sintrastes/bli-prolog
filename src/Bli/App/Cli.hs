@@ -112,7 +112,8 @@ repl = do
       case line of 
         -- First,handle user REPL commands (beginning with a semicolon).
         ":h"   -> do 
-          liftIO $ putStrLn $ replHelpScreen colorOpts
+          screen <- liftIO $ replHelpScreen colorOpts
+          liftIO $ putStrLn screen
           repl
         ":clear-kb" -> do
             liftIO $ putStrLn "Clearing all in-memory facts."

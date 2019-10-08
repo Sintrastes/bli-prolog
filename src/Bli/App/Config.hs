@@ -15,9 +15,13 @@ import Data.List
 import Control.Monad (join)
 import Bli.App.Colors
 import System.Directory
+import System.Console.Terminal.Size
 
--- The command prompt to use for the application.
+-- | The command prompt to use for the application.
 command_prompt = "?- "
+
+-- | The string to prepend to all responses to terminal commands in the applicaion.
+response_prompt = "  "
 
 -- | An ADT representing all of the different search 
 --   algorithms bli prolog can be configured to run with.
@@ -44,7 +48,6 @@ data BliReplCommand =
  | Alias String String
  | ClearSchema
    | ClearRelations
-   | ClearTypes
    | ClearEntities
    | ClearFacts
  | ListSchema
@@ -54,46 +57,71 @@ data BliReplCommand =
    | ListFacts
  | ListAliases
 
--- | Takes a BliReplCommand, and returns a list of the strings 
+-- | An abstract representation of the different types of commands
+--   which can be entered at the bli-prolog REPL.
+data BliReplCommandType =
+   Cmd_Help
+ | Cmd_Exit
+ | Cmd_ExportFile
+ | Cmd_LoadFile
+ | Cmd_Alias
+ | Cmd_ClearSchema
+ | Cmd_ClearRelations
+ | Cmd_ClearEntities
+ | Cmd_ClearFacts
+ | Cmd_ListSchema
+ | Cmd_ListRelations
+ | Cmd_ListTypes
+ | Cmd_ListEntities
+ | Cmd_ListFacts
+ | Cmd_ListAliases deriving(Enum)
+
+-- | Takes a BliReplCommandType, and returns a list of the strings 
 --   which can be used to invoke that command.
-bliReplCommandStrings :: BliReplCommand -> [String]
+bliReplCommandStrings :: BliReplCommandType -> [String]
 bliReplCommandStrings cmd = 
   case cmd of
-    Help           -> [":h",":help"]
-    Exit           -> [":exit",":quit",":q"]
-    ExportFile _   -> [":export"]
-    LoadFile _     -> [":load"]
-    Alias _ _      -> [":alias"]
-    ClearFacts     -> [":clr-facts"] 
-    ClearSchema    -> [":clr-schema"]
-    ClearRelations -> [":clr-relations",":clr-rels"]
-    ClearTypes     -> [":clr-types"]
-    ClearEntities  -> [":clr-entities",":clr-ents"]
-    ListSchema     -> [":ls-schema"]
-    ListRelations  -> [":ls-relations", ":ls-rels"]
-    ListEntities   -> [":ls-entities",":ls-ents"]
-    ListFacts      -> [":ls-facts"]
-    ListAliases    -> [":ls-aliases"]
+    Cmd_Help           -> [":h",":help"]
+    Cmd_Exit           -> [":exit",":quit",":q"]
+    Cmd_ExportFile     -> [":export"]
+    Cmd_LoadFile       -> [":load"]
+    Cmd_Alias          -> [":alias"]
+    Cmd_ClearFacts     -> [":clr-facts"] 
+    Cmd_ClearSchema    -> [":clr-schema"]
+    Cmd_ClearRelations -> [":clr-relations",":clr-rels"]
+    Cmd_ClearEntities  -> [":clr-entities",":clr-ents"]
+    Cmd_ListSchema     -> [":ls-schema"]
+    Cmd_ListRelations  -> [":ls-relations", ":ls-rels"]
+    Cmd_ListTypes      -> [":ls-types"]
+    Cmd_ListEntities   -> [":ls-entities",":ls-ents"]
+    Cmd_ListFacts      -> [":ls-facts"]
+    Cmd_ListAliases    -> [":ls-aliases"]
 
--- | Takes a BliReplCommand, and returns a short description of
+-- | Takes a BliReplCommandType, and returns just the primary string
+--   which can be used to invoke that command.
+bliReplCommandString :: BliReplCommandType -> String
+bliReplCommandString cmd = head $ bliReplCommandStrings cmd
+
+-- | Takes a BliReplCommandType, and returns a short description of
 --   what that command does. 
-bliReplCommandDescriptions :: BliReplCommand -> String
+bliReplCommandDescriptions :: BliReplCommandType -> String
 bliReplCommandDescriptions cmd =
   case cmd of
-    Help           -> "Prints this help screen."
-    Exit           -> "Exits bli-prolog."
-    ExportFile _   -> "Exports the definitions stored in bli-prolog's in-memory fact store to a file."
-    LoadFile _     -> "Loads a schema or a prolog file into bli-prolog's in-memory sore."
-    Alias _ _      -> "Attempts to add a new alias to the local alias store."
-    ClearRelations -> ""
-    ClearTypes     -> "Clears all types, relations, and entities in the store "
-    ClearEntities  -> ""
-    ClearFacts     -> ""
-    ListSchema     -> ""
-    ListRelations  -> ""
-    ListEntities   -> ""
-    ListFacts      -> ""
-    ListAliases    -> ""
+    Cmd_Help           -> "Prints this help screen."
+    Cmd_Exit           -> "Exits bli-prolog."
+    Cmd_ExportFile     -> "Exports the definitions stored in bli-prolog's in-memory fact store to a file."
+    Cmd_LoadFile       -> "Loads a schema or a prolog file into bli-prolog's in-memory sore."
+    Cmd_Alias          -> "Attempts to add a new alias to the local alias store."
+    Cmd_ClearRelations -> "Clears all relations (and facts) from the local store."
+    Cmd_ClearEntities  -> "Clears all entities (and facts) from the local store."
+    Cmd_ClearFacts     -> "Clears all facts from the local store."
+    Cmd_ClearSchema    -> "Clears everything from the local schema."
+    Cmd_ListSchema     -> "Lists the schema from the local store."
+    Cmd_ListRelations  -> "Lists the relations from the local store."
+    Cmd_ListEntities   -> "Lists the entities from the local store."
+    Cmd_ListTypes      -> "Lists the types from the local store."
+    Cmd_ListFacts      -> "Lists the facts from the local store."
+    Cmd_ListAliases    -> "Lists the aliases from the local store."
 
 parseBliReplCommands :: String -> Maybe BliReplCommand
 parseBliReplCommands input = undefined
@@ -111,24 +139,59 @@ replBanner version colorOpts = foldr1 (\x -> \y -> x ++ "\n" ++ y) $
     ,"               |"
     ,"               |"
     ,"Welcome to the bli-prolog interpreter v" ++ version ++ "! (C) Nathan Bedell 2019"
-    ,"Type "++(blue colorOpts ":h")++" for help, or "++(blue colorOpts ":exit")++" to quit."]
+    ,"Type "++(blue colorOpts $ bliReplCommandString Cmd_Help)++" for help, or "++(blue colorOpts $ bliReplCommandString Cmd_Exit)++" to quit."]
+
+-- | Helper function to get all enum values
+enumValues :: (Enum a) => [a]
+enumValues = enumFrom (toEnum 0)
 
 -- | Help scree to print when :h is called in the REPL
-replHelpScreen :: Bool -> String
-replHelpScreen colorOpts = foldr1 (\x -> \y -> x ++ "\n" ++ y) $
-  ["Commands: "
-  ,"  "++(blue colorOpts ":h")++"       Prints this help screen."
-  ,"  "++(blue colorOpts ":exit")++"    Exits bli-prolog."
-  ,"  "++(blue colorOpts ":export")++"  Exports the definitions stored in bli-prolog's in-memory fact store as assertions"
-  ,"           to a file."
-  ,"  "++(blue colorOpts ":load")++"    Loads a schema or a prolog file into bli-prolog's in-memory store."
-  ,""
-  ,"Usage:"
-  ,"  [PROLOG_TERM|PROLOG_CLAUSE]!   Assert a fact or rule."
-  ,"  [PROLOG_TERM].                 Make a standard prolog query."
-  ,"  \\[FREE_VARS]. [PROLOG_TERM].   Make a lambda query."
-  ,""
-  ,"For more information, please see the documentation at https://github.com/Sintrastes/bli-prolog."]
+replHelpScreen :: Bool -> IO String
+replHelpScreen colorOpts = do
+  maybeWindow <- size
+  case maybeWindow of
+    Nothing -> 
+      -- If we can't get the terminal size, then just use "standard" formatting.
+      return $ foldr1 (\x -> \y -> x ++ "\n" ++ y) $
+      ["Commands: "
+      ,"  "++(blue colorOpts ":h")++"       Prints this help screen."
+      ,"  "++(blue colorOpts ":exit")++"    Exits bli-prolog."
+      ,"  "++(blue colorOpts ":export")++"  Exports the definitions stored in bli-prolog's in-memory fact store as assertions"
+      ,"           to a file."
+      ,"  "++(blue colorOpts ":load")++"    Loads a schema or a prolog file into bli-prolog's in-memory store."
+      ,""
+      ,"Usage:"
+      ,"  [PROLOG_TERM|PROLOG_CLAUSE]!   Assert a fact or rule."
+      ,"  [PROLOG_TERM].                 Make a standard prolog query."
+      ,"  \\[FREE_VARS]. [PROLOG_TERM].   Make a lambda query."
+      ,""
+      ,"For more information, please see the documentation at https://github.com/Sintrastes/bli-prolog."]
+    Just (Window height width) -> do
+      let maxCommandLength = foldr1 max $ map length $ map bliReplCommandString (enumValues @BliReplCommandType)
+      -- Helper function to append spaces to the end of a string until it reaches the desired length.
+      let magic_number = 10
+      let column_offset = 4
+      let concatSpaces n str 
+            | length str < n = concatSpaces n (str ++ " ")
+            | otherwise = str
+      let cmdColumn = map (\x -> "  " ++ x) 
+            $ map (concatSpaces (maxCommandLength + column_offset + magic_number))
+            $ map (\str -> blue colorOpts str)
+            $ map bliReplCommandString 
+            $ enumValues @BliReplCommandType
+      -- Helper function to format dscriptions.
+      let fmtDescr str = str
+      let descColumn = map bliReplCommandDescriptions (enumValues @BliReplCommandType)
+      let cmdsAndDescs = zipWith (++) cmdColumn descColumn
+      return $ foldr1 (\x -> \y -> x ++ "\n" ++ y) $
+         ["Commands:"] ++
+         cmdsAndDescs  ++
+         ["Usage:"
+         ,"  [PROLOG_TERM|PROLOG_CLAUSE]!   Assert a fact or rule."
+         ,"  [PROLOG_TERM].                 Make a standard prolog query."
+         ,"  \\[FREE_VARS]. [PROLOG_TERM].   Make a lambda query."
+         ,""
+         ,"For more information, please see the documentation at https://github.com/Sintrastes/bli-prolog."]
 
 -- | A datatype for the possible options that can be configured by the user for the
 --   bli-prolog executable. 

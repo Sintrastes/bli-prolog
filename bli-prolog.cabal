@@ -70,6 +70,7 @@ library
     , aeson
     , split
     , template-haskell
+    , terminal-size
     , cmdargs
     , utf8-string
     , aeson
