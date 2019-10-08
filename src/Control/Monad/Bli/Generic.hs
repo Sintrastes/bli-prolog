@@ -14,6 +14,7 @@ module Control.Monad.Bli.Generic(
   newType,
   newEntity,
   newRelation,
+  newFact,
   -- Low level interface
   modifyConfig,
   modifyFacts,
@@ -51,6 +52,17 @@ getStore = get
 modifyStore :: (BliSet t1, BliSet t2, BliSet t3, BliSet t4, Alias alias) 
  => ((BliStore t1 t2 t3 t4 alias) -> (BliStore t1 t2 t3 t4 alias)) -> Bli t1 t2 t3 t4 alias ()
 modifyStore = modify
+
+-- | Attempts to add a new fact to the store. Returns a boolean flag to indicate success or failure.
+newFact :: (BliSet t1, BliSet t2, BliSet t3, BliSet t4, Alias alias) 
+ => Clause -> Bli t1 t2 t3 t4 alias Bool
+newFact clause = do
+  facts <- getFacts
+  case tryInsert clause facts of
+    Left _ -> return False
+    Right result -> do
+      setFacts result
+      return True
 
 -- | Attempts to add a new alias to the store. Returns a boolean flag to indicate success or failure.
 newAlias :: (BliSet t1, BliSet t2, BliSet t3, BliSet t4, Alias alias) 

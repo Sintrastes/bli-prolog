@@ -15,6 +15,7 @@ import Bli.App.Api
 import Bli.App.Config
 import Data.Aeson
 import Data.List.Split
+import Data.BliSet
 import Data.List
 import Debug.Trace
 import Control.Monad.IO.Class
@@ -26,42 +27,44 @@ import Control.Monad.IO.Class
 --   function should also update the state of
 --   the running Bli instance.
 processBliCommand :: BliCommandTyped -> Pure.Bli BliResult
-processBliCommand x = do
-  opts     <- Pure.getConfig
-  clauses  <- Pure.getFacts
-  types    <- Pure.getTypes 
-  entities <- Pure.getEntities
-  aliases  <- Pure.getAliases
-  
-  -- Just to get this to compile -- this is depreciated.
-  let schema = []
-  
-  case x of
+processBliCommand command = do
+  opts      <- Pure.getConfig
+  clauses   <- Pure.getFacts
+  types     <- Pure.getTypes 
+  relations <- Pure.getRelations
+  entities  <- Pure.getEntities
+  aliases   <- Pure.getAliases
+  case command of
     (T_AssertMode goal) -> do
-         case isBliCommandValid x schema of
+         isValid <- isBliCommandValid command
+         case isValid of
            Right Ok -> do
-               if any (\term -> not $ (term, []) `elem` clauses) goal
-               -- Change this to use the new generic interface
-               then do Pure.modifyFacts 
-                         (\clauses -> clauses ++
-                            (map (\term -> (term,[])) goal))
-                       return $ Result_AssertionSuccess
-               else return $ Result_AssertionFail_AlreadyAsserted
-           Left (AtomsNotInSchema atoms) ->
-               return $ Result_AssertionFail atoms
+               -- Try inserting each of the terms individually, collecting errors
+               case foldr1 (>=>) (map (\term -> \result -> tryInsert (term, []) result) goal) $ Right clauses of
+               -- If all is well, update the store.
+                 Right result -> do 
+                         Pure.modifyFacts result 
+                         return $ Result_AssertionSuccess
+                 -- We can probably refine this to get it to tell us whihc of the terms
+                 -- was already asserted.
+                 -- If there were any errors, the assertions fails.
+                 Left _ -> return $ Result_AssertionFail_AlreadyAsserted
+           Left (AtomsNotInSchema atoms) -> return $ Result_AssertionFail atoms
            Left (WrongArities xs) -> return $ Result_QueryFail_WrongArities xs
     (T_AssertClause clause) -> do
-         case isBliCommandValid x schema of
+         isValid <- isBliCommandValid command
+         case isValid of
            Right Ok -> do
-               if clause `elem` clauses
-               then return $ Result_AssertionFail_AlreadyAsserted
-               else do Pure.modifyProgram (\clauses -> clauses ++ [clause]) 
-                       return $ Result_AssertionSuccess
+               case tryInsert clause clauses of
+                 Left _ -> return $ Result_AssertionFail_AlreadyAsserted 
+                 Right result -> do Pure.setFacts result
+                                    return $ Result_AssertionSuccess
            Left (AtomsNotInSchema atoms) ->
                return $ Result_AssertionFail atoms
            Left (WrongArities xs) -> return $ Result_QueryFail_WrongArities xs
     (T_LambdaQuery (vars, goal)) -> do
-        case isBliCommandValid x schema of
+        isValid <- isBliCommandValid command
+        case isValid of
           Right Ok -> 
             let t = makeReportTree clauses goal in
               return $ Result_QuerySuccess $ 
@@ -74,8 +77,9 @@ processBliCommand x = do
           Left (WrongArities xs) -> return $ Result_QueryFail_WrongArities xs
           Left (AtomsNotInSchema atoms) ->
             return $ Result_QueryFail (AtomsNotInSchema atoms)
-    (T_QueryMode goal) ->
-        case isBliCommandValid x schema of
+    (T_QueryMode goal) -> do
+       isValid <- isBliCommandValid command 
+       case isValid of
           Right Ok ->
             return $ Result_QuerySuccess (  
               let limiting lst = case limit opts of
@@ -93,17 +97,24 @@ processBliCommand x = do
           Left _ -> error $ "Invalid exception encountered."
     (T_AssertSchema schemaEntry) -> do
         case schemaEntry of
-            Pred predName argTyped -> do
+            Pred predName argTypes -> do
                 liftIO $ putStrLn "Adding predicate to schema if not in schema."
-                -- ...
+                case tryInsert (predName, argTypes) relations of
+                    Left _       -> return $ Result_AssertionFail_AlreadyAsserted
+                    Right result -> do
+                        Pure.setRelations result
+                        return $ Result_AssertionSuccess
             Type typeName -> do
                 liftIO $ putStrLn "Adding type to schema if not in schema."
-                -- ...
+                case tryInsert typeName types of
+                    Left _ -> return $ Result_AssertionFail_AlreadyAsserted
+                    Right result -> do
+                        Pure.setTypes result
+                        return $ Result_AssertionSuccess
             TypeOf termId typeId -> do
                 liftIO $ "Adding term to schema if type is already in schema, and term not already in schema."
-                -- ...
-        -- Old logic:
-        -- if schemaEntry `elem` schema
-        -- then return $ Result_AssertionFail_AlreadyAsserted
-        -- else do Pure.modifySchema (\x -> x ++ [schemaEntry])
-        --        return $ Result_AssertionSuccess
+                case tryInsert (termId, typeId) entities of
+                    Left _ -> return $ Result_AssertionFail_AlreadyAsserted
+                    Right result -> do
+                        Pure.setEntities result
+                        return $ Result_AssertionSuccess
