@@ -34,7 +34,72 @@ searchFunction DFS _     = dfs
 searchFunction BFS _     = bfs
 searchFunction Limited n = limitedDfs n
 
+-- | An abstract representation of the commands which
+--   can be entered at the bli-prolog REPL.
+data BliReplCommand =
+   Help
+ | Exit
+ | ExportFile String
+ | LoadFile String
+ | Alias String String
+ | ClearSchema
+   | ClearRelations
+   | ClearTypes
+   | ClearEntities
+   | ClearFacts
+ | ListSchema
+   | ListRelations
+   | ListTypes
+   | ListEntities
+   | ListFacts
+ | ListAliases
+
+-- | Takes a BliReplCommand, and returns a list of the strings 
+--   which can be used to invoke that command.
+bliReplCommandStrings :: BliReplCommand -> [String]
+bliReplCommandStrings cmd = 
+  case cmd of
+    Help           -> [":h",":help"]
+    Exit           -> [":exit",":quit",":q"]
+    ExportFile _   -> [":export"]
+    LoadFile _     -> [":load"]
+    Alias _ _      -> [":alias"]
+    ClearFacts     -> [":clr-facts"] 
+    ClearSchema    -> [":clr-schema"]
+    ClearRelations -> [":clr-relations",":clr-rels"]
+    ClearTypes     -> [":clr-types"]
+    ClearEntities  -> [":clr-entities",":clr-ents"]
+    ListSchema     -> [":ls-schema"]
+    ListRelations  -> [":ls-relations", ":ls-rels"]
+    ListEntities   -> [":ls-entities",":ls-ents"]
+    ListFacts      -> [":ls-facts"]
+    ListAliases    -> [":ls-aliases"]
+
+-- | Takes a BliReplCommand, and returns a short description of
+--   what that command does. 
+bliReplCommandDescriptions :: BliReplCommand -> String
+bliReplCommandDescriptions cmd =
+  case cmd of
+    Help           -> "Prints this help screen."
+    Exit           -> "Exits bli-prolog."
+    ExportFile _   -> "Exports the definitions stored in bli-prolog's in-memory fact store to a file."
+    LoadFile _     -> "Loads a schema or a prolog file into bli-prolog's in-memory sore."
+    Alias _ _      -> "Attempts to add a new alias to the local alias store."
+    ClearRelations -> ""
+    ClearTypes     -> "Clears all types, relations, and entities in the store "
+    ClearEntities  -> ""
+    ClearFacts     -> ""
+    ListSchema     -> ""
+    ListRelations  -> ""
+    ListEntities   -> ""
+    ListFacts      -> ""
+    ListAliases    -> ""
+
+parseBliReplCommands :: String -> Maybe BliReplCommand
+parseBliReplCommands input = undefined
+
 -- | The banner which is displayed when the user first loads the repl.
+--   Note: To automate this, I need some sort of pretty printing library.
 replBanner :: String -> Bool -> String
 replBanner version colorOpts = foldr1 (\x -> \y -> x ++ "\n" ++ y) $
     [""
