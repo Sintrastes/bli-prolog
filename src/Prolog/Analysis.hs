@@ -47,6 +47,15 @@ collectBliCommandAtoms (QueryMode goal)       = nub . join . (map collectTermAto
 collectBliCommandAtoms (AssertMode goal)      = nub . join . (map collectTermAtoms) $ goal
 collectBliCommandAtoms (AssertClause clause)  = collectClauseAtoms clause
 collectBliCommandAtoms (LambdaQuery (_,goal)) = nub . join . (map collectTermAtoms) $ goal
+collectBliCommandAtoms (AssertTypePred _)     = []
+
+-- | Helper function. Checks to see which identifiers are used in a bli prolog command.
+collectTypedBliCommandAtoms :: BliCommandTyped -> [(Atom,Int)]
+collectTypedBliCommandAtoms (T_QueryMode goal)       = nub . join . (map collectTermAtoms) $ goal
+collectTypedBliCommandAtoms (T_AssertMode goal)      = nub . join . (map collectTermAtoms) $ goal
+collectTypedBliCommandAtoms (T_AssertClause clause)  = collectClauseAtoms clause
+collectTypedBliCommandAtoms (T_LambdaQuery (_,goal)) = nub . join . (map collectTermAtoms) $ goal
+collectTypedBliCommandAtoms (T_AssertSchema _) = []
 
 -- | Helper function. Checks to see which variables are used in a bli prolog command.
 collectBliCommandVars :: BliCommand -> [Variable]
@@ -54,6 +63,15 @@ collectBliCommandVars (QueryMode goal)       = nub . join . (map collectTermVars
 collectBliCommandVars (AssertMode goal)      = nub . join . (map collectTermVars) $ goal
 collectBliCommandVars (AssertClause clause)  = collectClauseVars clause
 collectBliCommandVars (LambdaQuery (_,goal)) = nub . join . (map collectTermVars) $ goal
+collectBliCommandVars (AssertTypePred _)     = []
+
+-- | Helper function. Checks to see which variables are used in a bli prolog command.
+collectTypedBliCommandVars :: BliCommandTyped -> [Variable]
+collectTypedBliCommandVars (T_QueryMode goal)       = nub . join . (map collectTermVars) $ goal
+collectTypedBliCommandVars (T_AssertMode goal)      = nub . join . (map collectTermVars) $ goal
+collectTypedBliCommandVars (T_AssertClause clause)  = collectClauseVars clause
+collectTypedBliCommandVars (T_LambdaQuery (_,goal)) = nub . join . (map collectTermVars) $ goal
+collectTypedBliCommandVars (T_AssertSchema _) = []
 
 -- | Helper function. Checks to see which identifiers are used in a bli prolog program.
 collectBliProgramAtoms :: BliProgram -> [(Atom, Int)]
@@ -97,11 +115,11 @@ nonMatchingArities atomsWithValidArities atoms =
 
 -- Helper functions used below.
 subset xs ys = all (\x -> x `elem` ys) xs
-getArities val schema = (val, map snd $ filter (\(x,y) -> x == val) schema)
+getAritiesTerm val schema = (val, map snd $ filter (\(x,y) -> x == val) schema)
 
 -- | Checks to see if a bli clause is valid in the given applicationContext.
 isBliCommandValid :: BliCommandTyped -> Bli (Either InvalidClause Ok)
-isBliCommandValid x@(T_QueryMode goal) = do
+isBliCommandValid cmd@(T_QueryMode goal) = do
   case () of
     _ | atoms `subset` schema -> Right Ok
       | nonMatchingArities atomsWithArities atoms /= [] ->
@@ -110,9 +128,9 @@ isBliCommandValid x@(T_QueryMode goal) = do
                          map (\(x,y) -> x) 
                                (filter (\x -> not $ x `elem` schema) 
                                 atoms)
- where atoms = collectBliCommandAtoms x
-       atomsWithArities = map (\x -> getArities (fst x) schema) atoms
-isBliCommandValid x@(T_AssertMode goal) = do
+ where atoms = collectTypedBliCommandAtoms cmd
+       atomsWithArities = map (\x -> getAritiesTerm (fst x) schema) atoms
+isBliCommandValid cmd@(T_AssertMode goal) = do
   case () of
    _ | atoms `subset` schema -> Right Ok
      | nonMatchingArities atomsWithArities atoms /= [] ->
@@ -121,9 +139,9 @@ isBliCommandValid x@(T_AssertMode goal) = do
                        map (\(x,y) -> x) 
                              (filter (\x -> not $ x `elem` schema) 
                               atoms)
-  where atoms = collectBliCommandAtoms x
-        atomsWithArities = map (\x -> getArities (fst x) schema) atoms
-isBliCommandValid x@(T_AssertClause clause) = do
+  where atoms = collectTypedBliCommandAtoms cmd
+        atomsWithArities = map (\x -> getAritiesTerm (fst x) schema) atoms
+isBliCommandValid cmd@(T_AssertClause clause) = do
   case () of
    _ | atoms `subset` schema -> Right Ok
      | nonMatchingArities atomsWithArities atoms /= [] ->
@@ -132,9 +150,9 @@ isBliCommandValid x@(T_AssertClause clause) = do
                        map (\(x,y) -> x) 
                              (filter (\x -> not $ x `elem` schema) 
                               atoms)
-  where atoms = collectBliCommandAtoms x
-        atomsWithArities = map (\x -> getArities (fst x) schema) atoms
-isBliCommandValid x@(T_LambdaQuery (bindingVars,goal)) = do 
+  where atoms = collectTypedBliCommandAtoms cmd
+        atomsWithArities = map (\x -> getAritiesTerm (fst x) schema) atoms
+isBliCommandValid cmd@(T_LambdaQuery (bindingVars,goal)) = do 
   case () of
     _ | (bindingVars `subset` bodyVars) && (atoms `subset` schema) -> Right Ok
       | not (bindingVars `subset` bodyVars) -> Left $ BoundVarNotInBody
@@ -144,9 +162,9 @@ isBliCommandValid x@(T_LambdaQuery (bindingVars,goal)) = do
                         map (\(x,y) -> x) 
                                (filter (\x -> not $ x `elem` schema) 
                                 atoms) 
-  where atoms = collectBliCommandAtoms x
-        bodyVars = collectBliCommandVars x 
-        atomsWithArities = map (\x -> getArities (fst x) schema) atoms
+  where atoms = collectTypedBliCommandAtoms cmd
+        bodyVars = collectTypedBliCommandVars cmd 
+        atomsWithArities = map (\x -> getAritiesTerm (fst x) schema) atoms
 
 -- | Checks to see if a bli program is valid in the given application context.
 isBliProgramValid :: BliProgram -> Bli Bool
