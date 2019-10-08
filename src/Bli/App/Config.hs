@@ -123,8 +123,51 @@ bliReplCommandDescriptions cmd =
     Cmd_ListFacts      -> "Lists the facts from the local store."
     Cmd_ListAliases    -> "Lists the aliases from the local store."
 
-parseBliReplCommands :: String -> Maybe BliReplCommand
-parseBliReplCommands input = undefined
+typeToCommand :: BliReplCommandType -> Maybe BliReplCommand
+typeToCommand ty = 
+  case ty of
+     Cmd_Help           -> Just Help
+     Cmd_Exit           -> Just Exit
+     Cmd_ExportFile     -> Nothing
+     Cmd_LoadFile       -> Nothing
+     Cmd_Alias          -> Nothing
+     Cmd_ClearSchema    -> Just ClearSchema
+     Cmd_ClearRelations -> Just ClearRelations
+     Cmd_ClearEntities  -> Just ClearEntities
+     Cmd_ClearFacts     -> Just ClearFacts
+     Cmd_ListSchema     -> Just ListSchema
+     Cmd_ListRelations  -> Just ListRelations
+     Cmd_ListTypes      -> Just ListTypes
+     Cmd_ListEntities   -> Just ListEntities
+     Cmd_ListFacts      -> Just ListFacts
+     Cmd_ListAliases    -> Just ListAliases
+
+-- | Status result to return from out BliReplCommand parser --
+--   If this parser does not fail, then the Repl continues to parse
+--   the string as a bli-prolog query or assertion.
+data BliReplParseResult = 
+    DoneParsing BliReplCommand
+  | ParseError String
+  | ContinueParsing
+
+parseBliReplCommand :: String -> BliReplParseResult
+parseBliReplCommand input =
+  case lookup True $
+     zip (map (\x -> input `elem` (bliReplCommandStrings x)) (enumValues @BliReplCommandType)) 
+         (enumValues @BliReplCommandType) of
+    Just cmd -> 
+      case typeToCommand cmd of
+        Just cmd -> DoneParsing $ cmd
+        Nothing -> ParseError "Invalid format."
+    Nothing -> 
+      case () of
+        _ | any (\cmd -> isPrefixOf cmd input) (bliReplCommandStrings Cmd_LoadFile) ->
+           DoneParsing $ LoadFile $ (splitOn " " input) !! 1
+          | any (\cmd -> isPrefixOf cmd input) (bliReplCommandStrings Cmd_ExportFile) ->
+           DoneParsing $ ExportFile $ (splitOn " " input) !! 1
+          | any (\cmd -> isPrefixOf cmd input) (bliReplCommandStrings Cmd_Alias) ->
+           DoneParsing $ Alias ((splitOn " " input) !! 1) ((splitOn " " input) !! 2)
+          | otherwise -> ContinueParsing
 
 -- | The banner which is displayed when the user first loads the repl.
 --   Note: To automate this, I need some sort of pretty printing library.

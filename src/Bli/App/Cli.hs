@@ -20,6 +20,7 @@ import Data.Aeson
 import Prolog.Parser
 import Prolog.Interp
 import Data.List
+import Control.Empty
 import System.Console.CmdArgs as CA hiding (program)
 import System.Console.Readline
 import Control.Monad.IO.Class
@@ -42,8 +43,9 @@ processCliInput input = do
           types     <- getTypes
           relations <- getRelations
           entities  <- getEntities
-          clauses   <- getFacts
+          facts     <- getFacts
           opts      <- getConfig
+          aliases   <- getAliases
           let colorOpts = not $ nocolor opts
           -- Parse and handle the command
           let parserOutput = parseBliCommandTyped input
@@ -99,99 +101,144 @@ processCliInput input = do
 -- | Main entrypoint for the bli-prolog REPL.
 repl :: Bli ()
 repl = do
-  -- Just get colorOpts, version doesn't matter here.
-  opts    <- getConfig
-  clauses <- getFacts
+  config    <- getConfig
+  facts     <- getFacts
+  types     <- getTypes
+  relations <- getRelations
+  entities  <- getEntities
+  aliases   <- getAliases
   -- Temporary, to get this to compile
   let schema = [] 
-  let colorOpts = not $ nocolor opts
+  let colorOpts = not $ nocolor config
   maybeLine <- liftIO $ readline (blue colorOpts command_prompt)
   case maybeLine of
     Nothing -> repl
     Just line -> do
-      case line of 
-        -- First,handle user REPL commands (beginning with a semicolon).
-        ":h"   -> do 
-          screen <- liftIO $ replHelpScreen colorOpts
-          liftIO $ putStrLn screen
-          repl
-        ":clear-kb" -> do
-            liftIO $ putStrLn "Clearing all in-memory facts."
-            setFacts []
-        ":clear-schema" -> do
-            -- Note: This should also clear everything in the schema, since
-            -- if have no entities which we can query about, then
-            -- we also know no facts about those entities.
-            liftIO $ putStrLn "Clearing all in-memory facts and schema data"
-            setFacts []
-            liftIO $ putStrLn "Warning: Need to update the logic here."
-            -- setSchema  []
-        ":exit" -> return ()
-        _ | isPrefixOf ":load" line -> do
-               let filePath = drop 6 line
-               fileContents <- liftIO $ readFile filePath
-               case fileExtension filePath of
-                 ".pl"   -> do
-                     case clausesFromString fileContents of
-                         Left e -> liftIO $ putStrLn "There has been a parse error."
-                         Right clauses -> do
-                             liftIO $ putStrLn "Need to implement the logic for adding clauses here."
-                             -- modifyProgram (\x -> x ++ clauses)
-                 ".bpl"  -> do
-                     -- Currently this will only parse the typed version
-                     case parseTypedBli fileContents of
-                         Left e -> liftIO $ putStrLn "There has been a parse error."
-                         Right lines -> do
-                             -- debugging
-                             liftIO $ print $ lines
-                             -- This is the old version.
-                             -- let (entries, clauses) = groupSchemaClauses lines
-                             -- modifyProgram (\x -> x ++ clauses)
-                             -- modifySchema  (\x -> x ++ entries)
-                 ".bsch" -> do
-                  -- Currently this will only parse the typed version.
-                     case parseTypedSchema fileContents of
-                         Left e -> liftIO $ putStrLn "There has been a parse error."
-                         Right entries -> do
-                              liftIO $ print $ entries
-                              liftIO $ putStrLn "Need to implement the logic for modifying the schema here."
-                              -- modifySchema (\x -> x ++ (getArities entries))
+      case parseBliReplCommand line of 
+        ParseError err -> do 
+            liftIO $ putStrLn "There was an error parsing the command:"
+            liftIO $ putStrLn $ "  " ++ show err
+        DoneParsing blicmd ->
+          case blicmd of
+             Help -> do
+               screen <- liftIO $ replHelpScreen colorOpts
+               liftIO $ putStrLn screen
                repl
-          | isPrefixOf ":export" line -> do
-               let filePath = drop 8 line
-               case fileExtension filePath of
-                 ".pl" -> do
-                   let contents = undefined
-                   liftIO $ writeFile filePath contents
-                 ".bpl"  -> do
-                   let contents = undefined
-                   liftIO $ writeFile filePath contents
-                 ".bsch" -> do
-                   let contents = undefined
-                   liftIO $ writeFile filePath contents
-               -- io $ putStrLn $ yellow colorOpts "Export command not implemented."
+             Exit -> do
+               return ()
+             ClearSchema -> do
+               liftIO $ putStrLn "Clearing all in-memory schema data."
+               setFacts empty
+               setRelations empty
+               setEntities empty
                repl
-         | isPrefixOf ":alias" line -> do
-             let args' = drop 7 line
-             let args = words $ args'
-             if (length args == 2)
-             then do
-               let arg1 = args !! 0
-               let arg2 = args !! 1
-               liftIO $ putStrLn $ "Made alias of " ++ arg1 ++ " to " ++ arg2 ++ "."
+             ClearRelations -> do
+               liftIO $ putStrLn "Clearing all in-memory relations (and facts)."
+               setRelations empty
+               setFacts empty
                repl
-             else do
-               liftIO $ putStrLn "Invalid argument format to :alias."
+             ClearEntities -> do
+               liftIO $ putStrLn "Clearing all in-memory entities (and facts)."
+               setEntities  empty
+               setRelations empty
                repl
-         | (line == ":lkb" || line == ":list-knowledge-base") -> do
-               liftIO $ mapM_ (\x -> putStrLn ("  "++x)) $ map prettyShowClause clauses
+             ClearFacts -> do
+               liftIO $ putStrLn "Clearing all in-memory facts."
+               setFacts empty
                repl
-         | (line == ":ls" || line == ":list-schema") -> do
-               liftIO $ putStrLn "Warning: The logic here needs to be changed."
-               -- liftIO $ mapM_ (\x -> putStrLn ("  "++x)) $ map prettyShowSchemaEntry schema
-               repl 
+             ListSchema ->
+               if (entities  == empty
+                 && relations == empty
+                 && types     == empty)
+               then do 
+                 liftIO $ putStrLn $ yellow colorOpts "Schema is empty."
+                 repl
+               else do
+                 liftIO $ putStrLn "NOT IMPLEMENTED."
+                 repl
+             ListRelations ->
+               if relations == empty
+               then do 
+                 liftIO $ putStrLn $ yellow colorOpts "No relations in store."
+                 repl
+               else do
+                 liftIO $ mapM_ print relations
+                 repl
+             ListTypes ->
+               if types == empty
+               then do 
+                 liftIO $ putStrLn $ yellow colorOpts "No types in store."
+                 repl
+               else do
+                 liftIO $ mapM_ print types
+                 repl
+             ListEntities ->
+               if entities == empty
+               then do
+                 liftIO $ putStrLn $ yellow colorOpts "No entities in store."
+                 repl
+               else do
+                 liftIO $ mapM_ print entities
+                 repl
+             ListFacts ->
+               if facts == empty
+               then do
+                 liftIO $ putStrLn $ yellow colorOpts "No facts in store."
+                 repl
+               else do
+                 liftIO $ mapM_ (\x -> putStrLn ("  "++x)) $ map prettyShowClause facts
+                 repl
+             ListAliases -> do
+               if aliases == empty
+               then do liftIO $ putStrLn $ yellow colorOpts "No aliases in store."
+               else do liftIO $ mapM_ print aliases
+             LoadFile filePath -> do
+                fileContents <- liftIO $ readFile filePath
+                case fileExtension filePath of
+                  ".pl"   -> do
+                      case clausesFromString fileContents of
+                          Left e -> liftIO $ putStrLn "There has been a parse error."
+                          Right clauses -> do
+                              liftIO $ putStrLn "Need to implement the logic for adding clauses here."
+                              -- modifyProgram (\x -> x ++ clauses)
+                  ".bpl"  -> do
+                      -- Currently this will only parse the typed version
+                      case parseTypedBli fileContents of
+                          Left e -> liftIO $ putStrLn "There has been a parse error."
+                          Right lines -> do
+                              -- debugging
+                              liftIO $ print $ lines
+                              -- This is the old version.
+                              -- let (entries, clauses) = groupSchemaClauses lines
+                              -- modifyProgram (\x -> x ++ clauses)
+                              -- modifySchema  (\x -> x ++ entries)
+                  ".bsch" -> do
+                   -- Currently this will only parse the typed version.
+                      case parseTypedSchema fileContents of
+                          Left e -> liftIO $ putStrLn "There has been a parse error."
+                          Right entries -> do
+                               liftIO $ print $ entries
+                               liftIO $ putStrLn "Need to implement the logic for modifying the schema here."
+                               -- modifySchema (\x -> x ++ (getArities entries))
+                repl
+             ExportFile filePath -> do
+                case fileExtension filePath of
+                  ".pl" -> do
+                    let contents = undefined
+                    liftIO $ writeFile filePath contents
+                  ".bpl"  -> do
+                    let contents = undefined
+                    liftIO $ writeFile filePath contents
+                  ".bsch" -> do
+                    let contents = undefined
+                    liftIO $ writeFile filePath contents
+                -- io $ putStrLn $ yellow colorOpts "Export command not implemented."
+                repl
+             Alias arg1 arg2 -> do
+                 liftIO $ putStrLn $ "Made alias of " ++ arg1 ++ " to " ++ arg2 ++ "."
+                 repl
         -- If the user has not entered a REPL command, try processing
         -- their input as a standard Bedelibry Prolog command.
-          | otherwise -> do
-                processCliInput line
-                repl
+        ContinueParsing -> do
+          processCliInput line
+          repl
