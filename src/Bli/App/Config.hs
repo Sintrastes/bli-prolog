@@ -145,53 +145,52 @@ replBanner version colorOpts = foldr1 (\x -> \y -> x ++ "\n" ++ y) $
 enumValues :: (Enum a) => [a]
 enumValues = enumFrom (toEnum 0)
 
--- | Help scree to print when :h is called in the REPL
+-- | Help screen to print when :h is called in the REPL
 replHelpScreen :: Bool -> IO String
 replHelpScreen colorOpts = do
-  maybeWindow <- size
-  case maybeWindow of
-    Nothing -> 
-      -- If we can't get the terminal size, then just use "standard" formatting.
-      return $ foldr1 (\x -> \y -> x ++ "\n" ++ y) $
-      ["Commands: "
-      ,"  "++(blue colorOpts ":h")++"       Prints this help screen."
-      ,"  "++(blue colorOpts ":exit")++"    Exits bli-prolog."
-      ,"  "++(blue colorOpts ":export")++"  Exports the definitions stored in bli-prolog's in-memory fact store as assertions"
-      ,"           to a file."
-      ,"  "++(blue colorOpts ":load")++"    Loads a schema or a prolog file into bli-prolog's in-memory store."
-      ,""
-      ,"Usage:"
-      ,"  [PROLOG_TERM|PROLOG_CLAUSE]!   Assert a fact or rule."
-      ,"  [PROLOG_TERM].                 Make a standard prolog query."
-      ,"  \\[FREE_VARS]. [PROLOG_TERM].   Make a lambda query."
-      ,""
-      ,"For more information, please see the documentation at https://github.com/Sintrastes/bli-prolog."]
-    Just (Window height width) -> do
-      let maxCommandLength = foldr1 max $ map length $ map bliReplCommandString (enumValues @BliReplCommandType)
-      -- Helper function to append spaces to the end of a string until it reaches the desired length.
-      let magic_number = 10
-      let column_offset = 4
-      let concatSpaces n str 
-            | length str < n = concatSpaces n (str ++ " ")
-            | otherwise = str
-      let cmdColumn = map (\x -> "  " ++ x) 
-            $ map (concatSpaces (maxCommandLength + column_offset + magic_number))
-            $ map (\str -> blue colorOpts str)
-            $ map bliReplCommandString 
-            $ enumValues @BliReplCommandType
-      -- Helper function to format dscriptions.
-      let fmtDescr str = str
-      let descColumn = map bliReplCommandDescriptions (enumValues @BliReplCommandType)
-      let cmdsAndDescs = zipWith (++) cmdColumn descColumn
-      return $ foldr1 (\x -> \y -> x ++ "\n" ++ y) $
-         ["Commands:"] ++
-         cmdsAndDescs  ++
+  let footer = 
          ["Usage:"
          ,"  [PROLOG_TERM|PROLOG_CLAUSE]!   Assert a fact or rule."
          ,"  [PROLOG_TERM].                 Make a standard prolog query."
          ,"  \\[FREE_VARS]. [PROLOG_TERM].   Make a lambda query."
          ,""
          ,"For more information, please see the documentation at https://github.com/Sintrastes/bli-prolog."]
+  -- Length of the largest command, used for formatting.
+  let maxCommandLength = foldr1 max 
+        $ map length
+        $ map bliReplCommandString
+            (enumValues @BliReplCommandType)
+  -- Number of spaces to put between columns
+  let column_offset = 4
+  -- Additional offset needed to deal with color codes
+  let magic_number = 10
+  -- Helper function to append spaces to the end of a string until it reaches the desired length.
+  let concatSpaces n str 
+        | length str < n = concatSpaces n (str ++ " ")
+        | otherwise = str
+  let cmdColumn = map (\x -> "  " ++ x) 
+        $ map (concatSpaces (maxCommandLength + column_offset + magic_number))
+        $ map (\str -> blue colorOpts str)
+        $ map bliReplCommandString 
+        $ enumValues @BliReplCommandType
+  let descColumn = map bliReplCommandDescriptions (enumValues @BliReplCommandType)
+  let cmdsAndDescs = zipWith (++) cmdColumn descColumn
+  maybeWindow <- size
+  case maybeWindow of
+    Nothing -> 
+      -- If we can't get the terminal size, then just use "standard" formatting.
+      return $ foldr1 (\x -> \y -> x ++ "\n" ++ y) $
+         ["Commands:"] ++
+         cmdsAndDescs  ++ [""] ++
+         footer
+    Just (Window height width) -> do
+      -- Helper function to format the descriptions in a readable way given the terminal width.
+      let fmtDescr str = str
+      -- TODO: incorporate fmtDescr here
+      return $ foldr1 (\x -> \y -> x ++ "\n" ++ y) $
+         ["Commands:"] ++
+         cmdsAndDescs  ++ [""] ++
+         footer
 
 -- | A datatype for the possible options that can be configured by the user for the
 --   bli-prolog executable. 
