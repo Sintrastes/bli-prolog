@@ -3,6 +3,7 @@ module Control.Monad.Bli.Generic(
   -- Basic interface
   Bli(..),
   runBli,
+  initBli,
   runBliWithStore,
   setStore,
   getStore,

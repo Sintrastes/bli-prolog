@@ -18,6 +18,7 @@ Todo
   * Write a system for automating the formatting of the :h command so I don't have to manually update it
     whenever I write a new command.
       * On a related note, create an algebraic data type for cli commands.
+  * Refactor the server code to use servant.
   * Note: I should probably change the module structure and names slightly of some of the old
     modules from pure prolog to better fit my needs. i.e. 
         Data.Prolog.Ast ~> Data.Prolog.Bli.Ast

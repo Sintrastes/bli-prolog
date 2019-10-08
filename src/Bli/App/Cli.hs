@@ -37,15 +37,19 @@ groupSchemaClauses commands = go commands [] []
 processCliInput :: String -> Bli ()
 processCliInput input' = do
           -- Get schema, clauses, and options from context.
-          schema <- getSchema
-          clauses <- getProgram
-          opts <- getOpts
+          -- Temporary, to get this to compile.
+          let schema = []
+          types     <- getTypes
+          relations <- getRelations
+          entities  <- getEntities
+          clauses   <- getFacts
+          opts      <- getConfig
           let colorOpts = not $ nocolor opts
           -- Prepend the user input with the required symbol for
           -- our parsers
           let input = "?- " ++ input'
           -- Parse and handle the command
-          let parserOutput = parseBliCommand input
+          let parserOutput = parseBliCommandTyped input
           case parserOutput of
             Left err -> do liftIO $ putStrLn ((red colorOpts "Error")++" parsing query string:")
                            liftIO $ putStrLn $ foldr1 (\x -> \y -> x ++ "\n" ++ y) $
@@ -99,9 +103,10 @@ processCliInput input' = do
 repl :: Bli ()
 repl = do
   -- Just get colorOpts, version doesn't matter here.
-  opts    <- getOpts
-  clauses <- getProgram
-  schema  <- getSchema
+  opts    <- getConfig
+  clauses <- getFacts
+  -- Temporary, to get this to compile
+  let schema = [] 
   let colorOpts = not $ nocolor opts
   maybeLine <- liftIO $ readline (blue colorOpts "?- ")
   case maybeLine of
@@ -114,14 +119,15 @@ repl = do
           repl
         ":clear-kb" -> do
             liftIO $ putStrLn "Clearing all in-memory facts."
-            setProgram []
+            setFacts []
         ":clear-schema" -> do
             -- Note: This should also clear everything in the schema, since
             -- if have no entities which we can query about, then
             -- we also know no facts about those entities.
             liftIO $ putStrLn "Clearing all in-memory facts and schema data"
-            setProgram []
-            setSchema  []
+            setFacts []
+            liftIO $ putStrLn "Warning: Need to update the logic here."
+            -- setSchema  []
         ":exit" -> return ()
         _ | isPrefixOf ":load" line -> do
                let filePath = drop 6 line
@@ -131,7 +137,8 @@ repl = do
                      case clausesFromString fileContents of
                          Left e -> liftIO $ putStrLn "There has been a parse error."
                          Right clauses -> do
-                             modifyProgram (\x -> x ++ clauses)
+                             liftIO $ putStrLn "Need to implement the logic for adding clauses here."
+                             -- modifyProgram (\x -> x ++ clauses)
                  ".bpl"  -> do
                      -- Currently this will only parse the typed version
                      case parseTypedBli fileContents of
@@ -149,7 +156,8 @@ repl = do
                          Left e -> liftIO $ putStrLn "There has been a parse error."
                          Right entries -> do
                               liftIO $ print $ entries
-                              modifySchema (\x -> x ++ (getArities entries))
+                              liftIO $ putStrLn "Need to implement the logic for modifying the schema here."
+                              -- modifySchema (\x -> x ++ (getArities entries))
                repl
           | isPrefixOf ":export" line -> do
                let filePath = drop 8 line
@@ -181,7 +189,8 @@ repl = do
                liftIO $ mapM_ (\x -> putStrLn ("  "++x)) $ map prettyShowClause clauses
                repl
          | (line == ":ls" || line == ":list-schema") -> do
-               liftIO $ mapM_ (\x -> putStrLn ("  "++x)) $ map prettyShowSchemaEntry schema
+               liftIO $ putStrLn "Warning: The logic here needs to be changed."
+               -- liftIO $ mapM_ (\x -> putStrLn ("  "++x)) $ map prettyShowSchemaEntry schema
                repl 
         -- If the user has not entered a REPL command, try processing
         -- their input as a standard Bedelibry Prolog command.

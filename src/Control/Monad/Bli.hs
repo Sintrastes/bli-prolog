@@ -4,6 +4,7 @@ module Control.Monad.Bli(
   -- Basic interface
   runBli,
   runBliWithStore,
+  initBli,
   getStore,
   setStore,
   getConfig,
@@ -68,6 +69,8 @@ modifyStore = Generic.modifyStore @FactContainer @RelationContainer @EntityConta
 runBliWithStore = Generic.runBliWithStore @FactContainer @RelationContainer @EntityContainer @TypeContainer @AliasDatastructure
 
 runBli = Generic.runBli @FactContainer @RelationContainer @EntityContainer @TypeContainer @AliasDatastructure
+
+initBli = Generic.initBli @FactContainer @RelationContainer @EntityContainer @TypeContainer @AliasDatastructure
 
 getConfig = Generic.getConfig  @FactContainer @RelationContainer @EntityContainer @TypeContainer @AliasDatastructure
 

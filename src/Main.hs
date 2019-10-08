@@ -53,7 +53,9 @@ main = do
         -- Launch server
             True -> do
               case (port opts) of
-                Just n -> runBli opts clauses schema (newServer n)
+                Just n -> do
+                    putStrLn "Warning: Need to load files here."
+                    initBli opts (newServer n)
                 Nothing -> putStrLn "Please specify a port number to use the server."
         -- If not configured to start server...
             False -> do
@@ -62,7 +64,10 @@ main = do
                    -- Print the main banner if options set to verbose.
                    if (verbose opts) then putStrLn $ replBanner versionStr colorOpts else return ()
                    -- Run a bli prolog REPL with the user configuration.
-                   runBli opts clauses schema $ repl
+                   putStrLn "Warning: Need to handle getting data from files here."
+                   initBli opts repl
                 -- If the user supplies a non-empty goal-string, run a single
                 -- command rather than starting the REPL.
-                input -> runBli opts clauses schema $ processCliInput input
+                input -> do
+                    putStrLn "Warning: Need to handle getting data from files here."
+                    initBli opts $ processCliInput input
