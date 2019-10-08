@@ -283,10 +283,15 @@ typedBliFileP = do
 
 ------------ Typed bli command parser
 
+terminated parser = do
+  result <- parser
+  eof
+  return result
+
 -- | Parser for a bedelibry command.
 bliCommandTypedP :: Parser BliCommandTyped
 bliCommandTypedP = do 
-  result <- (try typedSchemaLineP `eitherP` (try assertClauseP `eitherP` (try assertionP `eitherP` (try goalP `eitherP` lambdaGoalP))))
+  result <- (try (terminated typedSchemaLineP) `eitherP` (try (terminated assertClauseP) `eitherP` (try (terminated assertionP) `eitherP` (try (terminated goalP) `eitherP` (terminated lambdaGoalP)))))
   case result of
      Left x  -> return $ x
      Right x -> case x of 
