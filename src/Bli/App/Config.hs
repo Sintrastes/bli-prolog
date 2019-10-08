@@ -160,15 +160,23 @@ replHelpScreen colorOpts = do
         $ map length
         $ map bliReplCommandString
             (enumValues @BliReplCommandType)
+  -- The maximum width to use for our display, regardless of terminal size.
+  let max_width = 98
   -- Number of spaces to put between columns
   let column_offset = 4
+  -- Number of spaces to put at the beginning of the items in a list
+  let initial_offset = 2
+  -- Number of extra spaces to indent multi-line command descriptions
+  let overhang = 2
+  -- Optional prefix used when formatting commands.
+  let description_prefix = "* "
   -- Additional offset needed to deal with color codes
   let magic_number = 10
   -- Helper function to append spaces to the end of a string until it reaches the desired length.
   let concatSpaces n str 
         | length str < n = concatSpaces n (str ++ " ")
         | otherwise = str
-  let cmdColumn = map (\x -> "  " ++ x) 
+  let cmdColumn = map (\x -> (take initial_offset $ repeat ' ') ++ x) 
         $ map (concatSpaces (maxCommandLength + column_offset + magic_number))
         $ map (\str -> blue colorOpts str)
         $ map bliReplCommandString 
@@ -183,13 +191,24 @@ replHelpScreen colorOpts = do
          ["Commands:"] ++
          cmdsAndDescs  ++ [""] ++
          footer
-    Just (Window height width) -> do
+    Just (Window _ termWidth) -> do
+      -- First split a string into words, and then reconstruct the string from the words, adding newlines and the appropriate number of spaces if
+      -- adding the word would make a line larger than the width of the terminal
+      let width = min termWidth max_width
+      let removeLeadingWhitespace (' ':xs) = removeLeadingWhitespace xs
+          removeLeadingWhitespace xs = xs
+      let fmtHelp (wd:wrds) acc 
+            | (length $ removeLeadingWhitespace $ last (splitOn "\n" (acc++" "++wd))) + column_offset + maxCommandLength + initial_offset >= width =
+                 fmtHelp wrds (acc++"\n"++(take (column_offset + maxCommandLength + initial_offset + 1 + overhang) (repeat ' '))++wd)
+            | otherwise = 
+                 fmtHelp wrds (acc++" "++wd)
+          fmtHelp [] acc = acc
       -- Helper function to format the descriptions in a readable way given the terminal width.
-      let fmtDescr str = str
-      -- TODO: incorporate fmtDescr here
+      let fmtDescr str = fmtHelp (words str) ""
+      let cmdsAndFmtDescs = zipWith (++) cmdColumn (map fmtDescr $ map (description_prefix++) descColumn)
       return $ foldr1 (\x -> \y -> x ++ "\n" ++ y) $
          ["Commands:"] ++
-         cmdsAndDescs  ++ [""] ++
+         cmdsAndFmtDescs  ++ [""] ++
          footer
 
 -- | A datatype for the possible options that can be configured by the user for the
