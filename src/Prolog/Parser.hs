@@ -153,7 +153,7 @@ termP =  (variableP >>= return . Var)
 termsP :: Parser Terms
 termsP = sepBy1 termP (csymb ',')
 
--- | Parser for a prolog literal. (What does this do?)
+-- | Parser for a prolog literal. (i.e. not a list term)
 literalP :: Parser Term
 literalP = do id <- atomP
               option (Comp id [])
@@ -191,7 +191,11 @@ atomP = plain <|> symbolic <|> quoted
   where
     plain = (do c <- lower
                 cs <- many (alphaNum <|> char '_')
-                return (c:cs)) <?> "atom"
+                case (c:cs) of
+                  "rel"  -> fail "\"rel\" is a reserved keyword, and may not be used as an identifer."
+                  "type" -> fail "\"type\" is a reserved keyword, and may not be used as an identifier."
+                  "entity" -> fail "\"entity\" is a reserved keyword, and may not be used as an identifer."
+                  otherwise -> return (c:cs)) <?> "atom"
     symbolic = (many1 $ oneOf "#$&*+-./:<=>?@\\^~") <?> "symbolic atom"
     quoted = (do q <- char '"'
                  s <- manyTill anyChar (try $ char '"')
@@ -243,9 +247,9 @@ schemaRelnP :: Parser TypedSchemaEntry
 schemaRelnP = do
   symb "rel"
   id <- atomP
-  csymb ':'
+  (csymb ':') <?> "Missing \":\" in relation definition."
   args <- atomP `sepBy1` (csymb ',')
-  csymb '.'
+  (csymb '.') <?> "Missing terminating \".\" to relation declaration."
   return $ Pred id args
 
 schemaEntityP :: Parser TypedSchemaEntry
@@ -253,14 +257,14 @@ schemaEntityP = do
   id <- atomP
   csymb ':'
   entityType <- atomP
-  csymb '.'
+  (csymb '.') <?> "Missing terminating \".\" to entity declaration."
   return $ TypeOf id entityType
 
 typeDeclP :: Parser TypedSchemaEntry
 typeDeclP = do
   symb "type"
   typeId <- atomP
-  csymb '.'
+  (csymb '.') <?> "Missing terminating \".\" to type declaration."
   return $ Type typeId
 
 ----------- Typed .bpl file parser
