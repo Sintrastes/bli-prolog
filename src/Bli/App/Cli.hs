@@ -67,7 +67,20 @@ processCliInput input = do
                 Result_QueryFail_BoundVarNotInBody -> do
                       liftIO $ putStrLn $ (red colorOpts "Failure.")++" Query unsuccessful."
                       liftIO $ putStrLn $ "    Variables bound by a lambda abstraction that do not appear"
-                      liftIO $ putStrLn $ "    In the body of a query."                    
+                      liftIO $ putStrLn $ "    In the body of a query."
+                Result_QueryFail_EntityNotDeclared t -> do
+                  liftIO $ putStrLn $ (red colorOpts "Failure.")++" Query unsuccessful."
+                  liftIO $ putStrLn $ "    The term "++t++"\n    has not been declared as an entity"
+                  liftIO $ putStrLn $ "    of type ..."
+                Result_QueryFail_TypeNotDeclared t -> do
+                  liftIO $ putStrLn $ (red colorOpts "Failure.")++" Query unsuccessful."
+                  liftIO $ putStrLn $ "    The type "++t++"\n    has not been declared."
+                Result_QueryFail_NotAPredicate _ -> do
+                  liftIO $ putStrLn $ (red colorOpts "Failure.")++" Assertion unsuccesful."
+                  liftIO $ putStrLn $ "    Not a predicate."
+                Result_QueryFail_TypeError _ -> do
+                  liftIO $ putStrLn $ (red colorOpts "Failure.")++" Assertion unsuccesful."
+                  liftIO $ putStrLn $ "    Type error."
                 Result_QuerySuccess solutions -> do
                     case solutions of
                          [] -> do
@@ -80,6 +93,19 @@ processCliInput input = do
                             liftIO $ mapM_ (putStrLn . solutionToJson) solutions
                 Result_AssertionSuccess -> do
                   liftIO $ putStrLn $ (green colorOpts "OK.")++" Assertion successful."
+                Result_AssertionFail_EntityNotDeclared t -> do
+                  liftIO $ putStrLn $ (red colorOpts "Failure.")++" Assertion unsuccessful."
+                  liftIO $ putStrLn $ "    The term "++t++"\n    has not been declared as an entity"
+                  liftIO $ putStrLn $ "    of type ..."
+                Result_AssertionFail_TypeNotDeclared t -> do
+                  liftIO $ putStrLn $ (red colorOpts "Failure.")++" Assertion unsuccessful."
+                  liftIO $ putStrLn $ "    The type "++t++"\n    has not been declared."
+                Result_AssertionFail_NotAPredicate _ -> do
+                  liftIO $ putStrLn $ (red colorOpts "Failure.")++" Assertion unsuccesful."
+                  liftIO $ putStrLn $ "    Not a predicate."
+                Result_AssertionFail_TypeError _ -> do
+                  liftIO $ putStrLn $ (red colorOpts "Failure.")++" Assertion unsuccesful."
+                  liftIO $ putStrLn $ "    Type error."
                 Result_AssertionFail_AtomsNotInSchema atoms -> do
                        liftIO $ putStrLn $ (red colorOpts "Failure.")++" Assertion unsuccessful."
                        liftIO $ putStrLn $ "    The identifiers "++ show atoms

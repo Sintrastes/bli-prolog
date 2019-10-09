@@ -123,6 +123,9 @@ data InvalidClause =
    | TypeError (String, Int, String, String)
 -- | type X has not been declared in the schema.
    | TypeNotDeclared String
+   | EntityNotDeclared String String
+-- The term ... has not been declared as a relation of type ...
+   | RelationNotDeclared String [String]
    | AlreadyAsserted deriving(Eq, Show)
 
 -- | Helper function for error accumulation.  

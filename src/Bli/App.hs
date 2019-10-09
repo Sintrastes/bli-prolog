@@ -39,8 +39,12 @@ processBliCommand command = do
   -- Note: Currently we are doing the validation logic in each one of these sub-cases,
   -- But I think it would be cleaner to do it beforehand, and then
   -- using a utiity function that checks if a command is an assertion or not if needed.
+  let mapLeft f (Left x) = Left (f x)
+      mapLeft f (Right x) = Right x
   typecheckResult <- typecheckBliCommand command
-  case typecheckResult of
+  -- Just deal with the first error. Later we will probably want to
+  -- display multiple errors.
+  case mapLeft head typecheckResult of
     Left (AtomsNotInSchema atoms) -> do
       case isAssertion command of
         True  -> do

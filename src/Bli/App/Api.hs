@@ -44,6 +44,7 @@ data BliResult =
 -- Note: This last argument should be optional here, if it has
 -- not actually been declared as a term.
  | Result_QueryFail_TypeNotDeclared String
+ | Result_QueryFail_EntityNotDeclared String
  | Result_QueryFail_NotAPredicate [(String, Int, String)]
  | Result_QuerySuccess [Solution]
  | Result_AssertionSuccess
@@ -55,6 +56,7 @@ data BliResult =
  | Result_AssertionFail_NotAPredicate [(String, Int, String)]
  | Result_AssertionFail_TypeError [(String, Int, String, String)]
  | Result_AssertionFail_TypeNotDeclared String
+ | Result_AssertionFail_EntityNotDeclared String
 
 
 --data BliResult =
