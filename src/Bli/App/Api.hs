@@ -53,3 +53,28 @@ data BliResult =
  | Result_AssertionFail_AtomsNotInSchema [String]
  | Result_AssertionFail_NotAPredicate [(String, Int, Maybe String)]
  | Result_AssertionFail_TypeError [(String, Int, String, String)]
+
+{-
+-- Note: We could probably refactor BliResult in an even better way
+-- Below I'm just playing around with some ideas, at the moment:
+
+data Query
+data Assertion
+data Fail
+data Success
+
+-- If we use a GADT such as the following, we can have different "subtypes"
+-- for assertions and queries.
+
+data BliResult' a b where
+  Result_SyntaxError :: String ->                                        BliResult' a Fail
+  Result_QueryFail_BoundVarNotInBody ::                                  BliResult' Query Fail
+  Result_QueryFail_AtomsNotInSchma   :: [String]                      -> BliResult' Query Fail
+  Result_QueryFail_TypeError :: [(String,Int,String,String)]          -> BliResult' Query Fail
+  Result_QueryFail_NotAPredicate :: [(String, Int, Maybe String)]     -> BliResult' Query Fail
+  Result_QuerySuccess     :: [Solution]                               -> BliResult' Query Success
+  Result_AssertionSuccess ::                                             BliResult' Assertion Success
+  Result_AssertionFail_AtomsNotInSchema :: [String]                   -> BliResult' Assertion Fail
+  Result_AssertionFail_NotAPredicate :: [(String, Int, Maybe String)] -> BliResult' Assertion Fail
+  Result_AssertionFail_TypeError :: [(String, Int, String, String)]   -> BliResult' Assertion Fail
+-}

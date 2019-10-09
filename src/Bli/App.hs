@@ -36,6 +36,9 @@ processBliCommand command = do
   relations <- getRelations
   entities  <- getEntities
   aliases   <- getAliases
+  -- Note: Currently we are doing the validation logic in each one of these sub-cases,
+  -- But I think it would be cleaner to do it beforehand, and then
+  -- using a utiity function that checks if a command is an assertion or not if needed.
   case command of
     (T_AssertMode goal) -> do
          isValid <- isBliCommandValid command
