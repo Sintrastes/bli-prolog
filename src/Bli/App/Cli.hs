@@ -68,10 +68,10 @@ processCliInput input = do
                       liftIO $ putStrLn $ (red colorOpts "Failure.")++" Query unsuccessful."
                       liftIO $ putStrLn $ "    Variables bound by a lambda abstraction that do not appear"
                       liftIO $ putStrLn $ "    In the body of a query."
-                Result_QueryFail_EntityNotDeclared t -> do
+                Result_QueryFail_EntityNotDeclared t x -> do
                   liftIO $ putStrLn $ (red colorOpts "Failure.")++" Query unsuccessful."
-                  liftIO $ putStrLn $ "    The term "++t++"\n    has not been declared as an entity"
-                  liftIO $ putStrLn $ "    of type ..."
+                  liftIO $ putStrLn $ "    The term "++t++" has not been declared as an entity"
+                  liftIO $ putStrLn $ "    of type "++x++"."
                 Result_QueryFail_TypeNotDeclared t -> do
                   liftIO $ putStrLn $ (red colorOpts "Failure.")++" Query unsuccessful."
                   liftIO $ putStrLn $ "    The type "++t++"\n    has not been declared."
@@ -93,10 +93,10 @@ processCliInput input = do
                             liftIO $ mapM_ (putStrLn . solutionToJson) solutions
                 Result_AssertionSuccess -> do
                   liftIO $ putStrLn $ (green colorOpts "OK.")++" Assertion successful."
-                Result_AssertionFail_EntityNotDeclared t -> do
+                Result_AssertionFail_EntityNotDeclared t x -> do
                   liftIO $ putStrLn $ (red colorOpts "Failure.")++" Assertion unsuccessful."
-                  liftIO $ putStrLn $ "    The term "++t++"\n    has not been declared as an entity"
-                  liftIO $ putStrLn $ "    of type ..."
+                  liftIO $ putStrLn $ "    The term "++t++" has not been declared as an entity"
+                  liftIO $ putStrLn $ "    of type "++x++"."
                 Result_AssertionFail_TypeNotDeclared t -> do
                   liftIO $ putStrLn $ (red colorOpts "Failure.")++" Assertion unsuccessful."
                   liftIO $ putStrLn $ "    The type "++t++"\n    has not been declared."

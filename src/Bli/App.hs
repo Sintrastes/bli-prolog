@@ -15,7 +15,8 @@ import Bli.App.Api
 import Bli.App.Config
 import Data.Aeson
 import Data.List.Split
-import Data.BliSet
+import Data.BliSet hiding (lookup)
+import qualified Data.BliSet as BliSet
 import Data.List hiding (foldr1)
 import Data.Foldable (foldr1)
 import Debug.Trace
@@ -66,12 +67,15 @@ processBliCommand command = do
           return $ Result_AssertionFail_TypeError [(x,n,y,z)]
         False -> do
           return $ Result_QueryFail_TypeError [(x,n,y,z)]
-    Left (TypeNotDeclared x) -> do
+    Left (EntityNotDeclared x t) -> do
       case isAssertion command of
-        True  -> do
-          return $ Result_AssertionFail_TypeNotDeclared x
+        True -> do
+          return $ Result_AssertionFail_EntityNotDeclared x t
         False -> do
-          return $ Result_QueryFail_TypeNotDeclared x
+          return $ Result_QueryFail_EntityNotDeclared x t
+    Left (TypeNotDeclared x) -> do
+      -- This should only occur for assertions.
+      return $ Result_AssertionFail_TypeNotDeclared x
     Right Ok -> do
       case command of 
         (T_AssertMode goal) -> do
@@ -114,16 +118,21 @@ processBliCommand command = do
         (T_AssertSchema schemaEntry) -> do
           case schemaEntry of
             Pred predName argTypes -> do
-              -- Add predicate to schema if not already in schema.
-              -- TODO: Also need to check here that each of the argument types
-              -- is also in the schema, otherwise, return an error.
-              -- Note also that this should probably be something more specific, like a
-              --   "Result_SchemaUpdateFail_AlreadyInSchema"
-              case tryInsert (predName, argTypes) relations of
-                  Left _       -> return $ Result_AssertionFail_AlreadyAsserted
-                  Right result -> do
-                      setRelations result
-                      return $ Result_AssertionSuccess
+              -- Add predicate to schema if not already in schema,
+              -- and if each of the argument types is also in the schema,
+              -- otherwise, return an error.
+              let isJust (Just x) = True -- Helper function
+                  isJust Nothing  = False
+              let typesNotInSchema = map snd $
+                    filter (\(x,y) -> not $ isJust x)
+                      (zip (map (\x -> BliSet.lookup (==x) types) argTypes) argTypes)
+              if typesNotInSchema == []
+              then case tryInsert (predName, argTypes) relations of
+                     Left _       -> return $ Result_AssertionFail_AlreadyAsserted
+                     Right result -> do
+                         setRelations result
+                         return $ Result_AssertionSuccess
+              else return $ Result_AssertionFail_TypeNotDeclared (head typesNotInSchema)
             Type typeName -> do
               -- Add type to schema if not in schema.
               case tryInsert typeName types of
@@ -133,10 +142,12 @@ processBliCommand command = do
                       return $ Result_AssertionSuccess
             TypeOf termId typeId -> do
               -- Add term to schema if type is already in schema, and term not already in schema.
-              -- TODO: Need to validate the logic in the above comment still.
-              case tryInsert (termId, typeId) entities of
-                  Left _ -> return $ Result_AssertionFail_AlreadyAsserted
-                  Right result -> do
+              case BliSet.lookup (==typeId) types of
+                Nothing -> return $ Result_AssertionFail_TypeNotDeclared typeId
+                Just _ -> 
+                  case tryInsert (termId, typeId) entities of
+                    Left _ -> return $ Result_AssertionFail_AlreadyAsserted
+                    Right result -> do
                       setEntities result
                       return $ Result_AssertionSuccess  
 

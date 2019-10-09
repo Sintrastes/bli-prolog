@@ -166,7 +166,7 @@ typecheckTerm (Comp p xs) = do
             (\(expectedType, x, n) -> 
              -- Find the type of x in the entity store
              case BliSet.lookup (\(a,b) -> x==a) entities of
-               Nothing -> Left $ TypeNotDeclared x
+               Nothing -> Left $ EntityNotDeclared x expectedType
                Just (_,typeOfX)  -> 
                  if typeOfX == expectedType
                  then Right Ok
