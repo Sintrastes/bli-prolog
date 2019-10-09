@@ -193,9 +193,9 @@ atomP = plain <|> symbolic <|> quoted
                 cs <- many (alphaNum <|> char '_')
                 return (c:cs)) <?> "atom"
     symbolic = (many1 $ oneOf "#$&*+-./:<=>?@\\^~") <?> "symbolic atom"
-    quoted = (do q <- char '\''
-                 s <- manyTill anyChar (try $ char '\'')
-                 return $ s ) <?> "quoted atom"  -- drop quotes; 'a' == a
+    quoted = (do q <- char '"'
+                 s <- manyTill anyChar (try $ char '"')
+                 return $ "\""++s++"\"" ) <?> "string literal"
 
 -- | Parser for a bedelibry prolog variable.
 variableP :: Parser String
