@@ -33,27 +33,23 @@ data BliResponse =
    | AssertionFail_AlreadyAsserted deriving(Eq, Show)
 
 data BliResult =
-   Result_QueryFail InvalidClause
--- Note: The above should probably be refactored into something like:
---   Result_SyntaxError
---   Result_QueryFail_BoundVarNotInBody
---   Result_QueryFail_AtomsNotInSchema [String]
---   Result_QueryFail_WrongArities [(String,Int)]
--- A syntax error (which can arrise from an InvalidClause)
--- is not associated with either a query, or an assertion,
--- and so the structure of out ADT should reflect this.    
- | Result_QueryFail_WrongArities [(String,Int)]
+   Result_SyntaxError String
+ | Result_QueryFail_BoundVarNotInBody
+ | Result_QueryFail_AtomsNotInSchema [String]
 -- ... Encountered type errors:
 --         In predicate X, argument n is not of type Y, but rather of type W.
  | Result_QueryFail_TypeError [(String, Int, String, String)]
 -- ... Identifier X is being used as an Nary predicate, but is declared to
 --     be a term of type Y in the schema.
- | Result_QueryFail_NotAPredicate [(String, Int, String)]
+-- Note: This last argument should be optional here, if it has
+-- not actually been declared as a term.
+ | Result_QueryFail_NotAPredicate [(String, Int, Maybe String)]
  | Result_QuerySuccess [Solution]
  | Result_AssertionSuccess
- | Result_AssertionFail [String]
  | Result_AssertionFail_AlreadyAsserted
 -- Error: X should have arity Y.
 --        Z should have arity W.
 --        ... etc...
- | Result_AssertionFail_WrongArities [(String,Int)] deriving(Eq, Show)
+ | Result_AssertionFail_AtomsNotInSchema [String]
+ | Result_AssertionFail_NotAPredicate [(String, Int, Maybe String)]
+ | Result_AssertionFail_TypeError [(String, Int, String, String)]
