@@ -9,6 +9,7 @@ import Data.Prolog.Ast
 import Prolog.Interp (isPlain)
 import qualified Data.Set as S
 import Data.List((\\), nub)
+import Data.Char
 import Control.Monad (join)
 import Data.Schema
 import Control.Monad.Bli.Pure
@@ -166,7 +167,9 @@ typecheckTerm (Comp p xs) = do
             (\(expectedType, x, n) -> 
              -- Find the type of x in the entity store
              case BliSet.lookup (\(a,b) -> x==a) entities of
-               Nothing -> Left $ EntityNotDeclared x expectedType
+               -- Ignore variables in type-checking.
+               Nothing | isUpper (head x) -> Right Ok
+                       | otherwise -> Left $ EntityNotDeclared x expectedType
                Just (_,typeOfX)  -> 
                  if typeOfX == expectedType
                  then Right Ok
@@ -194,6 +197,9 @@ typecheckBliCommand cmd@(T_LambdaQuery (bindingVars, terms)) = do
 
 typecheckBliCommand (T_AssertMode terms) = typecheckGoal terms
 typecheckBliCommand (T_AssertClause (t,ts)) = do
+  -- Note: We need to do more type-checking here. All free variables on the 
+  -- RHS with expected type t should only be used in holes in the LHS
+  -- with the same expected type.
   results1 <- typecheckGoal ts
   results2 <- typecheckTerm t
   return $ joinErrors results1 results2
