@@ -56,7 +56,7 @@ data BliReplCommand =
    | ListEntities
    | ListFacts
  | ListAliases
-
+ | SetMode Search
 -- | An abstract representation of the different types of commands
 --   which can be entered at the bli-prolog REPL.
 data BliReplCommandType =
@@ -74,7 +74,8 @@ data BliReplCommandType =
  | Cmd_ListTypes
  | Cmd_ListEntities
  | Cmd_ListFacts
- | Cmd_ListAliases deriving(Enum)
+ | Cmd_ListAliases
+ | Cmd_SetMode deriving(Enum)
 
 -- | Takes a BliReplCommandType, and returns a list of the strings 
 --   which can be used to invoke that command.
@@ -96,6 +97,7 @@ bliReplCommandStrings cmd =
     Cmd_ListEntities   -> [":ls-entities",":ls-ents"]
     Cmd_ListFacts      -> [":ls-facts"]
     Cmd_ListAliases    -> [":ls-aliases"]
+    Cmd_SetMode        -> [":set-mode"]
 
 -- | Takes a BliReplCommandType, and returns just the primary string
 --   which can be used to invoke that command.
@@ -122,6 +124,7 @@ bliReplCommandDescriptions cmd =
     Cmd_ListTypes      -> "Lists the types from the local store."
     Cmd_ListFacts      -> "Lists the facts from the local store."
     Cmd_ListAliases    -> "Lists the aliases from the local store."
+    Cmd_SetMode        -> "Sets the search mode of the running session."
 
 typeToCommand :: BliReplCommandType -> Maybe BliReplCommand
 typeToCommand ty = 
@@ -131,6 +134,7 @@ typeToCommand ty =
      Cmd_ExportFile     -> Nothing
      Cmd_LoadFile       -> Nothing
      Cmd_Alias          -> Nothing
+     Cmd_SetMode        -> Nothing
      Cmd_ClearSchema    -> Just ClearSchema
      Cmd_ClearRelations -> Just ClearRelations
      Cmd_ClearEntities  -> Just ClearEntities
@@ -161,12 +165,15 @@ parseBliReplCommand input =
         Nothing -> ParseError "Invalid format."
     Nothing -> 
       case () of
+        -- TODO: Better error handling here.
         _ | any (\cmd -> isPrefixOf cmd input) (bliReplCommandStrings Cmd_LoadFile) ->
-           DoneParsing $ LoadFile $ (splitOn " " input) !! 1
+            DoneParsing $ LoadFile $ (splitOn " " input) !! 1
           | any (\cmd -> isPrefixOf cmd input) (bliReplCommandStrings Cmd_ExportFile) ->
-           DoneParsing $ ExportFile $ (splitOn " " input) !! 1
+            DoneParsing $ ExportFile $ (splitOn " " input) !! 1
           | any (\cmd -> isPrefixOf cmd input) (bliReplCommandStrings Cmd_Alias) ->
-           DoneParsing $ Alias ((splitOn " " input) !! 1) ((splitOn " " input) !! 2)
+            DoneParsing $ Alias ((splitOn " " input) !! 1) ((splitOn " " input) !! 2)
+          | any (\cmd -> isPrefixOf cmd input) (bliReplCommandStrings Cmd_SetMode) ->
+            DoneParsing $ SetMode ((splitOn " " input) !! 1)
           | otherwise -> ContinueParsing
 
 -- | The banner which is displayed when the user first loads the repl.

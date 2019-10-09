@@ -51,7 +51,7 @@ processBliCommand command = do
                  Right result -> do 
                          setFacts result 
                          return $ Result_AssertionSuccess
-                 -- We can probably refine this to get it to tell us whihc of the terms
+                 -- We can probably refine this to get it to tell us which of the terms
                  -- was already asserted.
                  -- If there were any errors, the assertions fails.
                  Left _ -> return $ Result_AssertionFail_AlreadyAsserted
@@ -105,6 +105,10 @@ processBliCommand command = do
         case schemaEntry of
             Pred predName argTypes -> do
                 -- Add predicate to schema if not already in schema.
+                -- TODO: Also need to check here that each of the argument types
+                -- is also in the schema, otherwise, return an error.
+                -- Note also that this should probably be something more specific, like a
+                --   "Result_SchemaUpdateFail_AlreadyInSchema"
                 case tryInsert (predName, argTypes) relations of
                     Left _       -> return $ Result_AssertionFail_AlreadyAsserted
                     Right result -> do
@@ -119,6 +123,7 @@ processBliCommand command = do
                         return $ Result_AssertionSuccess
             TypeOf termId typeId -> do
                 -- Add term to schema if type is already in schema, and term not already in schema.
+                -- TODO: Need to validate the logic in the above comment still.
                 case tryInsert (termId, typeId) entities of
                     Left _ -> return $ Result_AssertionFail_AlreadyAsserted
                     Right result -> do

@@ -148,6 +148,7 @@ typecheckTerm (Comp p xs) = do
   relations <- getRelations
   entities  <- getEntities
   aliases   <- getAliases
+  -- Note: I should refactor this so that it collects all errors for a given term.
   -- First, check if head of the term is a predicate.
   case BliSet.lookup (\(a,b)-> a==p) relations of
     Nothing -> case BliSet.lookup (\(a,b) -> a == p) entities of
@@ -255,6 +256,7 @@ isBliCommandValid cmd@(T_LambdaQuery (bindingVars,goal)) = do
                                 atoms) 
   where atoms = collectTypedBliCommandAtoms cmd
         bodyVars = collectTypedBliCommandVars cmd 
+
 -- | Checks to see if a bli program is valid in the given application context.
 isBliProgramValid :: BliProgram -> Bli Bool
 isBliProgramValid = undefined
