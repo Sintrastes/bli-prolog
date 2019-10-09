@@ -116,7 +116,52 @@ Bedelibry Prolog has support for a number of different types of literals. For ex
 
 Bedelibry Prolog also supports list literals, which have type `list[TYPE]`. For example, the literal `[1,2,3]` has type `list[int]`.
 
-Finally, Bedelibry Prolog also has support for date and datetime literals, following the ISO 8601 standard.
+Finally, Bedelibry Prolog also has support for date and datetime literals, following the ISO 8601 standard. For example:
+
+~~~
+  2019-10-09 : date.
+  2019-10-09:05:36:44 : datetime.
+~~~
+
+Both of these are subtypes of a more generic type `period` used for more general periods of time, using natural extensions of the iso 8601 format:
+
+~~~
+  2019-10 : period.
+  2020    : period.
+~~~
+
+Being able to work with such datatypes simply and naturally is one of the things which is 
+important when working with bedelibry. For example, when making a query about a remark that was made
+at a certain time.
+
+In the future, we may also implement binary operators for operating on periods, for example:
+~~~
+  2019-10 \/ 2019-11 \/ 2019-12 : period.
+~~~
+
+Aliases
+-------
+
+In bedelibry prolog, aliases can be used to provide different names to
+pre-existing relations, types, and entities. For example:
+
+~~~
+  %
+  % aliases.bpl
+  %
+
+  using equality.
+
+  person: type.
+  nate: person.
+  
+  alias me nate
+
+  equals(me, nate).
+    True.
+~~~
+
+In the bedelibry prolog REPL, new aliases can be added by invoking the `:alias` command.
 
 Datatypes
 ---------
