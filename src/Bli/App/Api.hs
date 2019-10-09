@@ -43,7 +43,8 @@ data BliResult =
 --     be a term of type Y in the schema.
 -- Note: This last argument should be optional here, if it has
 -- not actually been declared as a term.
- | Result_QueryFail_NotAPredicate [(String, Int, Maybe String)]
+ | Result_QueryFail_TypeNotDeclared String
+ | Result_QueryFail_NotAPredicate [(String, Int, String)]
  | Result_QuerySuccess [Solution]
  | Result_AssertionSuccess
  | Result_AssertionFail_AlreadyAsserted
@@ -51,8 +52,9 @@ data BliResult =
 --        Z should have arity W.
 --        ... etc...
  | Result_AssertionFail_AtomsNotInSchema [String]
- | Result_AssertionFail_NotAPredicate [(String, Int, Maybe String)]
+ | Result_AssertionFail_NotAPredicate [(String, Int, String)]
  | Result_AssertionFail_TypeError [(String, Int, String, String)]
+ | Result_AssertionFail_TypeNotDeclared String
 
 {-
 -- Note: We could probably refactor BliResult in an even better way

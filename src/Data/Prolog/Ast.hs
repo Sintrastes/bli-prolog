@@ -58,13 +58,23 @@ data BliCommand = QueryMode Goal
                 | LambdaQuery LambdaGoal
   deriving(Show, Eq, Lift)
 
--- Version of BliCommand, using our typed schemas.
+-- | Version of BliCommand, using our typed schemas.
 data BliCommandTyped =
    T_QueryMode Goal
  | T_LambdaQuery LambdaGoal
  | T_AssertMode Goal
  | T_AssertClause Clause 
  | T_AssertSchema TypedSchemaEntry deriving(Show, Eq)
+
+-- | Helper function to check if a BliCommand is an assertion.
+isAssertion :: BliCommandTyped -> Bool
+isAssertion (T_QueryMode _) = False
+isAssertion (T_LambdaQuery _) = False
+isAssertion _ = True
+
+-- | Helper function to check if a BliCommand is a query.
+isQuery :: BliCommandTyped -> Bool
+isQuery = not . isAssertion
 
 type Program = Clauses
 type Clauses = [Clause]

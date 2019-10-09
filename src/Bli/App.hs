@@ -39,89 +39,101 @@ processBliCommand command = do
   -- Note: Currently we are doing the validation logic in each one of these sub-cases,
   -- But I think it would be cleaner to do it beforehand, and then
   -- using a utiity function that checks if a command is an assertion or not if needed.
-  case command of
-    (T_AssertMode goal) -> do
-         isValid <- isBliCommandValid command
-         case isValid of
-           Right Ok -> do
-
-               -- Try inserting each of the terms individually, collecting errors
-               case foldr1 (>=>) (map (\term -> \result -> tryInsert (term, []) result) goal) =<< Right clauses of
-               -- If all is well, update the store.
-                 Right result -> do 
-                         setFacts result 
-                         return $ Result_AssertionSuccess
-                 -- We can probably refine this to get it to tell us which of the terms
-                 -- was already asserted.
-                 -- If there were any errors, the assertions fails.
-                 Left _ -> return $ Result_AssertionFail_AlreadyAsserted
-           Left (AtomsNotInSchema atoms) -> return $ Result_AssertionFail_AtomsNotInSchema atoms
-    (T_AssertClause clause) -> do
-         isValid <- isBliCommandValid command
-         case isValid of
-           Right Ok -> do
-               case tryInsert clause clauses of
+  isValid <- isBliCommandValid command
+  case isValid of
+    Left (AtomsNotInSchema atoms) -> do
+      case isAssertion command of
+        True  -> do
+          return $ Result_AssertionFail_AtomsNotInSchema atoms
+        False -> do
+          return $ Result_QueryFail_AtomsNotInSchema atoms
+    Left BoundVarNotInBody -> do
+      -- This can only occur for lambda queries.
+      return $ Result_QueryFail_BoundVarNotInBody
+    Left (NotAPredicate (x,y,z)) -> do
+      case isAssertion command of
+        True  -> do
+          return $ Result_AssertionFail_NotAPredicate [(x,y,z)] 
+        False -> do
+          return $ Result_QueryFail_NotAPredicate [(x,y,z)]
+    Left (TypeError (x,n,y,z)) -> do
+      case isAssertion command of
+        True  -> do
+          return $ Result_AssertionFail_TypeError [(x,n,y,z)]
+        False -> do
+          return $ Result_QueryFail_TypeError [(x,n,y,z)]
+    Left (TypeNotDeclared x) -> do
+      case isAssertion command of
+        True  -> do
+          return $ Result_AssertionFail_TypeNotDeclared x
+        False -> do
+          return $ Result_QueryFail_TypeNotDeclared x
+    Right Ok -> do
+      case command of 
+        (T_AssertMode goal) -> do
+           -- Try inserting each of the terms individually, collecting errors
+           let collected = 
+                 foldr1 (>=>) 
+                     (map (\term -> \result -> tryInsert (term, []) result) 
+                          goal)
+                    =<< Right clauses 
+           case collected of
+           -- If all is well, update the store.
+             Right result -> do 
+                     setFacts result 
+                     return $ Result_AssertionSuccess
+             -- We can probably refine this to get it to tell us which of the terms
+             -- was already asserted.
+             -- If there were any errors, the assertions fails.
+             Left _ -> return $ Result_AssertionFail_AlreadyAsserted
+        (T_AssertClause clause) -> do
+          case tryInsert clause clauses of
                  Left _ -> return $ Result_AssertionFail_AlreadyAsserted 
                  Right result -> do setFacts result
                                     return $ Result_AssertionSuccess
-           Left (AtomsNotInSchema atoms) ->
-               return $ Result_AssertionFail_AtomsNotInSchema atoms
-    (T_LambdaQuery (vars, goal)) -> do
-        isValid <- isBliCommandValid command
-        case isValid of
-          Right Ok -> 
-            let t = makeReportTree clauses goal in
-              return $ Result_QuerySuccess $ 
+        (T_LambdaQuery (vars, goal)) ->
+          let t = makeReportTree clauses goal in
+                return $ Result_QuerySuccess $ 
                            map Solution 
                          $ map (filter (\(x,y) -> x `elem` vars)) 
                          -- Note: This is currently fixed to use bfs.
                          $ map (\(Solution x) -> x) $ bfs t
-          Left BoundVarNotInBody ->
-            return $ Result_QueryFail_BoundVarNotInBody
-          Left (AtomsNotInSchema atoms) ->
-            return $ Result_QueryFail_AtomsNotInSchema atoms
-    (T_QueryMode goal) -> do
-       isValid <- isBliCommandValid command 
-       case isValid of
-          Right Ok ->
-            return $ Result_QuerySuccess (  
-              let limiting lst = case limit opts of
-                    Nothing -> lst
-                    Just n  -> take n lst
-                  searchF = searchFunction (search opts) $ depth opts
-                  t = makeReportTree clauses goal
-                  solutions = limiting $ searchF t
-              in solutions )
-          Left (AtomsNotInSchema atoms) ->
-            return $ Result_QueryFail_AtomsNotInSchema atoms
-    -- This case should not be possible since we are not dealing with a
-    -- lambda query.
-          Left _ -> error $ "Invalid exception encountered."
-    (T_AssertSchema schemaEntry) -> do
-        case schemaEntry of
+        (T_QueryMode goal) ->
+          return $ Result_QuerySuccess (  
+            let limiting lst = case limit opts of
+                  Nothing -> lst
+                  Just n  -> take n lst
+                searchF = searchFunction (search opts) $ depth opts
+                t = makeReportTree clauses goal
+                solutions = limiting $ searchF t
+            in solutions )
+        (T_AssertSchema schemaEntry) -> do
+          case schemaEntry of
             Pred predName argTypes -> do
-                -- Add predicate to schema if not already in schema.
-                -- TODO: Also need to check here that each of the argument types
-                -- is also in the schema, otherwise, return an error.
-                -- Note also that this should probably be something more specific, like a
-                --   "Result_SchemaUpdateFail_AlreadyInSchema"
-                case tryInsert (predName, argTypes) relations of
-                    Left _       -> return $ Result_AssertionFail_AlreadyAsserted
-                    Right result -> do
-                        setRelations result
-                        return $ Result_AssertionSuccess
+              -- Add predicate to schema if not already in schema.
+              -- TODO: Also need to check here that each of the argument types
+              -- is also in the schema, otherwise, return an error.
+              -- Note also that this should probably be something more specific, like a
+              --   "Result_SchemaUpdateFail_AlreadyInSchema"
+              case tryInsert (predName, argTypes) relations of
+                  Left _       -> return $ Result_AssertionFail_AlreadyAsserted
+                  Right result -> do
+                      setRelations result
+                      return $ Result_AssertionSuccess
             Type typeName -> do
-                -- Add type to schema if not in schema.
-                case tryInsert typeName types of
-                    Left _ -> return $ Result_AssertionFail_AlreadyAsserted
-                    Right result -> do
-                        setTypes result
-                        return $ Result_AssertionSuccess
+              -- Add type to schema if not in schema.
+              case tryInsert typeName types of
+                  Left _ -> return $ Result_AssertionFail_AlreadyAsserted
+                  Right result -> do
+                      setTypes result
+                      return $ Result_AssertionSuccess
             TypeOf termId typeId -> do
-                -- Add term to schema if type is already in schema, and term not already in schema.
-                -- TODO: Need to validate the logic in the above comment still.
-                case tryInsert (termId, typeId) entities of
-                    Left _ -> return $ Result_AssertionFail_AlreadyAsserted
-                    Right result -> do
-                        setEntities result
-                        return $ Result_AssertionSuccess
+              -- Add term to schema if type is already in schema, and term not already in schema.
+              -- TODO: Need to validate the logic in the above comment still.
+              case tryInsert (termId, typeId) entities of
+                  Left _ -> return $ Result_AssertionFail_AlreadyAsserted
+                  Right result -> do
+                      setEntities result
+                      return $ Result_AssertionSuccess  
+
+        
