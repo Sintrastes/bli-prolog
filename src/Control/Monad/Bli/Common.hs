@@ -8,13 +8,14 @@ import Bli.App.Config
 import Data.Schema
 import Data.Prolog.Ast
 
-data BliStore t1 t2 t3 t4 alias = BliStore {
+data BliStore t1 t2 t3 t4 alias pids = BliStore {
   config    :: AppConfig,
   facts     :: t1 Clause,
   relations :: t2 RelDecl,
   entities  :: t3 EntityDecl,
   types     :: t4 TypeDecl,
   aliases   :: alias String
+  pids      :: pids String
 }
 
 -- Types to use for our containers
@@ -29,3 +30,5 @@ type EntityContainer    = []
 type TypeContainer      = []
  -- | The datastructure to use for storing aliases
 type AliasDatastructure = Map String
+ -- | The datastructure to use for storing primary Ids
+type PidDatastructure = []

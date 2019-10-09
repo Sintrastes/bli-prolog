@@ -46,8 +46,8 @@ import Data.BliSet
 import Control.Monad.Bli.Common
 import Control.Empty
 
-type Bli t1 t2 t3 t4 alias a = 
- StateT (BliStore t1 t2 t3 t4 alias) IO a
+type Bli t1 t2 t3 t4 alias pids a = 
+ StateT (BliStore t1 t2 t3 t4 alias pids) IO a
 
 getStore :: (BliSet t1, BliSet t2, BliSet t3, BliSet t4, Alias alias) 
  => Bli t1 t2 t3 t4 alias (BliStore t1 t2 t3 t4 alias)
