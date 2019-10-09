@@ -104,10 +104,42 @@ Which allow for us to connect our queries to the configured bedelibry server, an
   name: type, string
 ~~~
 
+Note that nullary predicates can also be declared by using the notation:
+~~~
+  rel p.
+~~~
+
 Literals
 --------
 
-Bedelibry prolog has support for a number of different types of literals. For example, string literals must be surrounded by double quotes and have type `string`. Integer literals are unquoted, and have type `int`.  
+Bedelibry Prolog has support for a number of different types of literals. For example, string literals must be surrounded by double quotes and have type `string`. Integer literals are unquoted, and have type `int`.
+
+Bedelibry Prolog also supports list literals, which have type `list[TYPE]`. For example, the literal `[1,2,3]` has type `list[int]`.
+
+Finally, Bedelibry Prolog also has support for date and datetime literals, following the ISO 8601 standard.
+
+Datatypes
+---------
+
+Bedelibry has support for custom datatypes by allowing the user to define their own constructors, and assign these constructors to types. For example, important for use in the rest of bedelibry is the url datatype:
+
+~~~
+  datatype url with
+    constructor 'Url: string.
+~~~
+
+Which can be used as follows:
+
+~~~
+  'Url("http://github.com/Sintrases/bli-prolog").
+~~~
+
+This can also be used to construct enums in bedelibry prolog, for example:
+~~~
+  datatype bool with
+    constructor 'True.
+    constructor 'False.
+~~~
 
 Assertions
 ----------
