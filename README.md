@@ -47,6 +47,18 @@ For the fans of unicode, we also offer some alternate syntax options for this:
   λY. programming_language(X), name_of(X,Y).   
   ΛY. programming_language(X), name_of(X,Y).
 ~~~
+
+This syntax also allows the user to specify that they do *not* want their query to return any results. This will simply return success/fail depending on if the given formula is satisfiable.
+~~~
+  \. programming_language(X), name_of(X, "haskell").
+    True.
+~~~
+Another feature of this syntax is that the user may additionally specify a uniqueness constraint on each one of the bound variables, and then only one solution will be returned matching that variable.
+~~~
+  \X!. programming_language(X).
+    X = bli_prolog.
+~~~
+
 Implicit Predication:
 --------------------
 
@@ -91,6 +103,11 @@ Which allow for us to connect our queries to the configured bedelibry server, an
 ~~~
   name: type, string
 ~~~
+
+Literals
+--------
+
+Bedelibry prolog has support for a number of different types of literals. For example, string literals must be surrounded by double quotes and have type `string`. Integer literals are unquoted, and have type `int`.  
 
 Assertions
 ----------
@@ -140,6 +157,50 @@ Note that if the user tries to query an entity (which is different from a nullar
   True.
   ? nim.
   OK. "nim" is an entity of type "programming_language".
+~~~
+
+First-class rules
+-----------------
+
+Note: This is an experimental feature. The following is only an example
+of how this might work in the future, if implemented.
+
+~~~
+  %
+  % first_class_rules.bpl
+  %
+
+  % Brings with_rule into score, enables
+  % the use of first-class rules.
+  using firstclass_rules.
+
+  % brings bag_of into scope, enables working with lists.
+  using lists.
+
+  type programming_langauge.
+  type person.
+  rel cool: programming_language.
+  rel functional: programming_language.
+  rel thinks: person, rule.
+  rel according_to: person, prop.
+    
+  nate: person.
+  haskell: programming_language.
+  functional(haskell).
+  
+  thinks(nate, 
+    cool(X) :-
+      functional(X), programming_language(X).
+  ).
+  
+  % Here, with_rules is a special predicate which attempts to 
+  % solve the predicate P with respect to the rules in the list Rules.
+  according_to(Person, P)
+    :- with_rules(Rules, P),
+       bagof(Rule, thinks(Person, Rule), Rules).
+
+  according_to(nate, cool(haskell)).
+    True.
 ~~~
 
 Command line interface

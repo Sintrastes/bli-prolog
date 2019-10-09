@@ -120,6 +120,8 @@ data BliPrologType =
  | StringLit
  | IntLit
  | DateTimeLit
+ -- A polymorphic list datatype.
+ | List BliPrologType
  | DateLit
 
 -- Note: It is important to make a distinction here
