@@ -205,8 +205,12 @@ repl = do
                  repl
              ListAliases -> do
                if aliases == empty
-               then do liftIO $ putStrLn $ yellow colorOpts "No aliases in store."
-               else do liftIO $ mapM_ print aliases
+               then do 
+                 liftIO $ putStrLn $ yellow colorOpts "No aliases in store."
+                 repl
+               else do 
+                 liftIO $ mapM_ print aliases
+                 repl
              LoadFile filePath -> do
                 fileContents <- liftIO $ readFile filePath
                 case fileExtension filePath of
@@ -250,8 +254,16 @@ repl = do
                 -- io $ putStrLn $ yellow colorOpts "Export command not implemented."
                 repl
              Alias arg1 arg2 -> do
-                 liftIO $ putStrLn $ "Made alias of " ++ arg1 ++ " to " ++ arg2 ++ "."
-                 repl
+                 -- Note: First should check here that 
+                 -- the arguments parse properly as bli identifiers.
+                 addedSuccessfully <- newAlias arg1 arg2
+                 case addedSuccessfully of
+                   True -> do
+                     liftIO $ putStrLn $ "Made alias of " ++ arg1 ++ " to " ++ arg2 ++ "."
+                     repl
+                   False -> do
+                     liftIO $ putStrLn $ "Failure. Alias is already is store."
+                     repl
         -- If the user has not entered a REPL command, try processing
         -- their input as a standard Bedelibry Prolog command.
         ContinueParsing -> do
