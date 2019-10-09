@@ -106,6 +106,50 @@ getAritiesTerm val schema = (val, map snd $ filter (\(x,y) -> x == val) schema)
 -- | Unit type, representing valid input.
 data Ok = Ok
 
+data BliPrologType = 
+   Entity 
+ -- A user declared type, such as "person".
+ | DeclaredType String
+ -- Type of types, "type".
+ | TypTypes
+ | Predicate [BliPrologType]
+ -- A type for rules: This allows for an interesting
+ -- design choice, where we allow for "first-class rules.",
+ -- and so predicates are allowed to talk about rules.
+ | Rule 
+ | StringLit
+ | IntLit
+ | DateTimeLit
+ | DateLit
+
+-- Note: It is important to make a distinction here
+-- between atoms and strings, because atoms
+-- have already been parsed, and hence, all of the
+-- validation logic is done, and this can be a total function.
+
+-- | Helper function to return the type of an atom which has already been parsed.
+typeOfAtom :: Atom -> Bli (Maybe BliPrologType)
+typeOfAtom string 
+  -- A variable has no type.
+  | isUpper (head string)            = return $ Nothing
+  | all id $ (map isNumber) $ string = return $ Just IntLit
+  | head string == '"'               = return $ Just StringLit
+  -- Todo: Check for date-time and date literals.
+  | otherwise = do
+      -- Check to see if the literal has a user-declared
+      -- type
+      types    <- getTypes
+      entities <- getEntities
+      let entityLookup = BliSet.lookup (\(a,b) -> string==a) entities
+      return $ case entityLookup of
+        Just (_,typeOfX) -> Just $ DeclaredType typeOfX 
+        Nothing ->  do
+          -- Check to see if the literal is in fact a type.
+          let typeLookup = BliSet.lookup (==string) types
+          case typeLookup of
+            Just _ -> Just $ TypTypes
+            Nothing -> Nothing
+
 -- | Data type representing all of the possible errors
 --   that can occur from validating the input to a bli prolog
 --   command. 
@@ -166,6 +210,9 @@ typecheckTerm (Comp p xs) = do
       let intermediateResults = map 
             (\(expectedType, x, n) -> 
              -- Find the type of x in the entity store
+             -- Note: I should write a generic typeOf function,
+             -- with an abstract representation of the types of terms
+             -- that I can return from this function.
              case BliSet.lookup (\(a,b) -> x==a) entities of
                -- Ignore variables in type-checking.
                Nothing | isUpper (head x) -> Right Ok
