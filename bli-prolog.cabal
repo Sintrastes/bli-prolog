@@ -91,6 +91,7 @@ library
       DeriveDataTypeable
       TemplateHaskell
       OverloadedStrings
+      MultiParamTypeClasses
   default-language: Haskell2010
 
 executable bli-prolog
