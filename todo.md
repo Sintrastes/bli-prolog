@@ -3,6 +3,9 @@ Todo
 ====
   * Integrate implicit predication with REPL.
       * Write a contextual parser for implicit predications.
+  * Need to add specail logic to querying terms where the predicate
+    is unary, and the id of the predicate is the name of a type in the 
+    current schema.
   * Implement side-effects with asserting types. (first need to configure the entity server).
      * Note: I think that for assertions that produce a side effect (including adding a new entity
              to the schema -- either in memory, or part of the bedelibry server -- we should use
@@ -11,16 +14,16 @@ Todo
   * Check to see if my use of the Bli monad with the warp server works,
     or if I need to use IORefs or something else to get it to work.
   * Add test cases for parsing files so that I can work on refactoring some of our parsing code.
-  * Refactor isBliCommandValid to avoid code duplication.
   * Modify BliResult to take into account the type-specific errors that I want to consider.
   * Make sure the typed bli command parsers are taking into account reserved words (like type, entity, rel) correctly.
+      * Done, but need to add test cases for this.
   * Modify our test cases to take into account the new parsers.
   * Add new test cases for the new BliResult options
   * Make :ls commands give a specific output when the relevant store is empty.
+     * Done, but should add test cases for this.
   * Refactor the configuration code to work with my new scheme.
-  * Write a system for automating the formatting of the :h command so I don't have to manually update it
-    whenever I write a new command.
   * Refactor the server code to use servant.
+  * Fix the typechecking of rules.
   * Note: I should probably change the module structure and names slightly of some of the old
     modules from pure prolog to better fit my needs. i.e. 
         Data.Prolog.Ast ~> Data.Prolog.Bli.Ast
