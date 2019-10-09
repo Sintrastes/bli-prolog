@@ -56,6 +56,13 @@ data BliResult =
  | Result_AssertionFail_TypeError [(String, Int, String, String)]
  | Result_AssertionFail_TypeNotDeclared String
 
+
+--data BliResult =
+--   SyntaxError String
+-- | QueryFail [InvalidClause]
+-- | AssertionFail [InvalidClause]
+-- | QuerySuccess [Soltuions]
+
 {-
 -- Note: We could probably refactor BliResult in an even better way
 -- Below I'm just playing around with some ideas, at the moment:

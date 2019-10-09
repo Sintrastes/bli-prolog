@@ -115,8 +115,6 @@ data InvalidClause =
      -- | Error to return when a query (or an assertion) of any kind contains
      --   identifiers which do not exist in any of the imported schemas.
    | AtomsNotInSchema [Atom]
-   -- | A list of atoms with invalid arities.
-   | WrongArities [(Atom,Int)] 
 -- ... Identifier X is being used as an Nary predicate, but is declared to
 --     be a term of type Y in the schema.
    | NotAPredicate (String, Int, String)
@@ -124,7 +122,8 @@ data InvalidClause =
 --         In predicate X, argument n is not of type Y, but rather of type W.
    | TypeError (String, Int, String, String)
 -- | type X has not been declared in the schema.
-   | TypeNotDeclared String deriving(Eq, Show)
+   | TypeNotDeclared String
+   | AlreadyAsserted deriving(Eq, Show)
 
 -- | Helper function for error accumulation.  
 collectErrors :: [Either InvalidClause Ok] -> Either [InvalidClause] Ok
@@ -197,66 +196,3 @@ typecheckBliCommand (T_AssertClause (t,ts)) = do
   return $ joinErrors results1 results2
 -- Asserting schemas is not covered by typechecking.
 typecheckBliCommand (T_AssertSchema _) = return $ Right Ok
-
--- Note: We could probably refactor this by making seperate "typecheck goal" and
--- "typecheck clause" functions.
--- | Checks to see if a bli clause is valid in the given applicationContext.
-isBliCommandValid :: BliCommandTyped -> Bli (Either InvalidClause Ok)
-isBliCommandValid cmd@(T_QueryMode goal) = do
-  predicates <- getRelations
-  let schema = fmap (\(x, ts) -> (x, length ts)) predicates
-  let atomsWithArities = map (\x -> getAritiesTerm (fst x) schema) atoms
-  return $ case () of
-    _ | atoms `subset` schema -> Right Ok
-      | nonMatchingArities atomsWithArities atoms /= [] ->
-           Left $ WrongArities $ nonMatchingArities atomsWithArities atoms
-      | otherwise -> Left $ AtomsNotInSchema $
-                         map (\(x,y) -> x) 
-                               (filter (\x -> not $ x `elem` schema) 
-                                atoms)
- where atoms = collectTypedBliCommandAtoms cmd
-isBliCommandValid cmd@(T_AssertMode goal) = do
-  predicates <- getRelations
-  let schema = fmap (\(x, ts) -> (x, length ts)) predicates
-  let atomsWithArities = map (\x -> getAritiesTerm (fst x) schema) atoms
-  return $ case () of
-   _ | atoms `subset` schema -> Right Ok
-     | nonMatchingArities atomsWithArities atoms /= [] ->
-             Left $ WrongArities $ nonMatchingArities atomsWithArities atoms
-     | otherwise -> Left $ AtomsNotInSchema $
-                       map (\(x,y) -> x) 
-                             (filter (\x -> not $ x `elem` schema) 
-                              atoms)
-  where atoms = collectTypedBliCommandAtoms cmd
-isBliCommandValid cmd@(T_AssertClause clause) = do
-  predicates <- getRelations
-  let schema = fmap (\(x, ts) -> (x, length ts)) predicates
-  let atomsWithArities = map (\x -> getAritiesTerm (fst x) schema) atoms
-  return $ case () of
-   _ | atoms `subset` schema -> Right Ok
-     | nonMatchingArities atomsWithArities atoms /= [] ->
-          Left $ WrongArities $ nonMatchingArities atomsWithArities atoms
-     | otherwise -> Left $ AtomsNotInSchema $
-                       map (\(x,y) -> x) 
-                             (filter (\x -> not $ x `elem` schema) 
-                              atoms)
-  where atoms = collectTypedBliCommandAtoms cmd
-isBliCommandValid cmd@(T_LambdaQuery (bindingVars,goal)) = do 
-  predicates <- getRelations
-  let schema = fmap (\(x, ts) -> (x, length ts)) predicates
-  let atomsWithArities = map (\x -> getAritiesTerm (fst x) schema) atoms
-  return $ case () of
-    _ | (bindingVars `subset` bodyVars) && (atoms `subset` schema) -> Right Ok
-      | not (bindingVars `subset` bodyVars) -> Left $ BoundVarNotInBody
-      | nonMatchingArities atomsWithArities atoms /= [] ->
-           Left $ WrongArities $ nonMatchingArities atomsWithArities atoms
-      | otherwise -> Left $ AtomsNotInSchema $
-                        map (\(x,y) -> x) 
-                               (filter (\x -> not $ x `elem` schema) 
-                                atoms) 
-  where atoms = collectTypedBliCommandAtoms cmd
-        bodyVars = collectTypedBliCommandVars cmd 
-
--- | Checks to see if a bli program is valid in the given application context.
-isBliProgramValid :: BliProgram -> Bli Bool
-isBliProgramValid = undefined
