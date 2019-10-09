@@ -56,7 +56,7 @@ data BliReplCommand =
    | ListEntities
    | ListFacts
  | ListAliases
- | SetMode Search
+ | SetMode String
 -- | An abstract representation of the different types of commands
 --   which can be entered at the bli-prolog REPL.
 data BliReplCommandType =

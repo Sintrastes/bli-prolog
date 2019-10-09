@@ -55,8 +55,7 @@ processBliCommand command = do
                  -- was already asserted.
                  -- If there were any errors, the assertions fails.
                  Left _ -> return $ Result_AssertionFail_AlreadyAsserted
-           Left (AtomsNotInSchema atoms) -> return $ Result_AssertionFail atoms
-           Left (WrongArities xs) -> return $ Result_QueryFail_WrongArities xs
+           Left (AtomsNotInSchema atoms) -> return $ Result_AssertionFail_AtomsNotInSchema atoms
     (T_AssertClause clause) -> do
          isValid <- isBliCommandValid command
          case isValid of
@@ -66,8 +65,7 @@ processBliCommand command = do
                  Right result -> do setFacts result
                                     return $ Result_AssertionSuccess
            Left (AtomsNotInSchema atoms) ->
-               return $ Result_AssertionFail atoms
-           Left (WrongArities xs) -> return $ Result_QueryFail_WrongArities xs
+               return $ Result_AssertionFail_AtomsNotInSchema atoms
     (T_LambdaQuery (vars, goal)) -> do
         isValid <- isBliCommandValid command
         case isValid of
@@ -79,10 +77,9 @@ processBliCommand command = do
                          -- Note: This is currently fixed to use bfs.
                          $ map (\(Solution x) -> x) $ bfs t
           Left BoundVarNotInBody ->
-            return $ Result_QueryFail BoundVarNotInBody
-          Left (WrongArities xs) -> return $ Result_QueryFail_WrongArities xs
+            return $ Result_QueryFail_BoundVarNotInBody
           Left (AtomsNotInSchema atoms) ->
-            return $ Result_QueryFail (AtomsNotInSchema atoms)
+            return $ Result_QueryFail_AtomsNotInSchema atoms
     (T_QueryMode goal) -> do
        isValid <- isBliCommandValid command 
        case isValid of
@@ -96,8 +93,7 @@ processBliCommand command = do
                   solutions = limiting $ searchF t
               in solutions )
           Left (AtomsNotInSchema atoms) ->
-            return $ Result_QueryFail (AtomsNotInSchema atoms)
-          Left (WrongArities xs) -> return $ Result_QueryFail_WrongArities xs
+            return $ Result_QueryFail_AtomsNotInSchema atoms
     -- This case should not be possible since we are not dealing with a
     -- lambda query.
           Left _ -> error $ "Invalid exception encountered."

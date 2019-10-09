@@ -56,16 +56,16 @@ requestHandler (Just (MakeQuery query))
       Right command -> do
         result <- Pure.liftFromPure $ processBliCommand command
         case result of
-          Result_QueryFail (AtomsNotInSchema atoms) -> do
+          Result_QueryFail_AtomsNotInSchema atoms -> do
               return $ Just $ SyntaxError $ BoundVarNotInBody -- "Query fail, replace me."
-          Result_QueryFail BoundVarNotInBody -> do
+          Result_QueryFail_BoundVarNotInBody -> do
               return $ Just $ SyntaxError $ BoundVarNotInBody -- "Query fail, replace me."
           Result_QuerySuccess solutions -> do
               return $ Just $ SyntaxError $ BoundVarNotInBody -- "Query success, replace me."
      -- These will never happen.
           Result_AssertionSuccess -> do
               return $ Just $ SyntaxError $ BoundVarNotInBody -- "replace me."
-          Result_AssertionFail atoms -> do
+          Result_AssertionFail_AtomsNotInSchema atoms -> do
               return $ Just $ SyntaxError $ BoundVarNotInBody -- "replace me."
 requestHandler (Just (MakeAssertion assertion))
   = case (parseBliCommandTyped assertion) of 
@@ -74,16 +74,16 @@ requestHandler (Just (MakeAssertion assertion))
         result <- Pure.liftFromPure $ processBliCommand command
         case result of
        -- These will never happen
-          Result_QueryFail (AtomsNotInSchema atoms) -> do
+          Result_QueryFail_AtomsNotInSchema atoms -> do
               return $ Just $ SyntaxError $ BoundVarNotInBody -- "replace me."
-          Result_QueryFail BoundVarNotInBody -> do
+          Result_QueryFail_BoundVarNotInBody -> do
               return $ Just $ SyntaxError $ BoundVarNotInBody -- "replace me."
        -- These will happen.
           Result_QuerySuccess solutions -> do
               return $ Just $ SyntaxError $ BoundVarNotInBody -- "replace me."
           Result_AssertionSuccess -> do
               return $ Just $ SyntaxError $ BoundVarNotInBody -- "replace me."
-          Result_AssertionFail atoms -> do
+          Result_AssertionFail_AtomsNotInSchema atoms -> do
               return $ Just $ SyntaxError $ BoundVarNotInBody -- "replace me."
 -- If we recieve an unsupported request, return the appropriate
 -- response.

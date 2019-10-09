@@ -60,19 +60,14 @@ processCliInput input = do
             Right command -> do
               result <- Pure.liftFromPure $ processBliCommand command
               case result of
-                Result_QueryFail (AtomsNotInSchema atoms) -> do
+                Result_QueryFail_AtomsNotInSchema atoms -> do
                        liftIO $ putStrLn $ (red colorOpts "Failure.")++" Query unsuccessful."
                        liftIO $ putStrLn $ "    The identifiers "++ show atoms
                        liftIO $ putStrLn $ "    have not been declared in a schema."
-                Result_QueryFail BoundVarNotInBody -> do
+                Result_QueryFail_BoundVarNotInBody -> do
                       liftIO $ putStrLn $ (red colorOpts "Failure.")++" Query unsuccessful."
                       liftIO $ putStrLn $ "    Variables bound by a lambda abstraction that do not appear"
                       liftIO $ putStrLn $ "    In the body of a query."                    
-                Result_QueryFail_WrongArities xs -> do
-                      liftIO $ putStrLn $ (red colorOpts "Failure.")++" Query unsuccessful."
-                      liftIO $ mapM_ (\(id,arity) -> putStrLn $ "    The identifier "++id++
-                            " exists in the schema, but should not be used with an arity of "++show arity ++".")
-                            xs
                 Result_QuerySuccess solutions -> do
                     case solutions of
                          [] -> do
@@ -85,16 +80,10 @@ processCliInput input = do
                             liftIO $ mapM_ (putStrLn . solutionToJson) solutions
                 Result_AssertionSuccess -> do
                   liftIO $ putStrLn $ (green colorOpts "OK.")++" Assertion successful."
-                Result_AssertionFail atoms -> do
+                Result_AssertionFail_AtomsNotInSchema atoms -> do
                        liftIO $ putStrLn $ (red colorOpts "Failure.")++" Assertion unsuccessful."
                        liftIO $ putStrLn $ "    The identifiers "++ show atoms
                        liftIO $ putStrLn $ "    have not been declared in a schema."
-                Result_AssertionFail_WrongArities xs -> do
-                      liftIO $ putStrLn $ (red colorOpts "Failure.")++" Assertion unsuccessful."
-                      liftIO $ mapM_ (\(id,arity) -> putStrLn $ "    The identifier "++id++
-                                  " exists in the schema, but should not be used with an arity of "
-                                  ++ show arity ++".")
-                                 xs
                 Result_AssertionFail_AlreadyAsserted -> do
                     liftIO $ putStrLn $ (yellow colorOpts "Already asserted.")
 
