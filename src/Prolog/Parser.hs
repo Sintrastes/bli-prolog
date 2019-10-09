@@ -255,7 +255,7 @@ schemaRelnP = do
 schemaEntityP :: Parser TypedSchemaEntry
 schemaEntityP = do
   id <- atomP
-  csymb ':'
+  (csymb ':') <?> "Missing \":\" in entity declaration."
   entityType <- atomP
   (csymb '.') <?> "Missing terminating \".\" to entity declaration."
   return $ TypeOf id entityType
@@ -304,4 +304,4 @@ bliCommandTypedP = do
             Left  z -> return $ T_AssertMode z
             Right z -> case z of
                 Left w  -> return $ T_QueryMode w
-                Right w -> return $ T_LambdaQuery w
+                Right w -> return $ T_LambdaQuery w1

@@ -79,7 +79,7 @@ processCliInput input = do
                   liftIO $ putStrLn $ (red colorOpts "Failure.")++" Assertion unsuccesful."
                   liftIO $ putStrLn $ "    Not a predicate."
                 Result_QueryFail_TypeError _ -> do
-                  liftIO $ putStrLn $ (red colorOpts "Failure.")++" Assertion unsuccesful."
+                  liftIO $ putStrLn $ (red colorOpts "Failure.")++" Query unsuccesful."
                   liftIO $ putStrLn $ "    Type error."
                 Result_QuerySuccess solutions -> do
                     case solutions of

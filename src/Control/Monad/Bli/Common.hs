@@ -29,5 +29,3 @@ type EntityContainer    = []
 type TypeContainer      = []
  -- | The datastructure to use for storing aliases
 type AliasDatastructure = Map String
- -- | The datastructure to use for storing primary Ids
-type PidDatastructure = []

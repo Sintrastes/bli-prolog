@@ -236,6 +236,8 @@ Note that if the user tries to query an entity (which is different from a nullar
   OK. "nim" is an entity of type "programming_language".
 ~~~
 
+Note: We may consider adding an `io` or `proc` type in the future to allow for more general side-effects that the user can configure to run with Haskell.
+
 First-class rules
 -----------------
 

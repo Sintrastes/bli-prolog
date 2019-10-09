@@ -1,6 +1,19 @@
 
 Todo
 ====
+  * Implement a module system like in the example files.
+     * The idea is pretty simple, a module is just an alias to a file somehwere 
+       where there exists a bpl source file that we want to splice in at the import
+       point. Thus, we can have a ~/.bedelibry/modules.yaml configuration file with the format:
+          modules:
+             - name: lists 
+               file_path: ~/code/bedebliry/lists.bpl
+              
+             - name: people
+               file_path: ~/code/bedelibry/lists.bpl
+     * For fun: Implement a lazy module system, where modules are only used
+       when needed in the file. 
+
   * Integrate implicit predication with REPL.
       * Write a contextual parser for implicit predications.
   * Need to add specail logic to querying terms where the predicate
