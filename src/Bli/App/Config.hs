@@ -17,7 +17,8 @@ import Control.Monad (join)
 import Bli.App.Colors
 import System.Directory
 import System.Console.Terminal.Size
-
+import qualified Data.Map as Map
+import Data.Typeable
 
 -- | The default search method is breadth first search.
 instance Default Search where
@@ -292,6 +293,26 @@ data Options =
           , burl'          :: String
           }
   deriving (Show, Data, Typeable)
+
+instance IsRecord Options where
+  fromRecord record = do
+    search <- join $ ((\(Typ x) -> cast x) <$> Map.lookup "search" record :: Maybe (Maybe Search)) 
+    program <- join $ ((\(Typ x) -> cast x) <$> Map.lookup "program" record :: Maybe (Maybe FilePath)) 
+    schema <- join $ ((\(Typ x) -> cast x) <$> Map.lookup "schema" record :: Maybe (Maybe FilePath)) 
+    goal <- join $ ((\(Typ x) -> cast x) <$> Map.lookup "goal" record :: Maybe (Maybe String)) 
+    limit <- join $ ((\(Typ x) -> cast x) <$> Map.lookup "limit" record :: Maybe (Maybe (Maybe Int))) 
+    depth <- join $ ((\(Typ x) -> cast x) <$> Map.lookup "depth" record :: Maybe (Maybe Int)) 
+    verbose <- join $ ((\(Typ x) -> cast x) <$> Map.lookup "verbose" record :: Maybe (Maybe Bool)) 
+    nocolor <- join $ ((\(Typ x) -> cast x) <$> Map.lookup "nocolor" record :: Maybe (Maybe Bool)) 
+    json <- join $ ((\(Typ x) -> cast x) <$> Map.lookup "json" record :: Maybe (Maybe Bool)) 
+    server <- join $ ((\(Typ x) -> cast x) <$> Map.lookup "server" record :: Maybe (Maybe Bool)) 
+    bedelibryMode <- join $ ((\(Typ x) -> cast x) <$>
+                           Map.lookup "bedelibryMode" record :: Maybe (Maybe String)) 
+    port <- join $ ((\(Typ x) -> cast x) <$> Map.lookup "port" record :: Maybe (Maybe (Maybe Int))) 
+    burl <- join $ ((\(Typ x) -> cast x) <$> Map.lookup "burl" record :: Maybe (Maybe String))
+    return $ Options search program schema goal limit depth verbose
+                     nocolor json server bedelibryMode port burl
+  toRecord options = undefined
 
 -- | Datatype for the application configuration
 data AppConfig = 
