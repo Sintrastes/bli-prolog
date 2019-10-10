@@ -129,6 +129,8 @@ repl = do
   case maybeLine of
     Nothing -> repl
     Just line -> do
+      -- Add the user's input to the command line history.
+      liftIO $ addHistory line
       case parseBliReplCommand line of 
         ParseError err -> do 
             liftIO $ putStrLn "There was an error parsing the command:"
