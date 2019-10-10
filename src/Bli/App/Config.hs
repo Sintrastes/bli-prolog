@@ -28,6 +28,11 @@ command_prompt = "?- "
 -- | The string to prepend to all responses to terminal commands in the applicaion.
 response_prompt = "  "
 
+-- | Helper function to get the Bli module data from
+-- our CSV file.
+getBliModuleData :: IO (Maybe (String, String))
+getBliModuleData = undefined
+
 -- | An abstract representation of the commands which
 --   can be entered at the bli-prolog REPL.
 data BliReplCommand =
