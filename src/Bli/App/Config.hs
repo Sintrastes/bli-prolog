@@ -47,6 +47,8 @@ data BliReplCommand =
    | ListFacts
  | ListAliases
  | SetMode String
+ | GetTypeOf String
+
 -- | An abstract representation of the different types of commands
 --   which can be entered at the bli-prolog REPL.
 data BliReplCommandType =
@@ -65,7 +67,8 @@ data BliReplCommandType =
  | Cmd_ListEntities
  | Cmd_ListFacts
  | Cmd_ListAliases
- | Cmd_SetMode deriving(Enum)
+ | Cmd_SetMode
+ | Cmd_GetTypeOf deriving(Enum)
 
 -- | Takes a BliReplCommandType, and returns a list of the strings 
 --   which can be used to invoke that command.
@@ -88,6 +91,7 @@ bliReplCommandStrings cmd =
     Cmd_ListFacts      -> [":ls-facts"]
     Cmd_ListAliases    -> [":ls-aliases"]
     Cmd_SetMode        -> [":set-mode"]
+    Cmd_GetTypeOf         -> [":t",":type"]
 
 -- | Takes a BliReplCommandType, and returns just the primary string
 --   which can be used to invoke that command.
@@ -115,6 +119,7 @@ bliReplCommandDescriptions cmd =
     Cmd_ListFacts      -> "Lists the facts from the local store."
     Cmd_ListAliases    -> "Lists the aliases from the local store."
     Cmd_SetMode        -> "Sets the search mode of the running session."
+    Cmd_GetTypeOf         -> "Returns the type of the supplied bli prolog term."
 
 typeToCommand :: BliReplCommandType -> Maybe BliReplCommand
 typeToCommand ty = 
@@ -125,6 +130,7 @@ typeToCommand ty =
      Cmd_LoadFile       -> Nothing
      Cmd_Alias          -> Nothing
      Cmd_SetMode        -> Nothing
+     Cmd_GetTypeOf      -> Nothing
      Cmd_ClearSchema    -> Just ClearSchema
      Cmd_ClearRelations -> Just ClearRelations
      Cmd_ClearEntities  -> Just ClearEntities
@@ -164,6 +170,8 @@ parseBliReplCommand input =
             DoneParsing $ Alias ((splitOn " " input) !! 1) ((splitOn " " input) !! 2)
           | any (\cmd -> isPrefixOf cmd input) (bliReplCommandStrings Cmd_SetMode) ->
             DoneParsing $ SetMode ((splitOn " " input) !! 1)
+          | any (\cmd -> isPrefixOf cmd input) (bliReplCommandStrings Cmd_GetTypeOf) ->
+            DoneParsing $ GetTypeOf ((splitOn " " input) !! 1)
           | otherwise -> ContinueParsing
 
 -- | The banner which is displayed when the user first loads the repl.
