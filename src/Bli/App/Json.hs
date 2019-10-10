@@ -5,8 +5,8 @@ module Bli.App.Json where
 -- | Json parsing utilities for the bli-prolog executable.
 -- 
 
-import Data.Prolog.Ast
-import Prolog.Interp.Data
+import Data.Bli.Prolog.Ast
+import Bli.Prolog.Interp.Data
 import Data.Aeson.Encode.Pretty
 import qualified Data.Map as Map
 import Data.ByteString.Lazy.UTF8

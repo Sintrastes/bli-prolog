@@ -1,8 +1,8 @@
 
-module Prolog.Interp.Data where
+module Bli.Prolog.Interp.Data where
 
 import Prelude hiding ((<>))
-import Data.Prolog.Ast
+import Data.Bli.Prolog.Ast
 import qualified Text.PrettyPrint as PP
 import Text.PrettyPrint ((<>),(<+>))
 import qualified Data.Char as C

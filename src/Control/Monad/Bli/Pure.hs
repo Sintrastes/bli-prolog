@@ -9,7 +9,7 @@ module Control.Monad.Bli.Pure where
 --   Note: If used within the same application as Control.Monad.Bli,
 --   must be imported qualified to avoid name conflicts.
 
-import Data.Prolog.Ast
+import Data.Bli.Prolog.Ast
 import Control.Applicative
 import Control.Monad.State.Lazy
 import Data.Schema

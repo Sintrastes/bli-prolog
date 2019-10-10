@@ -27,10 +27,10 @@ flag liquidhaskell
 
 library
   exposed-modules:
-      Data.Prolog.Ast
-      Data.Prolog.TemplateHaskell
-      Prolog.Analysis
-      Prolog.Parser
+      Data.Bli.Prolog.Ast
+      Bli.Prolog.TH
+      Bli.Prolog.Typechecking
+      Bli.Prolog.Parser
       Data.Schema
       Data.Alias
       Data.BliSet
@@ -42,9 +42,9 @@ library
       Bli.App.Config.Version
       Bli.App.Json
       Bli.App.Colors
-      Prolog.Interp
-      Prolog.Interp.Data
-      Prolog.SearchStrategies
+      Bli.Prolog.Interp
+      Bli.Prolog.Interp.Data
+      Bli.Prolog.SearchStrategies
       Control.Monad.Bli
       Control.Monad.Bli.Common
       Control.Monad.Bli.Generic

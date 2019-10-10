@@ -1,13 +1,13 @@
 
-module Prolog.Interp where
+module Bli.Prolog.Interp where
 
 import Data.List (nub)
 import Control.Monad(liftM)
 import Control.Monad.Bli.Pure
 import Data.Foldable
 
-import Data.Prolog.Ast
-import Prolog.Interp.Data
+import Data.Bli.Prolog.Ast
+import Bli.Prolog.Interp.Data
 
 ----------------------------------------------------------------------
 -- Interpreter

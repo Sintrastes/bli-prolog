@@ -5,13 +5,13 @@
 
 module Bli.App where
 
-import Data.Prolog.Ast
+import Data.Bli.Prolog.Ast
 import Data.Schema
-import Prolog.Parser
-import Prolog.Interp
-import Prolog.Interp.Data
-import Prolog.SearchStrategies
-import Prolog.Analysis
+import Bli.Prolog.Parser
+import Bli.Prolog.Interp
+import Bli.Prolog.Interp.Data
+import Bli.Prolog.SearchStrategies
+import Bli.Prolog.Typechecking
 import Control.Monad.Bli.Pure
 import Bli.App.Api
 import Bli.App.Config

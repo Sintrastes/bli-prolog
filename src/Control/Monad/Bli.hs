@@ -39,7 +39,7 @@ module Control.Monad.Bli(
 --   must be imported qualified to avoid name conflicts.
 --
 
-import Data.Prolog.Ast
+import Data.Bli.Prolog.Ast
 import Data.Schema
 import Bli.App.Config (AppConfig)
 import qualified Control.Monad.Bli.Generic as Generic

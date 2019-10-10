@@ -1,7 +1,7 @@
 
 module Control.Monad.Bli.Reader where
 
-import Data.Prolog.Ast
+import Data.Bli.Prolog.Ast
 import Data.Schema
 import Control.Monad.Reader
 import Bli.App.Config

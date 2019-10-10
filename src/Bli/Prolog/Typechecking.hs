@@ -1,12 +1,12 @@
 --
--- | Utility functions for analyzing
---   prolog terms.
+-- | Implementation of typechecking for
+--   bli prolog.
 --
 
-module Prolog.Analysis where
+module Bli.Prolog.Typechecking where
 
-import Data.Prolog.Ast
-import Prolog.Interp.Data (isPlain)
+import Data.Bli.Prolog.Ast
+import Bli.Prolog.Interp.Data (isPlain)
 import qualified Data.Set as S
 import Data.List((\\), nub)
 import Data.Char

@@ -1,11 +1,11 @@
 
-module Prolog.SearchStrategies where
+module Bli.Prolog.SearchStrategies where
 
 ----------------------------------------------------------------------
 -- Traveral of Search Trees
 ----------------------------------------------------------------------
 
-import Prolog.Interp.Data
+import Bli.Prolog.Interp.Data
 import Data.Data
 import Data.Typeable
 

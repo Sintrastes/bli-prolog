@@ -3,7 +3,7 @@ module Control.Monad.Bli.Pure.Generic where
 
 -- | Generic version of the pure Bli monad
 
-import Data.Prolog.Ast
+import Data.Bli.Prolog.Ast
 import Control.Applicative hiding (empty)
 import Data.Schema
 import Data.Alias

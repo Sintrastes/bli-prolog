@@ -2,11 +2,11 @@
 -- 
 --
 
-module Prolog.Parser where
+module Bli.Prolog.Parser where
 
 import Text.ParserCombinators.Parsec
 import Control.Monad.Combinators (eitherP)
-import Data.Prolog.Ast
+import Data.Bli.Prolog.Ast
 import Data.Schema
 import Control.Monad (join)
 

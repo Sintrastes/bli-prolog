@@ -19,8 +19,8 @@ import Data.Text.Encoding
 import Data.String
 import System.Directory
 import Control.Monad
-import Prolog.Analysis
-import Prolog.Parser
+import Bli.Prolog.Typechecking
+import Bli.Prolog.Parser
 import Control.Applicative
 import Control.Monad.Bli
 import Control.Monad.IO.Class

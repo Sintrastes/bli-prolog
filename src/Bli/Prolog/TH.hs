@@ -5,14 +5,14 @@
 --   using bedelibry prolog as an EDSL within Haskell.
 --
 
-module Data.Prolog.TemplateHaskell(
+module Bli.Prolog.TH (
     goal,
     bli,
     program
 ) where
 
-import Data.Prolog.Ast
-import Prolog.Parser as P
+import Data.Bli.Prolog.Ast
+import Bli.Prolog.Parser as P
 import Text.ParserCombinators.Parsec
 import Language.Haskell.TH
 import Language.Haskell.TH.Quote

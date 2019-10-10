@@ -13,12 +13,12 @@ import Bli.App.Json
 import Data.List.Split
 import Bli.App.Colors
 import Bli.App.Config
-import Prolog.Analysis
-import Data.Prolog.Ast
+import Bli.Prolog.Typechecking
+import Data.Bli.Prolog.Ast
 import Data.Schema
 import Data.Aeson
-import Prolog.Parser
-import Prolog.Interp
+import Bli.Prolog.Parser
+import Bli.Prolog.Interp
 import Data.List
 import Control.Empty
 import System.Console.CmdArgs as CA hiding (program)

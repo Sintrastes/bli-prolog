@@ -38,7 +38,7 @@ module Control.Monad.Bli.Generic(
 
 import Control.Monad.Trans.State
 import Control.Monad.Trans.Class (lift)
-import Data.Prolog.Ast
+import Data.Bli.Prolog.Ast
 import Data.Schema
 import Bli.App.Config
 import Data.Alias

@@ -6,7 +6,7 @@ module Bli.App.Config where
 --
 
 import System.Console.CmdArgs as CA hiding (program)
-import Prolog.SearchStrategies
+import Bli.Prolog.SearchStrategies
 import Bli.App.Config.Version
 import Language.Haskell.TH
 import Language.Haskell.TH.Quote

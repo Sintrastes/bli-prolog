@@ -5,7 +5,7 @@
 --   of bedelibry prolog terms.
 --
 
-module Data.Prolog.Ast where
+module Data.Bli.Prolog.Ast where
 
 import Language.Haskell.TH.Lift
 import Data.List (intercalate)

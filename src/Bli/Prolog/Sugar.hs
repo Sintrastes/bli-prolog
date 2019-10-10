@@ -4,12 +4,12 @@
 -- of bli prolog.
 --
 
-module Prolog.Sugar
+module Bli.Prolog.Sugar
 
 import Data.Schema
-import Prolog.Parser
-import Prolog.Interp
-import Prolog.Ast
+import Bli.Prolog.Parser
+import Bli.Prolog.Interp
+import Bli.Prolog.Ast
 
 -- Helper functions for dealing with terms
 arity :: Term -> Int
