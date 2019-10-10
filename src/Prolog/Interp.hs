@@ -1,17 +1,12 @@
 
 module Prolog.Interp where
 
-import Prelude hiding ((<>))
-
 import Data.List (nub)
 import Control.Monad(liftM)
-import qualified Text.PrettyPrint as PP
-import Text.PrettyPrint ((<>),(<+>))
-import qualified Data.Char as C
-
+import Control.Monad.Bli.Pure
 
 import Data.Prolog.Ast
-import Prolog.Parser
+import Prolog.Interp.Data
 
 ----------------------------------------------------------------------
 -- Interpreter
@@ -60,52 +55,22 @@ freshen bound (tc, tb) = (subs sub tc, map (subs sub) tb)
                         if v' `elem` bound then nextVar (i+1) v
                         else v'
 
--- | Datatype representing the solution to a prolog query.
-newtype Solution = Solution [(Variable, Term)]
-                 deriving (Eq, Read)
 
-instance Show Solution where
-  show (Solution bindings) = PP.render(renderB bindings)
-    where
-      renderB [] = PP.text "true"
-      renderB bindings = PP.braces $ PP.vcat $ map renderBindings bindings
-
-      renderBindings (var, term) = PP.text var <+> PP.equals <+> renderT term
-
-      renderAtom a = if isPlain a then PP.text a
-                     else PP.text "'" <> PP.text a <> PP.text "'"
-
-      renderT (Var v) = PP.text v
-      renderT (Comp a []) = renderAtom a
-      renderT comp@(Comp f args) =
-        case listTerm comp of
-          Just tt -> PP.brackets $ renderTerms tt
-          Nothing -> renderAtom f <> (PP.parens $ renderTerms args)
-
-      renderTerms terms = PP.sep $ PP.punctuate PP.comma $ map renderT terms
-
-      listTerm (Comp "[]" [])    = return []
-      listTerm (Comp "." [h, t]) = do tt <- listTerm t
-                                      return $ h:tt
-      listTerm _                 = Nothing
-
-isPlain (c:cs) = C.isLower c && all (\c -> c == '_' || C.isAlphaNum c) cs
-isPlain _ = False
-
-data SearchTree = Sol Solution
-                | Node Goal [SearchTree]
-                  deriving (Eq, Show, Read)
+-- Note: Here is where we can put our custom logic for
+-- e.x. dealing with the bedelibry backend.
+solve :: Program -> Goal -> Bli [SearchTree]
+solve prog g = return $ solve' prog g
 
 -- Uses the List monad for backtracking
-solve :: Program -> Goal -> [SearchTree]
-solve _ [r] | isReportGoal r =  return $ Sol $ getSolution r
-solve prog g@(t1 : ts) = return $ Node g trees
+solve' :: Program -> Goal -> [SearchTree]
+solve' _ [r] | isReportGoal r = [Sol $ getSolution r]
+solve' prog g@(t1 : ts) = [Node g trees]
     where trees = do c <- prog
                      let (tc, tsc) = freshen (variables g) c
                      case unify tc t1 of
                        Just u -> do
                          let g' = map (subs u) $ tsc ++ ts
-                         solve prog g'
+                         solve' prog g'
                        Nothing -> []
 --solve _ _ = []
 
@@ -123,27 +88,8 @@ getSolution (Comp "_report" args) = Solution sol
 getSolution _ = error "getSolution should never be called like this"
 
 -- Use the trick of inserting an extra reporting goal
-makeReportTree prog goal = Node goal $ solve prog (goal ++ makeReportGoal goal)
+makeReportTree :: Program -> Goal -> Bli SearchTree
+makeReportTree prog goal = do 
+  branches <- solve prog (goal ++ makeReportGoal goal)
+  return $ Node goal branches 
 
-
-----------------------------------------------------------------------
--- Traveral of Search Trees
-----------------------------------------------------------------------
-
--- | Depth first search function.
-dfs :: SearchTree -> [Solution]
-dfs (Sol sols) = [sols]
-dfs (Node _ st) = [ s | t <- st, s <- dfs t]
-
--- | Breath first search function.
-bfs :: SearchTree -> [Solution]
-bfs t = trav [t]
-    where trav [] = []
-          trav ((Sol x) : q) = x : trav q
-          trav ((Node _ st)  : q) = trav (q ++ st)
-
--- | Limited depth first search function.
-limitedDfs :: Int -> SearchTree -> [Solution]
-limitedDfs _ (Sol sols)  = [sols]
-limitedDfs 0 _           = []
-limitedDfs n (Node _ st) = [ s | t <- st, s <- limitedDfs (n-1) t]

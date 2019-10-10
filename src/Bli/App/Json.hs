@@ -6,7 +6,7 @@ module Bli.App.Json where
 -- 
 
 import Data.Prolog.Ast
-import Prolog.Interp
+import Prolog.Interp.Data
 import Data.Aeson.Encode.Pretty
 import qualified Data.Map as Map
 import Data.ByteString.Lazy.UTF8

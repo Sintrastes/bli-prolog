@@ -6,7 +6,7 @@ module Bli.App.Config where
 --
 
 import System.Console.CmdArgs as CA hiding (program)
-import Prolog.Interp
+import Prolog.SearchStrategies
 import Bli.App.Config.Version
 import Language.Haskell.TH
 import Language.Haskell.TH.Quote
@@ -17,26 +17,16 @@ import Bli.App.Colors
 import System.Directory
 import System.Console.Terminal.Size
 
--- | The command prompt to use for the application.
-command_prompt = "?- "
-
--- | The string to prepend to all responses to terminal commands in the applicaion.
-response_prompt = "  "
-
--- | An ADT representing all of the different search 
---   algorithms bli prolog can be configured to run with.
-data Search = DFS | BFS | Limited
-            deriving (Show, Eq, Data, Typeable)
 
 -- | The default search method is breadth first search.
 instance Default Search where
   def = BFS
 
--- | Helper function for converting our Search ADT into
---   actual search functions.
-searchFunction DFS _     = dfs
-searchFunction BFS _     = bfs
-searchFunction Limited n = limitedDfs n
+-- | The command prompt to use for the application.
+command_prompt = "?- "
+
+-- | The string to prepend to all responses to terminal commands in the applicaion.
+response_prompt = "  "
 
 -- | An abstract representation of the commands which
 --   can be entered at the bli-prolog REPL.

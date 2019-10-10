@@ -43,6 +43,8 @@ library
       Bli.App.Json
       Bli.App.Colors
       Prolog.Interp
+      Prolog.Interp.Data
+      Prolog.SearchStrategies
       Control.Monad.Bli
       Control.Monad.Bli.Common
       Control.Monad.Bli.Generic

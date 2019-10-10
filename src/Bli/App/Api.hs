@@ -10,7 +10,7 @@
 module Bli.App.Api where
 
 import Prolog.Analysis
-import Prolog.Interp
+import Prolog.Interp.Data
 
 -- | A data type to model the types of 
 --   requests that can be made to the server

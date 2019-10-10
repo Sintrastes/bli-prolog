@@ -304,4 +304,4 @@ bliCommandTypedP = do
             Left  z -> return $ T_AssertMode z
             Right z -> case z of
                 Left w  -> return $ T_QueryMode w
-                Right w -> return $ T_LambdaQuery w1
+                Right w -> return $ T_LambdaQuery w

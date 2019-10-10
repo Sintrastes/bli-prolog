@@ -9,6 +9,8 @@ import Data.Prolog.Ast
 import Data.Schema
 import Prolog.Parser
 import Prolog.Interp
+import Prolog.Interp.Data
+import Prolog.SearchStrategies
 import Prolog.Analysis
 import Control.Monad.Bli.Pure
 import Bli.App.Api
@@ -29,6 +31,9 @@ import Control.Monad.IO.Class
 --   the cli and server interfaces, this
 --   function should also update the state of
 --   the running Bli instance.
+-- Note: currently this uses the pure Bli monad, but eventually,
+-- if we allow interacting with the Bli server, we might have to
+-- allow impurity here.
 processBliCommand :: BliCommandTyped -> Bli BliResult
 processBliCommand command = do
   opts      <- getConfig
@@ -99,22 +104,22 @@ processBliCommand command = do
                  Left _ -> return $ Result_AssertionFail_AlreadyAsserted 
                  Right result -> do setFacts result
                                     return $ Result_AssertionSuccess
-        (T_LambdaQuery (vars, goal)) ->
-          let t = makeReportTree clauses goal in
-                return $ Result_QuerySuccess $ 
-                           map Solution 
-                         $ map (filter (\(x,y) -> x `elem` vars)) 
-                         -- Note: This is currently fixed to use bfs.
-                         $ map (\(Solution x) -> x) $ bfs t
-        (T_QueryMode goal) ->
-          return $ Result_QuerySuccess (  
-            let limiting lst = case limit opts of
+        (T_LambdaQuery (vars, goal)) -> do
+          tree <- makeReportTree clauses goal
+          let searchF = searchFunction (search opts) $ depth opts
+          return $ Result_QuerySuccess $ 
+                    map Solution 
+                      $ map (filter (\(x,y) -> x `elem` vars)) 
+                      $ map (\(Solution x) -> x) $ searchF tree
+        (T_QueryMode goal) -> do
+          let limiting lst = 
+                case limit opts of
                   Nothing -> lst
                   Just n  -> take n lst
-                searchF = searchFunction (search opts) $ depth opts
-                t = makeReportTree clauses goal
-                solutions = limiting $ searchF t
-            in solutions )
+          let searchF = searchFunction (search opts) $ depth opts
+          tree <- makeReportTree clauses goal
+          let solutions = limiting $ searchF tree
+          return $ Result_QuerySuccess solutions
         (T_AssertSchema schemaEntry) -> do
           case schemaEntry of
             Pred predName argTypes -> do

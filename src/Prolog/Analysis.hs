@@ -6,7 +6,7 @@
 module Prolog.Analysis where
 
 import Data.Prolog.Ast
-import Prolog.Interp (isPlain)
+import Prolog.Interp.Data (isPlain)
 import qualified Data.Set as S
 import Data.List((\\), nub)
 import Data.Char
