@@ -1,6 +1,7 @@
 
 Todo
 ====
+  * Implement scoped assertions.
   * Implement a module system like in the example files.
      * The idea is pretty simple, a module is just an alias to a file somehwere 
        where there exists a bpl source file that we want to splice in at the import
@@ -37,16 +38,10 @@ Todo
   * Refactor the configuration code to work with my new scheme.
   * Refactor the server code to use servant.
   * Fix the typechecking of rules.
-  * Note: I should probably change the module structure and names slightly of some of the old
-    modules from pure prolog to better fit my needs. i.e. 
-        Data.Prolog.Ast ~> Data.Prolog.Bli.Ast
-        Prolog.Interp   ~> Control.Prolog.Interp
-        Prolog.Analysis ~> Control.Prolog.Bli.Typechecking
     
 Notes
 -----
-  * Consider implementing history and tab completion for our REPL. May consider using Haskeline
-    instead of readline, for it's autocompletion support.
+  * Implement tab completion in the REPL.
   * Consider implementing string and list literals.
     * Note that we'll probably want to implement a system of literals that is also
       capable of dealing with data entities. E.x. 'Url("file:/home/nate/pdfs/my.pdf"). Where we use a tick
@@ -61,6 +56,8 @@ Notes
   * Note: "rel p: 2", or even "rel p arity 2" could by syntatic sugar for
     "rel p: entity, entity", where "entity" is a catchall type which typechecks with
     any input. Kind of like "Any" in some OOP languages.
+      * Note: We could also use the prolog rel likes/2. notation as syntatic sugar
+        for rel likes: entity, entity.
   * Note: There are several different strategies that we could use for parsing
     bli prolog files -- i.e. do we want to have a declaration before use
     policy, do we require entity declarations, relation declarations, etc... to be at the
