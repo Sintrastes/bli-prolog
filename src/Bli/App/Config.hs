@@ -7,6 +7,7 @@ module Bli.App.Config where
 
 import System.Console.CmdArgs as CA hiding (program)
 import Bli.Prolog.SearchStrategies
+import Bli.App.Config.Util
 import Bli.App.Config.Version
 import Language.Haskell.TH
 import Language.Haskell.TH.Quote
@@ -27,6 +28,15 @@ command_prompt = "?- "
 
 -- | The string to prepend to all responses to terminal commands in the applicaion.
 response_prompt = "  "
+
+-- | The path (relative to the user's home directory) of 
+--   the bedelibry data directory.
+bedelibryDir = "/.bedelibry"
+
+-- | The name of the file to use for the default configuration of
+--   Bli Prolog. Relative to the directory of the user's
+--   bedelibry data directory.
+configFileName = "/config.yaml"
 
 -- | Helper function to get the Bli module data from
 -- our CSV file.
@@ -376,6 +386,12 @@ startOptions version =
           }
   &= summary ("bli-prolog interpreter v" ++ version ++ ", (C) Nathan Bedell 2019")
 
+-- | Loads the version information from the .cabal file,
+--   loads the configuration data from both the
+--   configuration file, and from the command line arguments,
+--   and then combines these options to return the AppConfig,
+--   letting the command line options override the defaults
+--   in the config file.
 configureApplication :: IO (Either String AppConfig)
 configureApplication = do
   -- Get the version from the cabal file at compile-time.
@@ -386,6 +402,6 @@ configureApplication = do
     Just version -> do
       opts <- cmdArgs $ startOptions version
       -- Todo: Do better error handling here.
-      config <- readFile $ homeDir ++ "/.bedelibry/config.yaml"
+      config <- readFile $ homeDir ++ bedelibryDir ++ configFileName
       -- Parse yaml
       return $ Right $ AppConfig { version = version, options = opts }
