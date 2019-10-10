@@ -4,6 +4,7 @@ module Prolog.Interp where
 import Data.List (nub)
 import Control.Monad(liftM)
 import Control.Monad.Bli.Pure
+import Data.Foldable
 
 import Data.Prolog.Ast
 import Prolog.Interp.Data
@@ -56,10 +57,30 @@ freshen bound (tc, tb) = (subs sub tc, map (subs sub) tb)
                         else v'
 
 
+-- | Helper function to get just the parts of the goal that
+--   consist of *type predicates* -- i.e. predicates of the form
+--   id(X), where id is the identifier for a type in the current schema.
+getTypePredicates :: Goal -> Bli Goal
+getTypePredicates goal = return goal
+
+-- | Helper function to return a list of all of the stored
+--   relations (along with their type identifiers) which
+--   are used in a goal.
+--
+--   Used in solve so that we can apply the corrent logic
+--   for relations that are stored in bedelibry.
+getStoredRelations :: Goal -> Bli (String, [String])
+getStoredRelations goal = undefined
+
 -- Note: Here is where we can put our custom logic for
 -- e.x. dealing with the bedelibry backend.
-solve :: Program -> Goal -> Bli [SearchTree]
-solve prog g = return $ solve' prog g
+solve :: Goal -> Bli [SearchTree]
+solve g = do
+  prog <- toList <$> getFacts
+  typePredicates <- getTypePredicates g
+  case () of
+   _ | typePredicates /= [] -> return $ solve' prog g
+     | otherwise -> return $ solve' prog g
 
 -- Uses the List monad for backtracking
 solve' :: Program -> Goal -> [SearchTree]
@@ -88,8 +109,8 @@ getSolution (Comp "_report" args) = Solution sol
 getSolution _ = error "getSolution should never be called like this"
 
 -- Use the trick of inserting an extra reporting goal
-makeReportTree :: Program -> Goal -> Bli SearchTree
-makeReportTree prog goal = do 
-  branches <- solve prog (goal ++ makeReportGoal goal)
+makeReportTree :: Goal -> Bli SearchTree
+makeReportTree goal = do 
+  branches <- solve (goal ++ makeReportGoal goal)
   return $ Node goal branches 
 

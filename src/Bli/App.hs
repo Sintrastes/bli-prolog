@@ -105,7 +105,7 @@ processBliCommand command = do
                  Right result -> do setFacts result
                                     return $ Result_AssertionSuccess
         (T_LambdaQuery (vars, goal)) -> do
-          tree <- makeReportTree clauses goal
+          tree <- makeReportTree goal
           let searchF = searchFunction (search opts) $ depth opts
           return $ Result_QuerySuccess $ 
                     map Solution 
@@ -117,7 +117,7 @@ processBliCommand command = do
                   Nothing -> lst
                   Just n  -> take n lst
           let searchF = searchFunction (search opts) $ depth opts
-          tree <- makeReportTree clauses goal
+          tree <- makeReportTree goal
           let solutions = limiting $ searchF tree
           return $ Result_QuerySuccess solutions
         (T_AssertSchema schemaEntry) -> do
