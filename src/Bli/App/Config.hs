@@ -13,13 +13,17 @@ import Language.Haskell.TH
 import Language.Haskell.TH.Quote
 import Data.List.Split
 import Data.List
+import Data.Maybe
+import Data.Yaml
+import Data.Typeable
+import Data.Scientific
 import Control.Monad (join)
 import Bli.App.Colors
 import System.Directory
 import System.Console.Terminal.Size
 import qualified Data.Map as Map
-import Data.HashMap (HashMap)
-import qualified Data.HashMap as HashMap
+import Data.HashMap.Strict (HashMap)
+import qualified Data.HashMap.Strict as HashMap
 import Data.Typeable
 
 -- | The default search method is breadth first search.
@@ -454,14 +458,14 @@ configureApplication = do
   case v of 
     Nothing -> return $ Left "Error getting version from cabal file."
     Just version -> do
-      opts <- toRecord $ cmdArgs $ startOptions version
+      opts <- toRecord <$> (cmdArgs $ startOptions version)
       -- Todo: Do better error handling here.
       config <- decodeFileEither $ 
          homeDir ++ bedelibryDir ++ configFileName :: IO (Either ParseException Object)
       -- Parse yaml
       case config of
         Left err -> do
-          print err
+          error $ show err
         Right object -> do
           -- Get all the fields from the hashmap
           let searchF = HashMap.lookup "search" object 
@@ -476,100 +480,114 @@ configureApplication = do
           let portF = HashMap.lookup "port" object 
           let burlF = HashMap.lookup "burl" object 
           let bedelibryModeF = HashMap.lookup "bedelibryMode" object 
+          let verboseF = HashMap.lookup "verbose" object
           -- Now, I'll want to do something here in the Maybe monad to send
           -- each one of these to a Typ field.
+          
+          -- Note: This code is confusing, I probably don't need to use a maybe monad here.
+          -- Also, this logic should probably be in a different function/module.
           let maybeFields = do
-             search <- searchF
-             let searchF' =
-               case search of
-                 -- Note: Here we need to do some parsing to get the right type
-                 String str -> Just $ Typ str
-                 _          -> Nothing     
+               search <- searchF
+               searchF' <-
+                     case search of
+                       -- Note: Here we need to do some parsing to get the right type
+                       String str -> Just $ Typ str
+                       _          -> Nothing     
+  
+               program <- programF
+               programF' <-
+                     case program of
+                       String str -> Just $ Typ str
+                       _          -> Nothing
+  
+               schema <- schemaF
+               schemaF' <- 
+                     case schema of
+                       String s -> Just $ Typ s
+                       _        -> Nothing
 
-             program <- programF
-             let programF' =
-               case program of
-                 String str -> Just $ Typ str
-                 _          -> Nothing
+               goal <- goalF
+               goalF' <-
+                     case goal of
+                       String s -> Just $ Typ s
+                       _ -> Nothing
 
-             schema <- schemaF
-             let schemaF' = 
-               case schema of
-                 String s -> Just $ Typ s
-                 _        -> Nothing
-
-             goal <- goalF
-             let goalF' =
-               case goal of
-                 String s -> Just $ Typ s
-                 _ -> Nothing
-
-             let limitF' =
-               case limitF of
-                 Nothing -> Just $ Typ Nothing
-                 -- Note: I'll need to do additional parsing here to deal with this.
-                 Just (Number n) -> Just $ Typ $ Just n
-                 _ -> Nothing
-
-             depth <- depthF
-             let depthF' =
-               case depth of
-                  -- Note: I'll need to do additional parsing here.
-                  Number n -> Just $ Typ n
-                  _ -> Nothing
+               limitF' <-
+                     case limitF of
+                       Nothing -> Just $ Typ (Nothing :: Maybe Int)
+                       -- Note: I'll need to do additional parsing here to deal with this.
+                       Just (Number n) -> Just $ Typ $ Just n
+                       _ -> Nothing
+  
+               depth <- depthF
+               depthF' <-
+                     case depth of
+                        -- Note: I'll need to do additional parsing here.
+                        Number n -> Just $ Typ n
+                        _ -> Nothing
              
-             verbose <- verboseF
-             let verboseF' =
-               case verbose of
-                 Bool b -> Just $ Typ b
-                 _ -> Nothing
+               verbose <- verboseF
+               verboseF' <-
+                     case verbose of
+                       Bool b -> Just $ Typ b
+                       _ -> Nothing
              
-             nocolor <- nocolorF
-             let nocolorF' =
-               case nocolor of
-                 Bool b -> Just $ Typ b
-                 _ -> Nothing
+               nocolor <- nocolorF
+               nocolorF' <-
+                     case nocolor of
+                       Bool b -> Just $ Typ b
+                       _ -> Nothing
              
-             json <- jsonF
-             let jsonF' =
-               case json of
-                 Bool b -> Just $ Typ b
-                 _ -> Nothing
+               json <- jsonF
+               jsonF' <-
+                     case json of
+                       Bool b -> Just $ Typ b
+                       _ -> Nothing
              
-             server <- serverF
-             let serverF' = 
-               case server of
-                 Bool b -> Just $ Typ b
-                 _ -> Nothing
+               server <- serverF
+               serverF' <- 
+                     case server of
+                       Bool b -> Just $ Typ b
+                       _ -> Nothing
              
-             bedelibryMode <- bedelibryModeF
-             let bedelibryModeF' =
-               case bedelibryMode of
-                 String s -> Just $ Typ s
-                 _ -> Nothing
+               bedelibryMode <- bedelibryModeF
+               bedelibryModeF' <-
+                     case bedelibryMode of
+                       String s -> Just $ Typ s
+                       _ -> Nothing
              
-             let portF' =
-               case port of
-                 -- Note: I need to do additional parsing here.
-                 Just (Number n) -> Just $ Typ $ Just n
-                 Nothing -> Just $ Typ $ Nothing
-                 _ -> Nothing
+               portF' <-
+                     case portF of
+                       -- Note: I need to do additional parsing here.
+                       Just (Number n') -> 
+                         case floatingOrInteger n' of
+                           Right n -> Just $ Typ $ Just (n :: Int)
+                           Left _  -> error "Bad port number format in config file."
+                       Nothing -> Just $ Typ $ (Nothing :: Maybe Int)
+                       _ -> Nothing
              
-             burl <- burlF
-             let burlF' =
-               case burl of
-                 String s -> Just $ Typ $ s
-                 _ -> Nothing
+               burl <- burlF
+               burlF' <-
+                     case burl of
+                       String s -> Just $ Typ $ s
+                       _ -> Nothing
                   
-          -- Finally, collect all of the fields into a record
-          let maybeNewRecordFields = [searchF', programF' schemaF', goalF',
-                                 limitF', depthF', verboseF', nocolorF',
-                                 jsonF', serverF', bedelibryModeF',
-                                 portF', burlF']
-          -- Extracts all the "Just" entries, removing the "Nothing"s
-          let newRecordFields = mapMaybe id newRecordFields 
+               -- Finally, collect all of the fields into a record
+               return $ [("search", searchF'), ("program", programF'),
+                         ("schema",schemaF'), ("goal",goalF'),
+                         ("limit",limitF'), ("depth", depthF'),
+                         ("verbose",verboseF'),("nocolor",nocolorF'),
+                         ("json",jsonF'),("server",serverF'),
+                         ("bedelibryMode",bedelibryModeF'),
+                         ("port",portF'),("burl",burlF')]
+               -- Extracts all the "Just" entries, removing the "Nothing"s
+          let fromJust (Just x) = x
+          let newRecordFields = fromJust $ maybeFields
           let yamlRecord = Map.fromList newRecordFields
-
+  
           -- Return the final user configuration.
-          return $ Right $ fromRecord $ yamlRecord #> opts
+          case fromRecord $ yamlRecord #> opts of
+             Just record ->
+               return $ Right record
+             Nothing -> return $ Left "Error parsing configuration."
           --return $ Right $ AppConfig { version = version, options = fromRecord $ opts }

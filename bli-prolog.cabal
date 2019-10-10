@@ -59,6 +59,8 @@ library
       src
   build-depends:
       base <5
+    , yaml
+    , scientific
     , split
     , containers
     , unordered-containers
