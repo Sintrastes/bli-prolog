@@ -314,7 +314,9 @@ instance IsRecord AppConfig where
     return $ AppConfig (Options search program schema goal limit depth verbose
                                 nocolor json server bedelibryMode port burl)
                         version
-  toRecord appConfig = undefined
+  toRecord (AppConfig options version) = 
+      toRecord options #> 
+      Map.fromList [("version", Typ version)]
 
 instance IsRecord Options where
   fromRecord record = do
@@ -334,7 +336,13 @@ instance IsRecord Options where
     burl <- join $ ((\(Typ x) -> cast x) <$> Map.lookup "burl" record :: Maybe (Maybe String))
     return $ Options search program schema goal limit depth verbose
                      nocolor json server bedelibryMode port burl
-  toRecord options = undefined
+  toRecord (Options search program schema goal limit depth verbose
+                    nocolor json server bedelibryMode port burl) =
+     Map.fromList [("search", Typ search), ("program", Typ program), ("schema", Typ schema)
+                  ,("goal", Typ goal), ("limit", Typ limit), ("depth", Typ depth)
+                  ,("verbose", Typ verbose), ("nocolor", Typ nocolor), ("json", Typ json)
+                  ,("server", Typ server), ("bedelibryMode", Typ bedelibryMode)
+                  ,("port", Typ port), ("burl", Typ burl)]
 
 
 -- | Datatype for the application configuration
