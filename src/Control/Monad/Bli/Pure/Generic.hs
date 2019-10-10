@@ -22,13 +22,13 @@ type Bli t1 t2 t3 t4 alias a = State (BliStore t1 t2 t3 t4 alias) a
 -- | Run a Bli computation with some initial application configuration data.
 initBli :: (BliSet t1, BliSet t2, BliSet t3, BliSet t4, Alias alias) 
  => AppConfig -> Bli t1 t2 t3 t4 alias a -> a
-initBli config app = evalState app (BliStore config empty empty empty empty empty) 
+initBli config app = evalState app (BliStore config empty empty empty empty empty empty) 
 
 -- | Run a pure Bli computation with some initial state.
 runBli :: (BliSet t1, BliSet t2, BliSet t3, BliSet t4, Alias alias) 
  => AppConfig -> t1 Clause -> t2 RelDecl -> t3 EntityDecl -> t4 TypeDecl -> alias String -> Bli t1 t2 t3 t4 alias a -> a
 runBli config facts relations entities types aliases app =
-  evalState app (BliStore config facts relations entities types aliases)
+  evalState app (BliStore config facts empty relations entities types aliases)
 
 -- | Attempts to add a new alias to the store. Returns a boolean flag to indicate success or failure.
 newAlias :: (BliSet t1, BliSet t2, BliSet t3, BliSet t4, Alias alias) 

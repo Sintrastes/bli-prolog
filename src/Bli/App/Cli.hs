@@ -50,68 +50,68 @@ processCliInput input = do
           -- Parse and handle the command
           let parserOutput = parseBliCommandTyped input
           case parserOutput of
-            Left err -> do liftIO $ putStrLn ((red colorOpts "Error")++" parsing query string:")
-                           liftIO $ putStrLn $ foldr1 (\x -> \y -> x ++ "\n" ++ y) $
+            Left err -> do printResponse $ ((red colorOpts "Error")++" parsing query string:")
+                           printResponse $ foldr1 (\x -> \y -> x ++ "\n" ++ y) $
                                              (map (\x -> "  " ++ x)) $ 
                                              (splitOn "\n" $ show err)
-                           liftIO $ putStrLn $ 
+                           printResponse $ 
                              (yellow colorOpts
                                 "All bli prolog commands end with either a '.' or an '!'.")
             Right command -> do
               result <- Pure.liftFromPure $ processBliCommand command
               case result of
                 Result_QueryFail_AtomsNotInSchema atoms -> do
-                       liftIO $ putStrLn $ (red colorOpts "Failure.")++" Query unsuccessful."
-                       liftIO $ putStrLn $ "    The identifiers "++ show atoms
-                       liftIO $ putStrLn $ "    have not been declared in a schema."
+                       printResponse $ (red colorOpts "Failure.")++" Query unsuccessful."
+                       printResponse $ "    The identifiers "++ show atoms
+                       printResponse $ "    have not been declared in a schema."
                 Result_QueryFail_BoundVarNotInBody -> do
-                      liftIO $ putStrLn $ (red colorOpts "Failure.")++" Query unsuccessful."
-                      liftIO $ putStrLn $ "    Variables bound by a lambda abstraction that do not appear"
-                      liftIO $ putStrLn $ "    In the body of a query."
+                      printResponse $ (red colorOpts "Failure.")++" Query unsuccessful."
+                      printResponse $ "    Variables bound by a lambda abstraction that do not appear"
+                      printResponse $ "    In the body of a query."
                 Result_QueryFail_EntityNotDeclared t x -> do
-                  liftIO $ putStrLn $ (red colorOpts "Failure.")++" Query unsuccessful."
-                  liftIO $ putStrLn $ "    The term "++t++" has not been declared as an entity"
-                  liftIO $ putStrLn $ "    of type "++x++"."
+                  printResponse $ (red colorOpts "Failure.")++" Query unsuccessful."
+                  printResponse $ "    The term "++t++" has not been declared as an entity"
+                  printResponse $ "    of type "++x++"."
                 Result_QueryFail_TypeNotDeclared t -> do
-                  liftIO $ putStrLn $ (red colorOpts "Failure.")++" Query unsuccessful."
-                  liftIO $ putStrLn $ "    The type "++t++"\n    has not been declared."
+                  printResponse $ (red colorOpts "Failure.")++" Query unsuccessful."
+                  printResponse $ "    The type "++t++"\n    has not been declared."
                 Result_QueryFail_NotAPredicate _ -> do
-                  liftIO $ putStrLn $ (red colorOpts "Failure.")++" Assertion unsuccesful."
-                  liftIO $ putStrLn $ "    Not a predicate."
+                  printResponse $ (red colorOpts "Failure.")++" Assertion unsuccesful."
+                  printResponse $ "    Not a predicate."
                 Result_QueryFail_TypeError _ -> do
-                  liftIO $ putStrLn $ (red colorOpts "Failure.")++" Query unsuccesful."
-                  liftIO $ putStrLn $ "    Type error."
+                  printResponse $ (red colorOpts "Failure.")++" Query unsuccesful."
+                  printResponse $ "    Type error."
                 Result_QuerySuccess solutions -> do
                     case solutions of
                          [] -> do
-                            liftIO $ putStrLn (yellow colorOpts "No solutions.")
+                            printResponse (yellow colorOpts "No solutions.")
                          (x:[]) -> do
                             if (show x == "true")
-                            then liftIO $ putStrLn (green colorOpts "True.")
+                            then printResponse (green colorOpts "True.")
                             else return ()
                          _  -> do
                             liftIO $ mapM_ (putStrLn . solutionToJson) solutions
                 Result_AssertionSuccess -> do
-                  liftIO $ putStrLn $ (green colorOpts "OK.")++" Assertion successful."
+                  printResponse $ (green colorOpts "OK.")++" Assertion successful."
                 Result_AssertionFail_EntityNotDeclared t x -> do
-                  liftIO $ putStrLn $ (red colorOpts "Failure.")++" Assertion unsuccessful."
-                  liftIO $ putStrLn $ "    The term "++t++" has not been declared as an entity"
-                  liftIO $ putStrLn $ "    of type "++x++"."
+                  printResponse $ (red colorOpts "Failure.")++" Assertion unsuccessful."
+                  printResponse $ "    The term "++t++" has not been declared as an entity"
+                  printResponse $ "    of type "++x++"."
                 Result_AssertionFail_TypeNotDeclared t -> do
-                  liftIO $ putStrLn $ (red colorOpts "Failure.")++" Assertion unsuccessful."
-                  liftIO $ putStrLn $ "    The type "++t++"\n    has not been declared."
+                  printResponse $ (red colorOpts "Failure.")++" Assertion unsuccessful."
+                  printResponse $ "    The type "++t++"\n    has not been declared."
                 Result_AssertionFail_NotAPredicate _ -> do
-                  liftIO $ putStrLn $ (red colorOpts "Failure.")++" Assertion unsuccesful."
-                  liftIO $ putStrLn $ "    Not a predicate."
+                  printResponse $ (red colorOpts "Failure.")++" Assertion unsuccesful."
+                  printResponse $ "    Not a predicate."
                 Result_AssertionFail_TypeError _ -> do
-                  liftIO $ putStrLn $ (red colorOpts "Failure.")++" Assertion unsuccesful."
-                  liftIO $ putStrLn $ "    Type error."
+                  printResponse $ (red colorOpts "Failure.")++" Assertion unsuccesful."
+                  printResponse $ "    Type error."
                 Result_AssertionFail_AtomsNotInSchema atoms -> do
-                       liftIO $ putStrLn $ (red colorOpts "Failure.")++" Assertion unsuccessful."
-                       liftIO $ putStrLn $ "    The identifiers "++ show atoms
-                       liftIO $ putStrLn $ "    have not been declared in a schema."
+                       printResponse $ (red colorOpts "Failure.")++" Assertion unsuccessful."
+                       printResponse $ "    The identifiers "++ show atoms
+                       printResponse $ "    have not been declared in a schema."
                 Result_AssertionFail_AlreadyAsserted -> do
-                    liftIO $ putStrLn $ (yellow colorOpts "Already asserted.")
+                    printResponse $ (yellow colorOpts "Already asserted.")
 
 -- | Main entrypoint for the bli-prolog REPL.
 repl :: Bli ()
@@ -135,34 +135,34 @@ repl = do
       liftIO $ addHistory line
       case parseBliReplCommand line of 
         ParseError err -> do 
-            liftIO $ putStrLn "There was an error parsing the command:"
-            liftIO $ putStrLn $ "  " ++ show err
+            printResponse "There was an error parsing the command:"
+            printResponse $ "  " ++ show err
         DoneParsing blicmd ->
           case blicmd of
              Help -> do
                screen <- liftIO $ replHelpScreen colorOpts
-               liftIO $ putStrLn screen
+               printResponse screen
                repl
              Exit -> do
                return ()
              ClearSchema -> do
-               liftIO $ putStrLn "Clearing all in-memory schema data."
+               printResponse "Clearing all in-memory schema data."
                setFacts empty
                setRelations empty
                setEntities empty
                repl
              ClearRelations -> do
-               liftIO $ putStrLn "Clearing all in-memory relations (and facts)."
+               printResponse "Clearing all in-memory relations (and facts)."
                setRelations empty
                setFacts empty
                repl
              ClearEntities -> do
-               liftIO $ putStrLn "Clearing all in-memory entities (and facts)."
+               printResponse "Clearing all in-memory entities (and facts)."
                setEntities  empty
                setRelations empty
                repl
              ClearFacts -> do
-               liftIO $ putStrLn "Clearing all in-memory facts."
+               printResponse "Clearing all in-memory facts."
                setFacts empty
                repl
              ListSchema ->
@@ -170,15 +170,15 @@ repl = do
                  && relations == empty
                  && types     == empty)
                then do 
-                 liftIO $ putStrLn $ yellow colorOpts "Schema is empty."
+                 printResponse $ yellow colorOpts "Schema is empty."
                  repl
                else do
-                 liftIO $ putStrLn "NOT IMPLEMENTED."
+                 printResponse "NOT IMPLEMENTED."
                  repl
              ListRelations ->
                if relations == empty
                then do 
-                 liftIO $ putStrLn $ yellow colorOpts "No relations in store."
+                 printResponse $ yellow colorOpts "No relations in store."
                  repl
                else do
                  liftIO $ mapM_ print relations
@@ -186,7 +186,7 @@ repl = do
              ListTypes ->
                if types == empty
                then do 
-                 liftIO $ putStrLn $ yellow colorOpts "No types in store."
+                 printResponse $ yellow colorOpts "No types in store."
                  repl
                else do
                  liftIO $ mapM_ print types
@@ -194,7 +194,7 @@ repl = do
              ListEntities ->
                if entities == empty
                then do
-                 liftIO $ putStrLn $ yellow colorOpts "No entities in store."
+                 printResponse $ yellow colorOpts "No entities in store."
                  repl
                else do
                  liftIO $ mapM_ print entities
@@ -202,7 +202,7 @@ repl = do
              ListFacts ->
                if facts == empty
                then do
-                 liftIO $ putStrLn $ yellow colorOpts "No facts in store."
+                 printResponse $ yellow colorOpts "No facts in store."
                  repl
                else do
                  liftIO $ mapM_ (\x -> putStrLn ("  "++x)) $ map prettyShowClause facts
@@ -210,7 +210,7 @@ repl = do
              ListAliases -> do
                if aliases == empty
                then do 
-                 liftIO $ putStrLn $ yellow colorOpts "No aliases in store."
+                 printResponse $ yellow colorOpts "No aliases in store."
                  repl
                else do 
                  liftIO $ mapM_ print aliases
@@ -220,14 +220,14 @@ repl = do
                 case fileExtension filePath of
                   ".pl"   -> do
                       case clausesFromString fileContents of
-                          Left e -> liftIO $ putStrLn "There has been a parse error."
+                          Left e -> printResponse "There has been a parse error."
                           Right clauses -> do
-                              liftIO $ putStrLn "Need to implement the logic for adding clauses here."
+                               printResponse "Need to implement the logic for adding clauses here."
                               -- modifyProgram (\x -> x ++ clauses)
                   ".bpl"  -> do
                       -- Currently this will only parse the typed version
                       case parseTypedBli fileContents of
-                          Left e -> liftIO $ putStrLn "There has been a parse error."
+                          Left e -> printResponse "There has been a parse error."
                           Right lines -> do
                               -- debugging
                               liftIO $ print $ lines
@@ -238,10 +238,10 @@ repl = do
                   ".bsch" -> do
                    -- Currently this will only parse the typed version.
                       case parseTypedSchema fileContents of
-                          Left e -> liftIO $ putStrLn "There has been a parse error."
+                          Left e -> printResponse "There has been a parse error."
                           Right entries -> do
-                               liftIO $ print $ entries
-                               liftIO $ putStrLn "Need to implement the logic for modifying the schema here."
+                               printResponse $ show entries
+                               printResponse "Need to implement the logic for modifying the schema here."
                                -- modifySchema (\x -> x ++ (getArities entries))
                 repl
              ExportFile filePath -> do
@@ -263,11 +263,14 @@ repl = do
                  addedSuccessfully <- newAlias arg1 arg2
                  case addedSuccessfully of
                    True -> do
-                     liftIO $ putStrLn $ "Made alias of " ++ arg1 ++ " to " ++ arg2 ++ "."
+                     printResponse $ "Made alias of " ++ arg1 ++ " to " ++ arg2 ++ "."
                      repl
                    False -> do
-                     liftIO $ putStrLn $ "Failure. Alias is already is store."
+                     printResponse $ "Failure. Alias is already is store."
                      repl
+             ShowPort -> do
+                liftIO $ print (port config)
+                repl
         -- If the user has not entered a REPL command, try processing
         -- their input as a standard Bedelibry Prolog command.
         ContinueParsing -> do

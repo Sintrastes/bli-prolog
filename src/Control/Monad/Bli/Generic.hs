@@ -120,7 +120,7 @@ newRelation name argumentTypes = do
 -- | Run a Bli computation with some initial application configuration data.
 initBli :: (BliSet t1, BliSet t2, BliSet t3, BliSet t4, Alias alias) 
  => AppConfig -> Bli t1 t2 t3 t4 alias a -> IO a
-initBli config app = evalStateT app (BliStore config empty empty empty empty empty) 
+initBli config app = evalStateT app (BliStore config empty empty empty empty empty empty) 
 
 -- | Run a Bli application with some initial state.
 runBli :: (BliSet t1, BliSet t2, BliSet t3, BliSet t4, Alias alias)
@@ -133,7 +133,7 @@ runBli :: (BliSet t1, BliSet t2, BliSet t3, BliSet t4, Alias alias)
   -> Bli t1 t2 t3 t4 alias a
   -> IO a
 runBli config facts relns ents types aliases app =
-  evalStateT app (BliStore config facts relns ents types aliases)
+  evalStateT app (BliStore config facts empty relns ents types aliases)
 
 -- | 
 runBliWithStore :: (BliSet t1, BliSet t2, BliSet t3, BliSet t4, Alias alias)

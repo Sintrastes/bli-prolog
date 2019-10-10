@@ -15,6 +15,7 @@ import Data.List.Split
 import Data.List
 import Data.Maybe
 import Data.Yaml
+import Control.Monad.IO.Class
 import Data.Typeable
 import Data.Scientific
 import Control.Monad (join)
@@ -35,6 +36,9 @@ command_prompt = "?- "
 
 -- | The string to prepend to all responses to terminal commands in the applicaion.
 response_prompt = "  "
+
+-- | Helper function for printing a response prompt in the Bli monad.
+printResponse string = liftIO $ putStrLn $ response_prompt ++ string
 
 -- | The path (relative to the user's home directory) of 
 --   the bedelibry data directory.
@@ -70,6 +74,7 @@ data BliReplCommand =
  | ListAliases
  | SetMode String
  | GetTypeOf String
+ | ShowPort
 
 -- | An abstract representation of the different types of commands
 --   which can be entered at the bli-prolog REPL.
@@ -90,6 +95,7 @@ data BliReplCommandType =
  | Cmd_ListFacts
  | Cmd_ListAliases
  | Cmd_SetMode
+ | Cmd_ShowPort
  | Cmd_GetTypeOf deriving(Enum)
 
 -- | Takes a BliReplCommandType, and returns a list of the strings 
@@ -113,8 +119,8 @@ bliReplCommandStrings cmd =
     Cmd_ListFacts      -> [":ls-facts"]
     Cmd_ListAliases    -> [":ls-aliases"]
     Cmd_SetMode        -> [":set-mode"]
-    Cmd_GetTypeOf         -> [":t",":type"]
-
+    Cmd_GetTypeOf      -> [":t",":type"]
+    Cmd_ShowPort         -> [":port"]
 -- | Takes a BliReplCommandType, and returns just the primary string
 --   which can be used to invoke that command.
 bliReplCommandString :: BliReplCommandType -> String
@@ -141,7 +147,8 @@ bliReplCommandDescriptions cmd =
     Cmd_ListFacts      -> "Lists the facts from the local store."
     Cmd_ListAliases    -> "Lists the aliases from the local store."
     Cmd_SetMode        -> "Sets the search mode of the running session."
-    Cmd_GetTypeOf         -> "Returns the type of the supplied bli prolog term."
+    Cmd_GetTypeOf      -> "Returns the type of the supplied bli prolog term."
+    Cmd_ShowPort       -> "Shows the port number that the bli-prolog server is configured to run at."
 
 typeToCommand :: BliReplCommandType -> Maybe BliReplCommand
 typeToCommand ty = 
@@ -163,6 +170,7 @@ typeToCommand ty =
      Cmd_ListEntities   -> Just ListEntities
      Cmd_ListFacts      -> Just ListFacts
      Cmd_ListAliases    -> Just ListAliases
+     Cmd_ShowPort       -> Just ShowPort
 
 -- | Status result to return from out BliReplCommand parser --
 --   If this parser does not fail, then the Repl continues to parse
@@ -427,7 +435,7 @@ data LanguageOption =
 startOptions version =
   Options { search' = def &= help "Specify wether to use DFS, BFS, or Limited"
           , program' = def &= typFile &= help "Prolog file with clauses"
-          , schema' = "" &= typFile &= help "Schema file"
+          , schema' = def &= typFile &= help "Schema file"
           , limit' = def &= help "Limit the number of solutions found"
           , depth' = 100 &= help "Maximum depth to traverse when using limited search"
           , goal' = def &= args &= typ "GOALSTRING"
@@ -435,8 +443,8 @@ startOptions version =
           , verbose' = True &= help "Specify whether or not to use verbose output (on by default)"
           , json' = False &= help "Specify whether or not json output formatting is used for queries."
           , server' = False &= help "Starts a REST server for processing bli prolog queries if set."
-          , port' = Nothing &= help "Port number to start the server."
-          , burl' = "" &= help "URL of the bedelibry server configured to work with bli-prolog."
+          , port' = def &= help "Port number to start the server."
+          , burl' = def &= help "URL of the bedelibry server configured to work with bli-prolog."
           -- For example, bli-prolog can be configured to only send assertions to the server
           -- on an explicit :export-bedelibry command, or this can be done automatically.
           -- In addition, we have this option both for entities, and for facts.
