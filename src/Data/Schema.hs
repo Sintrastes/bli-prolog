@@ -19,7 +19,7 @@ type SchemaEntry = (String, Int)
 -- | Flag that determines if a relation is stored or not.
 data IsStored = 
    Stored 
- | NotStored
+ | NotStored deriving(Eq, Show)
 
 -- | For our typed schema entry, we can either declare that a predicate
 --   with a given identity can take arguments of the supplied types,
@@ -43,6 +43,6 @@ type TypedSchema = [TypedSchemaEntry]
 -- | Helper function for converting from the new format for schemas to the old format.
 getArities :: [TypedSchemaEntry] -> [SchemaEntry]
 getArities [] = []
-getArities ((Pred x ts):xs)  = (x, length ts):(getArities xs)
+getArities ((Pred _ x ts):xs)  = (x, length ts):(getArities xs)
 getArities ((Type x):xs)     = getArities xs
 getArities ((TypeOf _ _):xs) = getArities xs

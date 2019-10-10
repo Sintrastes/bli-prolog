@@ -122,7 +122,7 @@ processBliCommand command = do
           return $ Result_QuerySuccess solutions
         (T_AssertSchema schemaEntry) -> do
           case schemaEntry of
-            Pred predName argTypes -> do
+            Pred _ predName argTypes -> do
               -- Add predicate to schema if not already in schema,
               -- and if each of the argument types is also in the schema,
               -- otherwise, return an error.

@@ -284,7 +284,7 @@ parseTypedBli = parse typedBliFileP ""
 
 typedSchemaLineP :: Parser BliCommandTyped
 typedSchemaLineP = do
-    res <- (try schemaRelnP <|> try schemaEntityP <|> typeDeclP)
+    res <- (try schemaRelnP <|> try schemaStoredRelnP <|> try schemaEntityP <|> typeDeclP)
     return (T_AssertSchema res)
 
 typedBliFileP :: Parser [BliCommandTyped]
