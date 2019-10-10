@@ -27,9 +27,14 @@ data IsStored =
 --   a given type.
 --
 data TypedSchemaEntry = 
+-- | A declaration that adds a new relation of a given type to the schema.
     Pred IsStored String [String]
+-- | A declaration that adds a new type to the schema.
   | Type   String
-  | TypeOf String String deriving(Eq, Show)
+-- | A declaration that adds a new entity of a given type to the schema. 
+  | TypeOf String String
+-- | An import statement for Bli Prolog.
+  | Using String deriving(Eq, Show)
 
 -- Note: We should probably refactor these all into newtypes, incase we
 -- want to make use of smart construtors later.

@@ -243,6 +243,14 @@ typedSchemaFileP = do
   lines <- many (try schemaRelnP <|> try schemaEntityP <|> typeDeclP)
   return lines
 
+-- | A parser for "using" import statements in .bpl and .bsc files.
+usingDeclP :: Parser TypedSchemaEntry
+usingDeclP = do
+  symb "using"
+  mod <- many (oneOf ['a'..'z'] <|> char '_')
+  csymb '.'
+  return $ Using mod
+
 schemaRelnP :: Parser TypedSchemaEntry
 schemaRelnP = do
   symb "rel"
