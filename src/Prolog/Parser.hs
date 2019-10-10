@@ -250,7 +250,17 @@ schemaRelnP = do
   (csymb ':') <?> "Missing \":\" in relation definition."
   args <- atomP `sepBy1` (csymb ',')
   (csymb '.') <?> "Missing terminating \".\" to relation declaration."
-  return $ Pred id args
+  return $ Pred NotStored id args
+
+schemaStoredRelnP :: Parser TypedSchemaEntry
+schemaStoredRelnP = do
+  symb "stored"
+  symb "rel"
+  id <- atomP
+  (csymb ':') <?> "Missing \":\" in relation definition."
+  args <- atomP `sepBy1` (csymb ',')
+  (csymb '.') <?> "Missing terminating \".\" to relation declaration."
+  return $ Pred Stored id args
 
 schemaEntityP :: Parser TypedSchemaEntry
 schemaEntityP = do

@@ -16,13 +16,18 @@ prettyShowSchemaEntry (id, n) = id ++ ": " ++ show n ++ "."
 
 type SchemaEntry = (String, Int)
 
+-- | Flag that determines if a relation is stored or not.
+data IsStored = 
+   Stored 
+ | NotStored
+
 -- | For our typed schema entry, we can either declare that a predicate
 --   with a given identity can take arguments of the supplied types,
 --   we can declare a new type, or, we can declare new entities of 
 --   a given type.
 --
 data TypedSchemaEntry = 
-    Pred String [String]
+    Pred IsStored String [String]
   | Type   String
   | TypeOf String String deriving(Eq, Show)
 
