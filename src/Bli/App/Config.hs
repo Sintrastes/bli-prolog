@@ -486,77 +486,77 @@ configureApplication = do
           
           -- Note: This code is confusing, I probably don't need to use a maybe monad here.
           -- Also, this logic should probably be in a different function/module.
-          let maybeFields = do
-               search <- searchF
-               searchF' <-
-                     case search of
+          let maybeFields = do 
+               -- search <- searchF
+               let searchF' =
+                     case searchF of
                        -- Note: Here we need to do some parsing to get the right type
-                       String str -> Just $ Typ str
+                       Just (String str) -> Just $ Typ str
                        _          -> Nothing     
   
-               program <- programF
-               programF' <-
-                     case program of
-                       String str -> Just $ Typ str
+               -- program <- programF
+               let programF' =
+                     case programF of
+                       Just (String str) -> Just $ Typ str
                        _          -> Nothing
   
-               schema <- schemaF
-               schemaF' <- 
-                     case schema of
-                       String s -> Just $ Typ s
+               -- schema <- schemaF
+               let schemaF' =
+                     case schemaF of
+                       Just (String s) -> Just $ Typ s
                        _        -> Nothing
 
-               goal <- goalF
-               goalF' <-
-                     case goal of
-                       String s -> Just $ Typ s
+               -- goal <- goalF
+               let goalF' =
+                     case goalF of
+                       Just (String s) -> Just $ Typ s
                        _ -> Nothing
 
-               limitF' <-
+               let limitF' =
                      case limitF of
                        Nothing -> Just $ Typ (Nothing :: Maybe Int)
                        -- Note: I'll need to do additional parsing here to deal with this.
                        Just (Number n) -> Just $ Typ $ Just n
                        _ -> Nothing
   
-               depth <- depthF
-               depthF' <-
-                     case depth of
+               --- depth <- depthF
+               let depthF' =
+                     case depthF of
                         -- Note: I'll need to do additional parsing here.
-                        Number n -> Just $ Typ n
+                        Just (Number n) -> Just $ Typ n
                         _ -> Nothing
              
-               verbose <- verboseF
-               verboseF' <-
-                     case verbose of
-                       Bool b -> Just $ Typ b
+               -- verbose <- verboseF
+               let verboseF' =
+                     case verboseF of
+                       Just (Bool b) -> Just $ Typ b
                        _ -> Nothing
              
-               nocolor <- nocolorF
-               nocolorF' <-
-                     case nocolor of
-                       Bool b -> Just $ Typ b
+               -- nocolor <- nocolorF
+               let nocolorF' =
+                     case nocolorF of
+                       Just (Bool b) -> Just $ Typ b
                        _ -> Nothing
              
-               json <- jsonF
-               jsonF' <-
-                     case json of
-                       Bool b -> Just $ Typ b
+               -- json <- jsonF
+               let jsonF' =
+                     case jsonF of
+                       Just (Bool b) -> Just $ Typ b
                        _ -> Nothing
              
-               server <- serverF
-               serverF' <- 
-                     case server of
-                       Bool b -> Just $ Typ b
+               -- server <- serverF
+               let serverF' = 
+                     case serverF of
+                       Just (Bool b) -> Just $ Typ b
                        _ -> Nothing
              
-               bedelibryMode <- bedelibryModeF
-               bedelibryModeF' <-
-                     case bedelibryMode of
-                       String s -> Just $ Typ s
+               -- bedelibryMode <- bedelibryModeF
+               let bedelibryModeF' =
+                     case bedelibryModeF of
+                       Just (String s) -> Just $ Typ s
                        _ -> Nothing
              
-               portF' <-
+               let portF' =
                      case portF of
                        -- Note: I need to do additional parsing here.
                        Just (Number n') -> 
@@ -566,14 +566,16 @@ configureApplication = do
                        Nothing -> Just $ Typ $ (Nothing :: Maybe Int)
                        _ -> Nothing
              
-               burl <- burlF
-               burlF' <-
-                     case burl of
-                       String s -> Just $ Typ $ s
+               -- burl <- burlF
+               let burlF' =
+                     case burlF of
+                       Just (String s) -> Just $ Typ $ s
                        _ -> Nothing
                   
+               let unwrapMaybe (x, Just y) = Just (x,y)
+                   unwrapMaybe (x, Nothing) = Nothing
                -- Finally, collect all of the fields into a record
-               return $ [("search", searchF'), ("program", programF'),
+               return $ map unwrapMaybe [("search", searchF'), ("program", programF'),
                          ("schema",schemaF'), ("goal",goalF'),
                          ("limit",limitF'), ("depth", depthF'),
                          ("verbose",verboseF'),("nocolor",nocolorF'),
@@ -582,7 +584,7 @@ configureApplication = do
                          ("port",portF'),("burl",burlF')]
                -- Extracts all the "Just" entries, removing the "Nothing"s
           let fromJust (Just x) = x
-          let newRecordFields = fromJust $ maybeFields
+          let newRecordFields = mapMaybe id $ fromJust $ maybeFields
           let yamlRecord = Map.fromList newRecordFields
   
           -- Return the final user configuration.
