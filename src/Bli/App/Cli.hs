@@ -125,6 +125,8 @@ repl = do
   -- Temporary, to get this to compile
   let schema = [] 
   let colorOpts = not $ nocolor config
+  -- Testing to see how this works.
+  liftIO $ setCompletionEntryFunction $ Just (\x -> if x == "tes" then return ["test"] else return [])
   maybeLine <- liftIO $ readline (blue colorOpts command_prompt)
   case maybeLine of
     Nothing -> repl
