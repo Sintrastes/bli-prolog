@@ -1,22 +1,24 @@
 
 module Data.BliSet where
 
-import Prelude   hiding (filter)
-import Data.List hiding (filter)
-import Data.Set (Set)
+import Prelude   hiding (filter, union)
+import Data.List hiding (filter, union, (\\))
+import qualified Data.List as List
+import Data.Set (Set, (\\), singleton)
+import qualified Data.Set as Set
 import Data.HashSet (HashSet)
 import qualified Data.HashSet as HashSet
-import qualified Data.Set as Set
-import Data.Sequence (Seq(..), (|>), (!?), dropWhileL, findIndexL)
+import Data.Sequence (Seq(..), (|>), (><), (!?), dropWhileL, findIndexL)
 import qualified Data.Sequence as Seq
 import Control.Empty
 import Data.Witherable
 
 -- | Generic interface for a Set-like container.
 class (Traversable t, Filterable t, HasEmpty t) => BliSet t where
-  tryInsert :: Eq a => a -> t a -> Either (t a) (t a)
-  tryRemove :: Eq a => a -> t a -> Either (t a) (t a)
-  lookup :: Eq a => (a -> Bool) -> t a -> Maybe a
+  tryInsert :: Ord a => a -> t a -> Either (t a) (t a)
+  tryRemove :: Ord a => a -> t a -> Either (t a) (t a)
+  lookup :: Ord a => (a -> Bool) -> t a -> Maybe a
+  union  :: Ord a => t a -> t a -> t a
 
 instance BliSet [] where
   tryInsert x xs
@@ -27,6 +29,7 @@ instance BliSet [] where
       | otherwise = Right xs
     where xs' = filter (\y -> y /= x) xs
   lookup pred xs = find pred xs
+  union = List.union
 
 -- Another example instance of BliSet (although, I don't think this is going to be
 -- any more efficent than the list implementation.
@@ -39,9 +42,26 @@ instance BliSet Seq where
      | length xs' == length xs = Left xs
      | otherwise = Right xs'
    where xs' = dropWhileL (\y -> x == y) xs
+  -- Note: This implementation isn't really ideal. Need to use "nub", but for sequences.
+  union xs ys = xs >< ys
 
--- instance BliSet Set where
---  
+-- Note: This doesn't work now because Set has no Traversable or Functor
+-- instances.
+--
+-- We could probably give it some, but then I'm not sure how effeicent it would
+-- be, and I'm not sure if this is actually needed for our use case.
+--
+{-
+instance BliSet Set where
+  lookup = find
+  tryRemove x xs 
+    | Set.member x xs = Right $ xs \\ (singleton x) 
+    | otherwise   = Left $ xs    
+  tryInsert x xs 
+    | Set.member x xs = Right $ Set.insert x xs  
+    | otherwise   = Left $ xs
+  union = Set.union
+-}
 
 -- Note: A hash set needs a hashable instance.
 --       This is probably not what we want anyway.

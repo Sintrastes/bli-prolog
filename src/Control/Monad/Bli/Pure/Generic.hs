@@ -12,12 +12,61 @@ import Control.Monad.State.Lazy
 import Control.Monad.Bli.Common
 import Bli.App.Config (AppConfig)
 import Control.Empty
+import Data.Map (Map)
+import qualified Data.Map as Map
+import Control.Lens
+import Data.Map.Lens
 
 -- For writing liftFromPure
 import qualified Control.Monad.Bli.Generic as Bli
 
 -- | A monad for wrapping pure computations done (and run) in bli prolog.
 type Bli t1 t2 t3 t4 alias a = State (BliStore t1 t2 t3 t4 alias) a
+
+-- | Tries to remove the given scope from the scoped facts. Returns
+--   a boolean flag to indicate success or failure.
+clearScope :: (BliSet t1, BliSet t2, BliSet t3, BliSet t4, Alias alias) 
+ => String -> Bli t1 t2 t3 t4 alias Bool
+clearScope scope = do
+  scopedFacts <- getScopedFacts
+  case Map.lookup scope scopedFacts of
+    Just _  -> do
+      modifyScopedFacts (\x -> Map.delete scope x)
+      return True
+    Nothing -> return $ False
+
+
+-- | Attempts to add a new fact to the given scope. Returns a boolean flag to indicate success or failure.
+newScopedFact :: (BliSet t1, BliSet t2, BliSet t3, BliSet t4, Alias alias) 
+ => Clause -> String -> Bli t1 t2 t3 t4 alias Bool
+newScopedFact clause scope = do
+  scopedFacts <- getScopedFacts
+  case scopedFacts ^.at scope of
+    Just scopeFacts ->
+      case tryInsert clause scopeFacts of
+        Left _ -> return False
+        Right result -> do
+          setScopedFacts $ over (at scope) ((\_ -> result)<$>) scopedFacts
+          return True
+    Nothing -> do
+      -- If scope doesn't exist, create it and try again.
+      _ <- setScopedFacts (Map.insert scope empty scopedFacts)
+      newScopedFact clause scope
+
+getScopedFacts :: (BliSet t1, BliSet t2, BliSet t3, BliSet t4, Alias alias)
+  => Bli t1 t2 t3 t4 alias (Map String (t1 Clause))
+getScopedFacts = (scopedFacts <$> get)
+
+modifyScopedFacts :: (BliSet t1, BliSet t2, BliSet t3, BliSet t4, Alias alias)
+ => (Map String (t1 Clause) -> Map String (t1 Clause)) -> Bli t1 t2 t3 t4 alias ()
+modifyScopedFacts f = modify (\bliCtx -> bliCtx { scopedFacts = f (scopedFacts bliCtx) } )
+
+-- | Set the facts of a running bli application.
+setScopedFacts :: (BliSet t1, BliSet t2, BliSet t3, BliSet t4, Alias alias) 
+ => Map String (t1 Clause) -> Bli t1 t2 t3 t4 alias ()
+setScopedFacts val = modify (\bliCtx -> bliCtx { scopedFacts = val } )
+
+
 
 -- | Run a Bli computation with some initial application configuration data.
 initBli :: (BliSet t1, BliSet t2, BliSet t3, BliSet t4, Alias alias) 
@@ -82,8 +131,11 @@ getConfig = config <$> get
 -- | Get the program from a pure bli computation.
 getFacts :: (BliSet t1, BliSet t2, BliSet t3, BliSet t4, Alias alias)
  => Bli t1 t2 t3 t4 alias (t1 Clause)
-getFacts = facts <$> get
-
+getFacts = do 
+  facts <- (facts <$> get)
+  -- Include any other facts currently in scope.
+  scopedFacts <- (foldr (union) empty <$> scopedFacts <$> get)
+  return $ facts `union` scopedFacts
 -- | Get the schema from a pure bli computation.
 getRelations  :: (BliSet t1, BliSet t2, BliSet t3, BliSet t4, Alias alias)
  => Bli t1 t2 t3 t4 alias (t2 RelDecl)

@@ -32,6 +32,12 @@ type Bli a = Generic.Bli
     AliasDatastructure 
     a
 
+
+setScopedFacts = Generic.setScopedFacts @FactContainer @RelationContainer @EntityContainer @TypeContainer @AliasDatastructure
+modifyScopedFacts = Generic.modifyScopedFacts @FactContainer @RelationContainer @EntityContainer @TypeContainer @AliasDatastructure
+getScopedFacts = Generic.getScopedFacts @FactContainer @RelationContainer @EntityContainer @TypeContainer @AliasDatastructure
+clearScope = Generic.clearScope @FactContainer @RelationContainer @EntityContainer @TypeContainer @AliasDatastructure
+newScopedFact = Generic.newScopedFact @FactContainer @RelationContainer @EntityContainer @TypeContainer @AliasDatastructure
 runBli = Generic.runBli  @FactContainer @RelationContainer @EntityContainer @TypeContainer @AliasDatastructure
 getConfig = Generic.getConfig @FactContainer @RelationContainer @EntityContainer @TypeContainer @AliasDatastructure
 getFacts = Generic.getFacts @FactContainer @RelationContainer @EntityContainer @TypeContainer @AliasDatastructure

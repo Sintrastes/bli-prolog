@@ -5,10 +5,12 @@ module Control.Monad.Bli.Generic(
   runBli,
   initBli,
   runBliWithStore,
+  newScopedFact,
+  clearScope,
   setStore,
-  getStore,
   getConfig,
   getFacts,
+  getScopedFacts,
   getRelations,
   getEntities,
   getTypes,
@@ -22,11 +24,13 @@ module Control.Monad.Bli.Generic(
   -- Low level interface
   modifyConfig,
   modifyFacts,
+  modifyScopedFacts,
   modifyRelations,
   modifyEntities,
   modifyTypes,
   setConfig,
   setFacts,
+  setScopedFacts,
   setRelations,
   setEntities,
   setTypes,
@@ -36,6 +40,7 @@ module Control.Monad.Bli.Generic(
 
 -- | Generic version of the Bli monad
 
+import Prelude hiding (lookup)
 import Control.Monad.Trans.State
 import Control.Monad.Trans.Class (lift)
 import Data.Bli.Prolog.Ast
@@ -45,6 +50,10 @@ import Data.Alias
 import Data.BliSet
 import Control.Monad.Bli.Common
 import Control.Empty
+import Control.Lens
+import Data.Map (Map)
+import qualified Data.Map as Map
+import Data.Map.Lens
 
 type Bli t1 t2 t3 t4 alias a = 
  StateT (BliStore t1 t2 t3 t4 alias) IO a
@@ -73,6 +82,34 @@ newFact clause = do
       setFacts result
       return True
 
+-- | Tries to remove the given scope from the scoped facts. Returns
+--   a boolean flag to indicate success or failure.
+clearScope :: (BliSet t1, BliSet t2, BliSet t3, BliSet t4, Alias alias) 
+ => String -> Bli t1 t2 t3 t4 alias Bool
+clearScope scope = do
+  scopedFacts <- getScopedFacts
+  case Map.lookup scope scopedFacts of
+    Just _  -> do
+      modifyScopedFacts (\x -> Map.delete scope x)
+      return True
+    Nothing -> return $ False
+
+-- | Attempts to add a new fact to the given scope. Returns a boolean flag to indicate success or failure.
+newScopedFact :: (BliSet t1, BliSet t2, BliSet t3, BliSet t4, Alias alias) 
+ => Clause -> String -> Bli t1 t2 t3 t4 alias Bool
+newScopedFact clause scope = do
+  scopedFacts <- getScopedFacts
+  case scopedFacts ^.at scope of
+    Just scopeFacts ->
+      case tryInsert clause scopeFacts of
+        Left _ -> return False
+        Right result -> do
+          setScopedFacts $ over (at scope) ((\_ -> result)<$>) scopedFacts
+          return True
+    Nothing -> do
+      -- If scope doesn't exist, create it and try again.
+      _ <- setScopedFacts (Map.insert scope empty scopedFacts)
+      newScopedFact clause scope
 -- | Attempts to add a new alias to the store. Returns a boolean flag to indicate success or failure.
 newAlias :: (BliSet t1, BliSet t2, BliSet t3, BliSet t4, Alias alias) 
  => String -> String -> Bli t1 t2 t3 t4 alias Bool
@@ -145,10 +182,20 @@ getConfig :: (BliSet t1, BliSet t2, BliSet t3, BliSet t4, Alias alias)
   => Bli t1 t2 t3 t4 alias AppConfig
 getConfig = config <$> get
 
+
 -- | Get the currently stored facts from a running bli application.
 getFacts :: (BliSet t1, BliSet t2, BliSet t3, BliSet t4, Alias alias)
   => Bli t1 t2 t3 t4 alias (t1 Clause)
-getFacts = facts <$> get
+getFacts = do 
+  facts <- (facts <$> get)
+  -- Include any other facts currently in scope.
+  scopedFacts <- (foldr (union) empty <$> scopedFacts <$> get)
+  return $ facts `union` scopedFacts
+
+
+getScopedFacts :: (BliSet t1, BliSet t2, BliSet t3, BliSet t4, Alias alias)
+  => Bli t1 t2 t3 t4 alias (Map String (t1 Clause))
+getScopedFacts = (scopedFacts <$> get)
 
 -- | Get the schema from a running bli application.
 getRelations :: (BliSet t1, BliSet t2, BliSet t3, BliSet t4, Alias alias)
@@ -177,6 +224,10 @@ modifyFacts :: (BliSet t1, BliSet t2, BliSet t3, BliSet t4, Alias alias)
  => (t1 Clause -> t1 Clause) -> Bli t1 t2 t3 t4 alias ()
 modifyFacts f = modify (\bliCtx -> bliCtx { facts = f (facts bliCtx) } )
 
+modifyScopedFacts :: (BliSet t1, BliSet t2, BliSet t3, BliSet t4, Alias alias)
+ => (Map String (t1 Clause) -> Map String (t1 Clause)) -> Bli t1 t2 t3 t4 alias ()
+modifyScopedFacts f = modify (\bliCtx -> bliCtx { scopedFacts = f (scopedFacts bliCtx) } )
+
 -- | Modify the schema of a running bli application.
 modifyRelations :: (BliSet t1, BliSet t2, BliSet t3, BliSet t4, Alias alias)
  => (t2 RelDecl -> t2 RelDecl) -> Bli t1 t2 t3 t4 alias ()
@@ -198,6 +249,11 @@ modifyAliases f = modify (\bliCtx -> bliCtx { aliases = f (aliases bliCtx) } )
 setFacts :: (BliSet t1, BliSet t2, BliSet t3, BliSet t4, Alias alias) 
  => t1 Clause -> Bli t1 t2 t3 t4 alias ()
 setFacts val = modify (\bliCtx -> bliCtx { facts = val } )
+
+-- | Set the facts of a running bli application.
+setScopedFacts :: (BliSet t1, BliSet t2, BliSet t3, BliSet t4, Alias alias) 
+ => Map String (t1 Clause) -> Bli t1 t2 t3 t4 alias ()
+setScopedFacts val = modify (\bliCtx -> bliCtx { scopedFacts = val } )
 
 -- | Set the config of a running bli application
 setConfig :: (BliSet t1, BliSet t2, BliSet t3, BliSet t4, Alias alias)

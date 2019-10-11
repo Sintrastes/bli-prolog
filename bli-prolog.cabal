@@ -73,6 +73,7 @@ library
     , transformers
     , th-lift
     , aeson
+    , lens
     , split
     , template-haskell
     , terminal-size

@@ -5,10 +5,13 @@ module Control.Monad.Bli(
   runBli,
   runBliWithStore,
   initBli,
+  clearScope,
+  newScopedFact,
   getStore,
   setStore,
   getConfig,
   getFacts,
+  getScopedFacts,
   getRelations,
   getEntities,
   getTypes,
@@ -24,8 +27,10 @@ module Control.Monad.Bli(
   modifyRelations,
   modifyEntities,
   modifyTypes,
+  modifyScopedFacts,
   setConfig,
   setFacts,
+  setScopedFacts,
   setRelations,
   setEntities,
   setTypes,
@@ -59,6 +64,15 @@ type Bli a = Generic.Bli
     AliasDatastructure 
     a
 
+setScopedFacts = Generic.setScopedFacts @FactContainer @RelationContainer @EntityContainer @TypeContainer @AliasDatastructure
+
+modifyScopedFacts = Generic.modifyScopedFacts @FactContainer @RelationContainer @EntityContainer @TypeContainer @AliasDatastructure
+
+getScopedFacts = Generic.getScopedFacts @FactContainer @RelationContainer @EntityContainer @TypeContainer @AliasDatastructure
+
+clearScope = Generic.clearScope @FactContainer @RelationContainer @EntityContainer @TypeContainer @AliasDatastructure
+
+newScopedFact = Generic.newScopedFact @FactContainer @RelationContainer @EntityContainer @TypeContainer @AliasDatastructure
 
 getStore = Generic.getStore @FactContainer @RelationContainer @EntityContainer @TypeContainer @AliasDatastructure
 
