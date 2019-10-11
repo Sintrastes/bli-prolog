@@ -19,6 +19,9 @@ type SchemaEntry = (String, Int)
 -- | Flag that determines if a relation is stored or not.
 data IsStored = 
    Stored 
+-- Special type of storage handled
+-- by the bedebliry server.
+ | External
  | NotStored deriving(Eq, Show)
 
 -- | For our typed schema entry, we can either declare that a predicate

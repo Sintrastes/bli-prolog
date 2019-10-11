@@ -277,6 +277,17 @@ schemaStoredRelnP = do
   (csymb '.') <?> "Missing terminating \".\" to relation declaration."
   return $ Pred Stored id args
 
+schemaExternalRelnP :: Parser TypedSchemaEntry
+schemaExternalRelnP = do
+  symb "extern"
+  symb "rel"
+  id <- atomP
+  (csymb ':') <?> "Missing \":\" in relation definition."
+  args <- atomP `sepBy1` (csymb ',')
+  (csymb '.') <?> "Missing terminating \".\" to relation declaration."
+  return $ Pred External id args
+
+
 schemaEntityP :: Parser TypedSchemaEntry
 schemaEntityP = do
   id <- atomP
@@ -299,7 +310,9 @@ parseTypedBli = parse typedBliFileP ""
 
 typedSchemaLineP :: Parser BliCommandTyped
 typedSchemaLineP = do
-    res <- (try schemaRelnP <|> try schemaEmptyRelnP <|> try schemaStoredRelnP <|> try schemaEntityP <|> typeDeclP)
+    res <- (try schemaRelnP <|> try schemaEmptyRelnP 
+       <|> try schemaStoredRelnP <|> try schemaEntityP
+       <|> try schemaExternalRelnP <|> typeDeclP)
     return (T_AssertSchema res)
 
 typedBliFileP :: Parser [BliCommandTyped]
