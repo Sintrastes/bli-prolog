@@ -24,6 +24,10 @@ data IsStored =
  | External
  | NotStored deriving(Eq, Show)
 
+-- | Experimental, for lambek calculus support.
+data Direction = LeftArr 
+               | RightArr deriving(Eq, Show)
+
 -- | For our typed schema entry, we can either declare that a predicate
 --   with a given identity can take arguments of the supplied types,
 --   we can declare a new type, or, we can declare new entities of 
@@ -31,7 +35,7 @@ data IsStored =
 --
 data TypedSchemaEntry = 
 -- | A declaration that adds a new relation of a given type to the schema.
-    Pred IsStored String [String]
+    Pred IsStored String [String] [Direction]
 -- | A declaration that adds a new type to the schema.
   | Type   String
 -- | A declaration that adds a new entity of a given type to the schema. 
@@ -51,6 +55,6 @@ type TypedSchema = [TypedSchemaEntry]
 -- | Helper function for converting from the new format for schemas to the old format.
 getArities :: [TypedSchemaEntry] -> [SchemaEntry]
 getArities [] = []
-getArities ((Pred _ x ts):xs)  = (x, length ts):(getArities xs)
+getArities ((Pred _ x ts _):xs)  = (x, length ts):(getArities xs)
 getArities ((Type x):xs)     = getArities xs
 getArities ((TypeOf _ _):xs) = getArities xs

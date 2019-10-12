@@ -258,14 +258,14 @@ schemaRelnP = do
   (csymb ':') <?> "Missing \":\" in relation definition."
   args <- atomP `sepBy1` (csymb ',')
   (csymb '.') <?> "Missing terminating \".\" to relation declaration."
-  return $ Pred NotStored id args
+  return $ Pred NotStored id args []
 
 schemaEmptyRelnP :: Parser TypedSchemaEntry
 schemaEmptyRelnP = do
   symb "rel"
   id <- atomP
   (csymb '.') <?> "Missing terminating \".\" to relation declaration."
-  return $ Pred NotStored id []
+  return $ Pred NotStored id [] []
 
 schemaStoredRelnP :: Parser TypedSchemaEntry
 schemaStoredRelnP = do
@@ -275,7 +275,7 @@ schemaStoredRelnP = do
   (csymb ':') <?> "Missing \":\" in relation definition."
   args <- atomP `sepBy1` (csymb ',')
   (csymb '.') <?> "Missing terminating \".\" to relation declaration."
-  return $ Pred Stored id args
+  return $ Pred Stored id args []
 
 schemaExternalRelnP :: Parser TypedSchemaEntry
 schemaExternalRelnP = do
@@ -285,7 +285,7 @@ schemaExternalRelnP = do
   (csymb ':') <?> "Missing \":\" in relation definition."
   args <- atomP `sepBy1` (csymb ',')
   (csymb '.') <?> "Missing terminating \".\" to relation declaration."
-  return $ Pred External id args
+  return $ Pred External id args []
 
 
 schemaEntityP :: Parser TypedSchemaEntry
