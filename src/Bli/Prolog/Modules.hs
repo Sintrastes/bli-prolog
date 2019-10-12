@@ -7,6 +7,8 @@ module Bli.Prolog.Modules where
 
 import Data.Bli.Prolog.Ast
 import Control.Monad.Bli
+import Bli.App.Config (getBliModuleData)
+import Data.Yaml
 
 -- | Helper function to load a bli program
 --   into the given context.

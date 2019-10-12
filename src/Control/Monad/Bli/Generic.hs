@@ -66,7 +66,6 @@ modifyStore :: (BliSet t1, BliSet t2, BliSet t3, BliSet t4, Alias alias)
  => ((BliStore t1 t2 t3 t4 alias) -> (BliStore t1 t2 t3 t4 alias)) -> Bli t1 t2 t3 t4 alias ()
 modifyStore = modify
 
-
 setStore :: (BliSet t1, BliSet t2, BliSet t3, BliSet t4, Alias alias) 
  => (BliStore t1 t2 t3 t4 alias) -> Bli t1 t2 t3 t4 alias ()
 setStore store = modify (\x -> store)
@@ -110,6 +109,7 @@ newScopedFact clause scope = do
       -- If scope doesn't exist, create it and try again.
       _ <- setScopedFacts (Map.insert scope empty scopedFacts)
       newScopedFact clause scope
+
 -- | Attempts to add a new alias to the store. Returns a boolean flag to indicate success or failure.
 newAlias :: (BliSet t1, BliSet t2, BliSet t3, BliSet t4, Alias alias) 
  => String -> String -> Bli t1 t2 t3 t4 alias Bool

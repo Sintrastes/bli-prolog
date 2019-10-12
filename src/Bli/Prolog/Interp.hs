@@ -1,10 +1,14 @@
 
 module Bli.Prolog.Interp where
 
+import Prelude hiding (mapM)
 import Data.List (nub)
 import Control.Monad(liftM)
 import Control.Monad.Bli.Pure
 import Data.Foldable
+import Data.Alias
+import Data.Maybe
+import Data.Traversable (mapM)
 
 import Data.Bli.Prolog.Ast
 import Bli.Prolog.Interp.Data
@@ -72,15 +76,29 @@ getTypePredicates goal = return goal
 getStoredRelations :: Goal -> Bli (String, [String])
 getStoredRelations goal = undefined
 
+-- | Helper function that replaces all occurences of 
+--   ids in a string with their primary id, if it exists. 
+expandAliases :: Goal -> Bli Goal
+expandAliases terms = mapM helper terms
+  where helper :: Term -> Bli Term
+        helper (Comp x ts) = do
+           aliases <- getAliases
+           let pidX = fromMaybe x $ getPrimaryId' aliases x
+           args <- mapM helper ts
+           return (Comp pidX args)
+        helper (Var x) = return $ Var x
+
 -- Note: Here is where we can put our custom logic for
 -- e.x. dealing with the bedelibry backend.
 solve :: Goal -> Bli [SearchTree]
-solve g = do
+solve goal' = do
   prog <- toList <$> getFacts
-  typePredicates <- getTypePredicates g
+  aliases <- getAliases
+  goal <- expandAliases goal'
+  typePredicates <- getTypePredicates goal
   case () of
-   _ | typePredicates /= [] -> return $ solve' prog g
-     | otherwise -> return $ solve' prog g
+   _ | typePredicates /= [] -> return $ solve' prog goal
+     | otherwise -> return $ solve' prog goal
 
 -- Uses the List monad for backtracking
 solve' :: Program -> Goal -> [SearchTree]

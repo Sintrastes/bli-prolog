@@ -1,3 +1,4 @@
+{-# LANGUAGE DeriveGeneric #-}
 
 module Bli.App.Config where
 
@@ -26,6 +27,9 @@ import qualified Data.Map as Map
 import Data.HashMap.Strict (HashMap)
 import qualified Data.HashMap.Strict as HashMap
 import Data.Typeable
+import Data.Aeson (toJSON, parseJSON)
+import qualified Data.Aeson as Aeson
+import GHC.Generics
 
 -- | The default search method is breadth first search.
 instance Default Search where
@@ -49,11 +53,36 @@ bedelibryDir = "/.bedelibry"
 --   bedelibry data directory.
 configFileName = "/config.yaml"
 
+-- | The name of the file to use for the list of modules.
+moduleFileName = "/modules.yaml"
+
+data ModuleData = ModuleData { name :: String, file_path :: String } deriving(Generic)
+
+instance FromJSON ModuleData where
+
+-- Note: By default we can allow for cyclic imports,
+-- and just keep a running list of the modules which have
+-- already been imported, and stop when we try re-importing
+-- modules which have already been imported.
+
 -- | Helper function to get the Bli module data from
 -- our CSV file.
-getBliModuleData :: IO (Maybe (String, String))
-getBliModuleData = undefined
-
+getBliModuleData :: IO (Maybe [(String, String)])
+getBliModuleData = do
+  homeDir <- getHomeDirectory
+  yaml <- decodeFileEither (homeDir ++ bedelibryDir ++ moduleFileName) :: IO (Either ParseException Object)
+  case yaml of
+    Left err -> return $ Nothing
+    Right obj -> do
+      case HashMap.lookup "modules" obj of
+        Nothing -> return Nothing
+        Just array -> do
+          -- Make sure each of the elements of the array has the right
+          -- structure.
+          let maybeParsed = Aeson.decode $ Aeson.encode (toJSON array) :: Maybe [ModuleData]
+          case maybeParsed of
+            Just parsed -> return $ Just $ map (\(ModuleData x y) -> (x, y)) parsed
+            Nothing -> return $ Nothing
 -- | An abstract representation of the commands which
 --   can be entered at the bli-prolog REPL.
 data BliReplCommand =
