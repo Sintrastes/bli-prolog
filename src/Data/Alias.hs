@@ -7,17 +7,14 @@ import Control.Empty
 import Data.BliSet (BliSet)
 import qualified Data.BliSet as BliSet
 
--- t is a mapping for associating identifiers with their primary ids,
--- and p is a container for looking up primary ids.
+
 class (Traversable t, HasEmpty t) => Alias t where
-    getPrimaryId'    :: (t String) -> String -> Maybe String
-    addNewAlias'     :: (t String) -> (String, String) -> Maybe (t String)
+    insertNewAlias' :: (t String) -> (String, String) -> (t String)
 
 instance Alias (Map String) where
-    getPrimaryId' store id = Map.lookup id store
-    addNewAlias' store (id1, id2) =
-      case (getPrimaryId' store id1) of
-         Just primaryId1 -> Just $ Map.insert id2 primaryId1 store
-         Nothing -> case (getPrimaryId' store id2) of
-            Just primaryId2 -> Just $ Map.insert id1 primaryId2 store
-            Nothing -> Nothing
+    insertNewAlias' store (id1, id2) = Map.insert id1 id2 store
+    --  case (getPrimaryId' store id1) of
+    --     Just primaryId1 -> Just $ Map.insert id2 primaryId1 store
+    --     Nothing -> case (getPrimaryId' store id2) of
+    --        Just primaryId2 -> Just $ Map.insert id1 primaryId2 store
+    --        Nothing -> Nothing

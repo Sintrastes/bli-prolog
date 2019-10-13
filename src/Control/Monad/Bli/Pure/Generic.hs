@@ -3,6 +3,7 @@ module Control.Monad.Bli.Pure.Generic where
 
 -- | Generic version of the pure Bli monad
 
+import Prelude hiding (lookup)
 import Data.Bli.Prolog.Ast
 import Control.Applicative hiding (empty)
 import Data.Schema
@@ -79,16 +80,43 @@ runBli :: (BliSet t1, BliSet t2, BliSet t3, BliSet t4, Alias alias)
 runBli config facts relations entities types aliases app =
   evalState app (BliStore config facts empty relations entities types aliases)
 
+
+-- | Checks to see if an identifier is a primary ID
+isPrimaryID :: (BliSet t1, BliSet t2, BliSet t3, BliSet t4, Alias alias) 
+ => String -> Bli t1 t2 t3 t4 alias Bool
+isPrimaryID id = do
+  types <- getTypes
+  relations <- getRelations
+  entities <- getEntities
+  let result =
+        msum [lookup (==id) types
+             ,fst <$> lookup (\x ->(fst x)== id) relations
+             ,fst <$> lookup (\x -> (fst x)==id) entities]
+  case result of
+    Just x  -> return $ True
+    Nothing -> return $ False
+
+lookupPrimaryID :: (BliSet t1, BliSet t2, BliSet t3, BliSet t4, Alias alias)
+ => String -> Bli t1 t2 t3 t4 alias (Maybe String)
+lookupPrimaryID = undefined
+
 -- | Attempts to add a new alias to the store. Returns a boolean flag to indicate success or failure.
 newAlias :: (BliSet t1, BliSet t2, BliSet t3, BliSet t4, Alias alias) 
  => String -> String -> Bli t1 t2 t3 t4 alias Bool
 newAlias id1 id2 = do
   aliases <- getAliases
-  case addNewAlias' aliases (id1, id2) of
-    Nothing -> return False
-    Just result -> do
-      setAliases result
+  lookupResult <- lookupPrimaryID id1
+  case lookupResult of
+    Just primaryId1 -> do
+      setAliases $ insertNewAlias' aliases (id2, primaryId1)
       return True
+    Nothing -> do 
+      lookupResult <- lookupPrimaryID id2
+      case lookupResult of
+        Just primaryId2 -> do 
+          setAliases $ insertNewAlias' aliases (id1, primaryId2)
+          return True
+        Nothing -> return False
 
 -- | Attempts to add a new type to the store. Returns a boolean flag to indicate success or failure.
 newType :: (BliSet t1, BliSet t2, BliSet t3, BliSet t4, Alias alias)
