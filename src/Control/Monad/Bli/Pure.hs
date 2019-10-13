@@ -32,7 +32,7 @@ type Bli a = Generic.Bli
     AliasDatastructure 
     a
 
-
+lookupPrimaryID = Generic.lookupPrimaryID @FactContainer @RelationContainer @EntityContainer @TypeContainer @AliasDatastructure
 setScopedFacts = Generic.setScopedFacts @FactContainer @RelationContainer @EntityContainer @TypeContainer @AliasDatastructure
 modifyScopedFacts = Generic.modifyScopedFacts @FactContainer @RelationContainer @EntityContainer @TypeContainer @AliasDatastructure
 getScopedFacts = Generic.getScopedFacts @FactContainer @RelationContainer @EntityContainer @TypeContainer @AliasDatastructure

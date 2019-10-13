@@ -98,7 +98,17 @@ isPrimaryID id = do
 
 lookupPrimaryID :: (BliSet t1, BliSet t2, BliSet t3, BliSet t4, Alias alias)
  => String -> Bli t1 t2 t3 t4 alias (Maybe String)
-lookupPrimaryID = undefined
+lookupPrimaryID id = do
+  types <- getTypes
+  relations <- getRelations
+  entities <- getEntities
+  let result =
+        msum [lookup (==id) types
+             ,fst <$> lookup (\x ->(fst x)== id) relations
+             ,fst <$> lookup (\x -> (fst x)==id) entities]
+  case result of
+    Just x  -> return $ Just $ x
+    Nothing -> lookupPrimaryID id
 
 -- | Attempts to add a new alias to the store. Returns a boolean flag to indicate success or failure.
 newAlias :: (BliSet t1, BliSet t2, BliSet t3, BliSet t4, Alias alias) 

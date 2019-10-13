@@ -15,6 +15,7 @@ module Control.Monad.Bli.Generic(
   getEntities,
   getTypes,
   getAliases,
+  lookupPrimaryID,
   -- High-level interface
   newAlias,
   newType,
@@ -128,7 +129,18 @@ isPrimaryID id = do
 
 lookupPrimaryID :: (BliSet t1, BliSet t2, BliSet t3, BliSet t4, Alias alias)
  => String -> Bli t1 t2 t3 t4 alias (Maybe String)
-lookupPrimaryID = undefined
+lookupPrimaryID id = do
+  types <- getTypes
+  relations <- getRelations
+  entities <- getEntities
+  aliases <- getAliases
+  let result =
+        msum [lookup (==id) types
+             ,fst <$> lookup (\x ->(fst x)== id) relations
+             ,fst <$> lookup (\x -> (fst x)==id) entities]
+  case result of
+    Just x  -> return $ Just $ x
+    Nothing -> return $ getPID aliases id
 
 -- | Attempts to add a new alias to the store. Returns a boolean flag to indicate success or failure.
 newAlias :: (BliSet t1, BliSet t2, BliSet t3, BliSet t4, Alias alias) 
@@ -147,6 +159,7 @@ newAlias id1 id2 = do
           setAliases $ insertNewAlias' aliases (id1, primaryId2)
           return True
         Nothing -> return False
+
 
 -- | Attempts to add a new type to the store. Returns a boolean flag to indicate success or failure.
 newType :: (BliSet t1, BliSet t2, BliSet t3, BliSet t4, Alias alias)

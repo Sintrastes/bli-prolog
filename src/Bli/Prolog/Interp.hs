@@ -82,8 +82,7 @@ expandAliases :: Goal -> Bli Goal
 expandAliases terms = mapM helper terms
   where helper :: Term -> Bli Term
         helper (Comp x ts) = do
-           aliases <- getAliases
-           let pidX = fromMaybe x $ getPrimaryId' aliases x
+           pidX <- fromMaybe x <$> lookupPrimaryID x
            args <- mapM helper ts
            return (Comp pidX args)
         helper (Var x) = return $ Var x
