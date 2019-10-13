@@ -124,6 +124,12 @@ data BliPrologType =
  | List BliPrologType
  | DateLit
 
+-- Subtyping relation.
+infixr 9 <:
+(<:) :: BliPrologType -> BliPrologType -> Bool
+(<:) _ TypTypes = True
+(<:) _ _ = undefined
+
 -- Note: It is important to make a distinction here
 -- between atoms and strings, because atoms
 -- have already been parsed, and hence, all of the
