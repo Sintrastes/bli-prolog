@@ -2,6 +2,7 @@
 module Control.Monad.Bli.Generic(
   -- Basic interface
   Bli(..),
+  NewAliasResult(..),
   runBli,
   initBli,
   runBliWithStore,
@@ -134,6 +135,7 @@ lookupPrimaryID id = do
   relations <- getRelations
   entities <- getEntities
   aliases <- getAliases
+  lift $ putStrLn "In lookupPrimaryID" -- debugging
   let result =
         msum [lookup (==id) types
              ,fst <$> lookup (\x ->(fst x)== id) relations
@@ -142,24 +144,32 @@ lookupPrimaryID id = do
     Just x  -> return $ Just $ x
     Nothing -> return $ getPID aliases id
 
+data NewAliasResult = 
+   SuccessfullyAdded
+ | AliasAlreadyInStore
+ | DoesNotHavePrimaryIDOrAlias
+
 -- | Attempts to add a new alias to the store. Returns a boolean flag to indicate success or failure.
 newAlias :: (BliSet t1, BliSet t2, BliSet t3, BliSet t4, Alias alias) 
- => String -> String -> Bli t1 t2 t3 t4 alias Bool
+ => String -> String -> Bli t1 t2 t3 t4 alias NewAliasResult
 newAlias id1 id2 = do
   aliases <- getAliases
-  lookupResult <- lookupPrimaryID id1
+  let lookupResult = (getPID aliases id1 == getPID aliases id2) && (getPID aliases id1 /= Nothing)
   case lookupResult of
-    Just primaryId1 -> do
-      setAliases $ insertNewAlias' aliases (id2, primaryId1)
-      return True
-    Nothing -> do 
-      lookupResult <- lookupPrimaryID id2
+    True -> return AliasAlreadyInStore
+    False -> do
+      lookupResult <- lookupPrimaryID id1
       case lookupResult of
-        Just primaryId2 -> do 
-          setAliases $ insertNewAlias' aliases (id1, primaryId2)
-          return True
-        Nothing -> return False
-
+        Just primaryId1 -> do
+          setAliases $ insertNewAlias' aliases (id2, primaryId1)
+          return SuccessfullyAdded
+        Nothing -> do 
+          lookupResult <- lookupPrimaryID id2
+          case lookupResult of
+            Just primaryId2 -> do 
+              setAliases $ insertNewAlias' aliases (id1, primaryId2)
+              return SuccessfullyAdded
+            Nothing -> return DoesNotHavePrimaryIDOrAlias
 
 -- | Attempts to add a new type to the store. Returns a boolean flag to indicate success or failure.
 newType :: (BliSet t1, BliSet t2, BliSet t3, BliSet t4, Alias alias)

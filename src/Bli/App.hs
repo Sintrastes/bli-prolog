@@ -12,7 +12,8 @@ import Bli.Prolog.Interp
 import Bli.Prolog.Interp.Data
 import Bli.Prolog.SearchStrategies
 import Bli.Prolog.Typechecking
-import Control.Monad.Bli.Pure
+import Control.Monad.Bli
+import Control.Monad.Bli.Pure (liftFromPure)
 import Bli.App.Api
 import Bli.App.Config
 import Data.Aeson
@@ -47,7 +48,7 @@ processBliCommand command = do
   -- using a utiity function that checks if a command is an assertion or not if needed.
   let mapLeft f (Left x) = Left (f x)
       mapLeft f (Right x) = Right x
-  typecheckResult <- typecheckBliCommand command
+  typecheckResult <- liftFromPure $ typecheckBliCommand command
   -- Just deal with the first error. Later we will probably want to
   -- display multiple errors.
   case mapLeft head typecheckResult of

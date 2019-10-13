@@ -58,7 +58,7 @@ processCliInput input = do
                              (yellow colorOpts
                                 "All bli prolog commands end with either a '.' or an '!'.")
             Right command -> do
-              result <- Pure.liftFromPure $ processBliCommand command
+              result <-  processBliCommand command
               case result of
                 Result_QueryFail_AtomsNotInSchema atoms -> do
                        printResponse $ (red colorOpts "Failure.")++" Query unsuccessful."
@@ -213,7 +213,7 @@ repl = do
                  printResponse $ yellow colorOpts "No aliases in store."
                  repl
                else do 
-                 liftIO $ mapM_ print aliases
+                 liftIO $ print aliases
                  repl
              LoadFile filePath -> do
                 fileContents <- liftIO $ readFile filePath
@@ -262,14 +262,26 @@ repl = do
                  -- the arguments parse properly as bli identifiers.
                  addedSuccessfully <- newAlias arg1 arg2
                  case addedSuccessfully of
-                   True -> do
+                   SuccessfullyAdded -> do
                      printResponse $ "Made alias of " ++ arg1 ++ " to " ++ arg2 ++ "."
                      repl
-                   False -> do
+                   AliasAlreadyInStore -> do
                      printResponse $ "Failure. Alias is already is store."
+                     repl
+                   DoesNotHavePrimaryIDOrAlias -> do
+                     printResponse $ "Failure. Neither " ++ arg1 ++ " nor " ++ arg2 ++ " are a primary ID"
+                     printResponse $ "Or a pre-existing alias of a primary ID."
                      repl
              ShowPort -> do
                 liftIO $ print (port config)
+                repl
+             GetPID id -> do
+                pid' <- lookupPrimaryID id
+                case pid' of
+                  Just pid -> do
+                    printResponse $ pid
+                  Nothing -> do
+                    printResponse $ "The term " ++ show id ++ " does not have a primary ID."
                 repl
         -- If the user has not entered a REPL command, try processing
         -- their input as a standard Bedelibry Prolog command.

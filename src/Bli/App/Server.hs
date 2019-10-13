@@ -54,7 +54,7 @@ requestHandler (Just (MakeQuery query))
   = case (parseBliCommandTyped query) of 
       Left err -> return $ Just $ SyntaxError $ BoundVarNotInBody -- "Some error. Replace me!"
       Right command -> do
-        result <- Pure.liftFromPure $ processBliCommand command
+        result <- processBliCommand command
         case result of
           Result_QueryFail_AtomsNotInSchema atoms -> do
               return $ Just $ SyntaxError $ BoundVarNotInBody -- "Query fail, replace me."
@@ -71,7 +71,7 @@ requestHandler (Just (MakeAssertion assertion))
   = case (parseBliCommandTyped assertion) of 
       Left err -> return $ Just $ SyntaxError $ BoundVarNotInBody -- "replace me."
       Right command -> do
-        result <- Pure.liftFromPure $ processBliCommand command
+        result <- processBliCommand command
         case result of
        -- These will never happen
           Result_QueryFail_AtomsNotInSchema atoms -> do

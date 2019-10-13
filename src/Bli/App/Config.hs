@@ -104,6 +104,7 @@ data BliReplCommand =
  | SetMode String
  | GetTypeOf String
  | ShowPort
+ | GetPID String
 
 -- | An abstract representation of the different types of commands
 --   which can be entered at the bli-prolog REPL.
@@ -125,7 +126,8 @@ data BliReplCommandType =
  | Cmd_ListAliases
  | Cmd_SetMode
  | Cmd_ShowPort
- | Cmd_GetTypeOf deriving(Enum)
+ | Cmd_GetTypeOf
+ | Cmd_GetPID deriving(Enum)
 
 -- | Takes a BliReplCommandType, and returns a list of the strings 
 --   which can be used to invoke that command.
@@ -149,7 +151,8 @@ bliReplCommandStrings cmd =
     Cmd_ListAliases    -> [":ls-aliases"]
     Cmd_SetMode        -> [":set-mode"]
     Cmd_GetTypeOf      -> [":t",":type"]
-    Cmd_ShowPort         -> [":port"]
+    Cmd_ShowPort       -> [":port"]
+    Cmd_GetPID         -> [":pid"]
 -- | Takes a BliReplCommandType, and returns just the primary string
 --   which can be used to invoke that command.
 bliReplCommandString :: BliReplCommandType -> String
@@ -178,6 +181,7 @@ bliReplCommandDescriptions cmd =
     Cmd_SetMode        -> "Sets the search mode of the running session."
     Cmd_GetTypeOf      -> "Returns the type of the supplied bli prolog term."
     Cmd_ShowPort       -> "Shows the port number that the bli-prolog server is configured to run at."
+    Cmd_GetPID         -> "Gets the primary identifier of the given term, if it exists."
 
 typeToCommand :: BliReplCommandType -> Maybe BliReplCommand
 typeToCommand ty = 
@@ -189,6 +193,7 @@ typeToCommand ty =
      Cmd_Alias          -> Nothing
      Cmd_SetMode        -> Nothing
      Cmd_GetTypeOf      -> Nothing
+     Cmd_GetPID         -> Nothing
      Cmd_ClearSchema    -> Just ClearSchema
      Cmd_ClearRelations -> Just ClearRelations
      Cmd_ClearEntities  -> Just ClearEntities
@@ -231,6 +236,8 @@ parseBliReplCommand input =
             DoneParsing $ SetMode ((splitOn " " input) !! 1)
           | any (\cmd -> isPrefixOf cmd input) (bliReplCommandStrings Cmd_GetTypeOf) ->
             DoneParsing $ GetTypeOf ((splitOn " " input) !! 1)
+          | any (\cmd -> isPrefixOf cmd input) (bliReplCommandStrings Cmd_GetPID) ->
+            DoneParsing $ GetPID ((splitOn " " input) !! 1)
           | otherwise -> ContinueParsing
 
 -- | The banner which is displayed when the user first loads the repl.

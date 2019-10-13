@@ -4,12 +4,12 @@ module Bli.Prolog.Interp where
 import Prelude hiding (mapM)
 import Data.List (nub)
 import Control.Monad(liftM)
-import Control.Monad.Bli.Pure
+import Control.Monad.Bli
 import Data.Foldable
 import Data.Alias
 import Data.Maybe
 import Data.Traversable (mapM)
-
+import Control.Monad.Trans.Class
 import Data.Bli.Prolog.Ast
 import Bli.Prolog.Interp.Data
 
@@ -82,6 +82,7 @@ expandAliases :: Goal -> Bli Goal
 expandAliases terms = mapM helper terms
   where helper :: Term -> Bli Term
         helper (Comp x ts) = do
+           lift $ putStrLn "In expandAliases" -- debugging.
            pidX <- fromMaybe x <$> lookupPrimaryID x
            args <- mapM helper ts
            return (Comp pidX args)

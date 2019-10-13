@@ -1,6 +1,8 @@
 
 module Control.Monad.Bli(
   Bli,
+  NewAliasResult(..),
+  lookupPrimaryID,
   -- Basic interface
   runBli,
   runBliWithStore,
@@ -47,6 +49,7 @@ module Control.Monad.Bli(
 import Data.Bli.Prolog.Ast
 import Data.Schema
 import Bli.App.Config (AppConfig)
+import Control.Monad.Bli.Generic(NewAliasResult(..))
 import qualified Control.Monad.Bli.Generic as Generic
 import Control.Monad.Bli.Common
 
@@ -63,6 +66,8 @@ type Bli a = Generic.Bli
  -- | The datastructure to use for storing aliases
     AliasDatastructure 
     a
+
+lookupPrimaryID = Generic.lookupPrimaryID @FactContainer @RelationContainer @EntityContainer @TypeContainer @AliasDatastructure
 
 setScopedFacts = Generic.setScopedFacts @FactContainer @RelationContainer @EntityContainer @TypeContainer @AliasDatastructure
 
