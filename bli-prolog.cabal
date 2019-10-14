@@ -29,6 +29,7 @@ library
   exposed-modules:
       Data.Alias
       Data.BliSet
+      Data.TimePeriods
       Data.Bli.Prolog.Ast
       Data.Bli.Prolog.Schema
       Bli.Prolog.TH
@@ -78,6 +79,8 @@ library
     , transformers
     , th-lift
     , aeson
+    , time
+    , data-interval
     , lens
     , split
     , template-haskell
