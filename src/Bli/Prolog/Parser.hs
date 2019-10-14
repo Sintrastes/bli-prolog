@@ -202,6 +202,13 @@ atomP = plain <|> symbolic <|> quoted
                  s <- manyTill anyChar (try $ char '"')
                  return $ "\""++s++"\"" ) <?> "string literal"
 
+constructorP :: Parser String
+constructorP = do
+  c1 <- char '\''
+  c2 <- upper
+  cs <- many (alphaNum <|> char '_')
+  return (c1:c2:cs)
+
 -- | Parser for a bedelibry prolog variable.
 variableP :: Parser String
 variableP = (do c <- upper <|> char '_'
@@ -288,6 +295,21 @@ schemaExternalRelnP = do
   (csymb '.') <?> "Missing terminating \".\" to relation declaration."
   return $ Pred External id args []
 
+schemaDatatypeDeclP :: Parser TypedSchemaEntry
+schemaDatatypeDeclP = do
+  symb "datatype"
+  typeName <- atomP
+  symb "where"
+  constructors <- many datatypeConstructorP
+  return $ DataType typeName constructors
+
+datatypeConstructorP :: Parser (String, [String])
+datatypeConstructorP = do
+  symb "constructor"
+  constructorName <- constructorP
+  symb ":"
+  types <- atomP `sepBy` (csymb ',')
+  return (constructorName, types)
 
 schemaEntityP :: Parser TypedSchemaEntry
 schemaEntityP = do
