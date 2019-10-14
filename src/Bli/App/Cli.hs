@@ -203,7 +203,7 @@ repl = do
                  printResponse $ yellow colorOpts "No types in store."
                  repl
                else do
-                 liftIO $ mapM_ print types
+                 mapM_ (printResponse . (\x -> x ++ ".")) types
                  repl
              ListEntities ->
                if entities == empty
@@ -211,7 +211,7 @@ repl = do
                  printResponse $ yellow colorOpts "No entities in store."
                  repl
                else do
-                 liftIO $ mapM_ print entities
+                 mapM_ (printResponse . (\(x,typ) -> x ++ ": " ++ typ ++ "." )) entities
                  repl
              ListFacts ->
                if facts == empty
@@ -219,7 +219,7 @@ repl = do
                  printResponse $ yellow colorOpts "No facts in store."
                  repl
                else do
-                 liftIO $ mapM_ (\x -> putStrLn ("  "++x)) $ map prettyShowClause facts
+                 mapM_ printResponse $ map prettyShowClause facts
                  repl
              ListAliases -> do
                if aliases == empty
@@ -227,6 +227,8 @@ repl = do
                  printResponse $ yellow colorOpts "No aliases in store."
                  repl
                else do 
+                 -- Note: To make this work, I probably need a "to list" function
+                 -- for aliases, so that I can get this to print properly.
                  liftIO $ print aliases
                  repl
              LoadFile filePath -> do
