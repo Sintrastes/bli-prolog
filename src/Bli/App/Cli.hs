@@ -272,6 +272,9 @@ repl = do
                      printResponse $ "Failure. Neither " ++ arg1 ++ " nor " ++ arg2 ++ " are a primary ID"
                      printResponse $ "Or a pre-existing alias of a primary ID."
                      repl
+             GetTypeOf t -> do
+               printResponse "Sorry, not implemented."
+               repl
              ShowPort -> do
                 liftIO $ print (port config)
                 repl

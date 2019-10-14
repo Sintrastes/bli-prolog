@@ -9,7 +9,7 @@ import Data.Bli.Prolog.Ast
 import Bli.Prolog.Interp (expandAliases, expandAliasesTerm)
 import Bli.Prolog.Interp.Data (isPlain)
 import qualified Data.Set as S
-import Data.List((\\), nub)
+import Data.List((\\), nub, intercalate)
 import Data.Char
 import Control.Monad (join)
 import Data.Schema
@@ -123,7 +123,19 @@ data BliPrologType =
  | DateTimeLit
  -- A polymorphic list datatype
  | List BliPrologType
- | DateLit
+ | DateLit deriving(Eq)
+
+instance Show BliPrologType where
+  show Entity = "entity"
+  show (DeclaredType str) = str
+  show TypTypes = "type"
+  show (Predicate types) = "rel " ++ (intercalate ", " (map show types))
+  show Rule = "rule"
+  show StringLit = "string"
+  show IntLit = "int"
+  show DateTimeLit = "datetime"
+  show (List t) = "list["++ show t ++"]" 
+  show DateLit = "date"
 
 -- Subtyping relation.
 infixr 9 <:
