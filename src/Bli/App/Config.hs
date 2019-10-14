@@ -634,6 +634,6 @@ configureApplication = do
           -- Return the final user configuration.
           case fromRecord $ yamlRecord #> opts of
              Just record ->
-               return $ Right record
+               return $ Right record { version = version }
              Nothing -> return $ Left "Error parsing configuration."
           --return $ Right $ AppConfig { version = version, options = fromRecord $ opts }
