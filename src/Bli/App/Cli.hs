@@ -29,10 +29,18 @@ import Control.Monad.IO.Class
 fileExtension :: String -> String
 fileExtension filePath = "." ++ (last $ splitOn "." filePath)
 
-groupSchemaClauses commands = go commands [] [] 
- where go [] ss cs = (ss,cs)
-       go ((AssertClause c):xs) ss cs   = go xs ss (c:cs)
-       go ((AssertTypePred s):xs) ss cs = go xs (s:ss) cs
+-- (types, relations, entities, clauses)
+groupSchemaClauses :: [BliCommandTyped] -> ([TypeDecl], [RelDecl], [EntityDecl], [Clause])
+groupSchemaClauses commands = go commands ([], [], [], []) 
+ where go [] xs = xs
+       go ((T_AssertClause c):xs) (types,relations,entities,clauses)
+           = go xs (types, relations, entities, c:clauses)
+       go ((T_AssertSchema (Type t)):xs) (types,relations,entities,clauses)
+           = go xs (t:types, relations, entities, clauses)
+       go ((T_AssertSchema (TypeOf t ty)):xs) (types,relations,entities,clauses)
+           = go xs (types, relations, (t,ty):entities, clauses)
+       go ((T_AssertSchema (Pred isStored name argTypes dirs)):xs) (types,relations,entities,clauses)
+           = go xs (types, (name, argTypes):relations, entities, clauses)
 
 -- | Helper function to process bli-prolog commands in a running application.
 processCliInput :: String -> Bli ()
@@ -231,10 +239,12 @@ repl = do
                           Right lines -> do
                               -- debugging
                               liftIO $ print $ lines
-                              -- This is the old version.
-                              -- let (entries, clauses) = groupSchemaClauses lines
-                              -- modifyProgram (\x -> x ++ clauses)
-                              -- modifySchema  (\x -> x ++ entries)
+                              let (types, relations, entities, clauses) = groupSchemaClauses lines
+                              return ()
+                              -- modifyEntities
+                              -- modifyFacts
+                              -- modifyTypes (\x -> x ++ clauses)
+                              -- modifyRelations  (\x -> x ++ entries)
                   ".bsch" -> do
                    -- Currently this will only parse the typed version.
                       case parseTypedSchema fileContents of
