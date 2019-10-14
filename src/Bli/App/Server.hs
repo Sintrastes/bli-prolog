@@ -21,6 +21,7 @@ import System.Directory
 import Control.Monad
 import Bli.Prolog.Typechecking
 import Bli.Prolog.Parser
+import Bli.Prolog.Parser.Cli
 import Control.Applicative
 import Control.Monad.Bli
 import Control.Monad.IO.Class

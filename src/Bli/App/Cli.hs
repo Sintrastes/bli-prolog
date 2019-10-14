@@ -17,6 +17,8 @@ import Bli.Prolog.Typechecking
 import Data.Bli.Prolog.Ast
 import Data.Schema
 import Data.Aeson
+import Bli.Prolog.Parser.Cli
+import Bli.Prolog.Parser.Schema
 import Bli.Prolog.Parser
 import Bli.Prolog.Interp
 import Data.List

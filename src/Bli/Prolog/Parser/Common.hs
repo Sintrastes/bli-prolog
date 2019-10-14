@@ -8,6 +8,13 @@ module Bli.Prolog.Parser.Common where
 import Text.ParserCombinators.Parsec
 import Data.Bli.Prolog.Ast
 
+-- | Helper function to generate parsers which
+--   are terminated by eof.
+terminated parser = do
+  result <- parser
+  eof
+  return result
+
 -- | Parser for comments in a prolog file
 commentP = singleLineComment <|> multiLineComment
   where
