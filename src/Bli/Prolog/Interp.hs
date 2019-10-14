@@ -1,9 +1,9 @@
 
 module Bli.Prolog.Interp where
 
-import Prelude hiding (mapM)
+import Prelude hiding (mapM, join)
 import Data.List (nub)
-import Control.Monad(liftM)
+import Control.Monad(liftM, join)
 import Control.Monad.Bli
 import Data.Foldable
 import Data.BliSet (isIn)
@@ -105,12 +105,19 @@ solve goal' = do
   typePredicates <- getTypePredicates goal
   case () of
    _ | typePredicates /= [] -> do
-        types <- getTypes
+        let types = fmap (\(Comp x ts) -> x) typePredicates
         -- For all types in the type predicates,
         -- get a list of all elements of that type.
         -- Bring facts of the form type(entity) into
         -- scope, solve, and then bring them out of scope.
-        return $ solve' prog goal
+        entityLists <- mapM getEntitiesOfType types
+        let newFacts = join $ fmap (\(entities, typ) -> fmap (\x -> (Comp typ [Comp x []],[])) entities) 
+                          $ zip entityLists types
+        newScopedFacts newFacts "_temp_"
+        prog <- toList <$> getFacts
+        let solution = solve' prog goal
+        clearScope "_temp_"
+        return solution
      | otherwise -> return $ solve' prog goal
 
 -- Uses the List monad for backtracking

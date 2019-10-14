@@ -10,11 +10,13 @@ module Control.Monad.Bli.Trans.Generic (
   initBli,
   runBliWithStore,
   newScopedFact,
+  newScopedFacts,
   clearScope,
   setStore,
   getConfig,
   getFacts,
   getScopedFacts,
+  getEntitiesOfType,
   getRelations,
   getEntities,
   getTypes,
@@ -44,7 +46,9 @@ module Control.Monad.Bli.Trans.Generic (
   modifyStore) where
 -- | Generic version of the Bli monad
 
-import Prelude hiding (lookup)
+import Prelude hiding (lookup, foldr, filter)
+import Data.Foldable
+import Data.Witherable
 import Control.Monad
 import Control.Monad.Trans.State
 import Control.Monad.Trans.Class (lift)
@@ -74,6 +78,13 @@ modifyStore = modify
 setStore :: (Monad m, BliSet t1, BliSet t2, BliSet t3, BliSet t4, Alias alias)
  => (BliStore t1 t2 t3 t4 alias) -> BliT t1 t2 t3 t4 alias m ()
 setStore store = modify (\x -> store)
+
+-- | Returns all of the entities of a given type.
+getEntitiesOfType :: (Monad m, BliSet t1, BliSet t2, BliSet t3, BliSet t4, Alias alias)
+ => String -> BliT t1 t2 t3 t4 alias m (t3 String)
+getEntitiesOfType typ = do
+  entities <- getEntities
+  return $ fmap fst $ filter (\x -> snd x == typ) entities
 
 -- | Attempts to add a new fact to the store. Returns a boolean flag to indicate success or failure.
 newFact :: (Monad m, BliSet t1, BliSet t2, BliSet t3, BliSet t4, Alias alias)
@@ -114,6 +125,14 @@ newScopedFact clause scope = do
       -- If scope doesn't exist, create it and try again.
       _ <- setScopedFacts (Map.insert scope empty scopedFacts)
       newScopedFact clause scope
+
+
+-- | Attempts to add a collection of new facts to the given scope. Returns a boolean flag to indicate success or failure.
+newScopedFacts :: (Monad m, BliSet t1, BliSet t2, BliSet t3, BliSet t4, Alias alias)
+ => t1 Clause -> String -> BliT t1 t2 t3 t4 alias m Bool
+newScopedFacts clauses scope = do
+  results <- mapM (\x -> newScopedFact x scope) clauses
+  return $ foldr (&&) True results
 
 -- | Checks to see if an identifier is a primary ID
 isPrimaryID :: (Monad m, BliSet t1, BliSet t2, BliSet t3, Alias alias)
@@ -245,7 +264,6 @@ getConfig :: (Monad m, BliSet t1, BliSet t2, BliSet t3, BliSet t4, Alias alias)
   => BliT t1 t2 t3 t4 alias m AppConfig
 getConfig = config <$> get
 
-
 -- | Get the currently stored facts from a running bli application.
 getFacts :: (Monad m, BliSet t1, BliSet t2, BliSet t3, BliSet t4, Alias alias)
   => BliT t1 t2 t3 t4 alias m (t1 Clause)
@@ -254,7 +272,6 @@ getFacts = do
   -- Include any other facts currently in scope.
   scopedFacts <- (foldr (union) empty <$> scopedFacts <$> get)
   return $ facts `union` scopedFacts
-
 
 getScopedFacts :: (Monad m, BliSet t1, BliSet t2, BliSet t3, BliSet t4, Alias alias)
   => BliT t1 t2 t3 t4 alias m (Map String (t1 Clause))
