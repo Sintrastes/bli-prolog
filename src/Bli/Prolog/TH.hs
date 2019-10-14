@@ -12,7 +12,8 @@ module Bli.Prolog.TH (
 ) where
 
 import Data.Bli.Prolog.Ast
-import Bli.Prolog.Parser as P
+import Bli.Prolog.Parser.Common
+import Bli.Prolog.Parser
 import Text.ParserCombinators.Parsec
 import Language.Haskell.TH
 import Language.Haskell.TH.Quote
@@ -59,7 +60,7 @@ bli = QuasiQuoter {
             things ++ " are not handled by the regex quasiquoter."
         parserTH :: String -> Q Exp
         parserTH s =
-          case parse bliCommandP "" ("?- "++s) of
+          case parse bliCommandTypedP "" ("?- "++s) of
             Left  err    -> fail (show err)
             Right x      -> [e| x |]
 

@@ -101,6 +101,7 @@ library
       TypeApplications
       FlexibleInstances
       DeriveDataTypeable
+      DeriveLift
       TemplateHaskell
       OverloadedStrings
       MultiParamTypeClasses

@@ -64,7 +64,7 @@ data BliCommandTyped =
  | T_LambdaQuery LambdaGoal
  | T_AssertMode Goal
  | T_AssertClause Clause 
- | T_AssertSchema TypedSchemaEntry deriving(Show, Eq)
+ | T_AssertSchema TypedSchemaEntry deriving(Show, Eq, Lift)
 
 -- | Helper function to check if a BliCommand is an assertion.
 isAssertion :: BliCommandTyped -> Bool

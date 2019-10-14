@@ -7,6 +7,8 @@
 
 module Data.Schema where
 
+import Language.Haskell.TH.Lift
+
 -- | A schema (curretly) is a list of identifiers,
 --   together with their arity. In the future,
 --   this will be a more complex datatype.
@@ -22,11 +24,11 @@ data IsStored =
 -- Special type of storage handled
 -- by the bedebliry server.
  | External
- | NotStored deriving(Eq, Show)
+ | NotStored deriving(Eq, Show, Lift)
 
 -- | Experimental, for lambek calculus support.
 data Direction = LeftArr 
-               | RightArr deriving(Eq, Show)
+               | RightArr deriving(Eq, Show, Lift)
 
 -- | For our typed schema entry, we can either declare that a predicate
 --   with a given identity can take arguments of the supplied types,
@@ -45,7 +47,7 @@ data TypedSchemaEntry =
 -- | Declaration of a new datatype with a given name,
 --   and a collection of constructors, which consist of a name, and
 --   a list of argument types for those constructors.
-  | DataType String [(String, [String])] deriving(Eq, Show)
+  | DataType String [(String, [String])] deriving(Eq, Show, Lift)
 
 -- Note: We should probably refactor these all into newtypes, incase we
 -- want to make use of smart construtors later.

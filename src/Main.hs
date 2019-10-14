@@ -1,4 +1,4 @@
-{-# LANGUAGE DeriveDataTypeable #-}
+{-# LANGUAGE DeriveDataTypeable, ScopedTypeVariables #-}
 
 --
 -- | Main entrypoint for the bli-prolog executable.
@@ -32,21 +32,24 @@ main = do
       -- If prolog file not specified, start with an empty set of clauses.
       p <- case program opts of
         "" -> return $ Right []
-        _  -> clausesFromFile $ program opts
+        p  -> error "TODO: Implement this using out new code."
+        -- _  -> clausesFromFile $ program opts
       -- If Schema file not specified, start with an empty schema. 
       s <- case schema opts of
         "" -> return $ Right []
-        _  -> schemaFromFile $ schema opts
+        _  -> error "TODO: Implement this using new code." -- schemaFromFile $ schema opts
       -- Handle parse errors for prolog and schema files.
       case (p,s) of 
-        (Left err,_) -> do putStrLn ((red colorOpts "Error") ++ " parsing prolog file:") 
-                           putStrLn $ foldr1 (\x -> \y -> x ++ "\n" ++ y) $
-                                             (map (\x -> "  " ++ x)) $ 
-                                             (splitOn "\n" $ show err)
-        (_,Left err) -> do putStrLn ((red colorOpts "Error")++" parsing schema file:") 
-                           putStrLn $ foldr1 (\x -> \y -> x ++ "\n" ++ y) $
-                                             (map (\x -> "  " ++ x)) $ 
-                                             (splitOn "\n" $ show err)
+        (Left (err :: String),_) -> 
+          do putStrLn ((red colorOpts "Error") ++ " parsing prolog file:") 
+             putStrLn $ foldr1 (\x -> \y -> x ++ "\n" ++ y) $
+                               (map (\x -> "  " ++ x)) $ 
+                               (splitOn "\n" $ show err)
+        (_,Left (err :: String)) ->
+          do putStrLn ((red colorOpts "Error")++" parsing schema file:") 
+             putStrLn $ foldr1 (\x -> \y -> x ++ "\n" ++ y) $
+                               (map (\x -> "  " ++ x)) $ 
+                               (splitOn "\n" $ show err)
         -- If all files parse sucessfully...
         (Right clauses, Right schema) ->
           case server opts of
