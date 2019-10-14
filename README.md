@@ -278,7 +278,7 @@ of how this might work in the future, if implemented.
   % solve the predicate P with respect to the rules in the list Rules.
   according_to(Person, P)
     :- with_rules(Rules, P),
-       bagof(Rule, thinks(Person, Rule), Rules).
+       bagof(\Rule. thinks(Person, Rule), Rules).
 
   according_to(nate, cool(haskell)).
     True.
