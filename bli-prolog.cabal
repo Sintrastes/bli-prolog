@@ -31,6 +31,10 @@ library
       Bli.Prolog.TH
       Bli.Prolog.Typechecking
       Bli.Prolog.Parser
+      Bli.Prolog.Parser.DateTime
+      Bli.Prolog.Parser.Common
+      Bli.Prolog.Parser.Schema
+      Bli.Prolog.Parser.Cli
       Data.Schema
       Data.Alias
       Data.BliSet
