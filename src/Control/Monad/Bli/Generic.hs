@@ -211,7 +211,8 @@ initialTypes =
         tryInsert "date" >>= 
         tryInsert "time" >>=
         tryInsert "type" >>=
-        tryInsert "entity"
+        tryInsert "entity" >>=
+        tryInsert "proc"
   in result
 
 -- | Run a Bli computation with some initial application configuration data.
