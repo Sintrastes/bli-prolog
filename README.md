@@ -119,16 +119,18 @@ Bedelibry Prolog also supports list literals, which have type `list[TYPE]`. For 
 Finally, Bedelibry Prolog also has support for date and datetime literals, following the ISO 8601 standard. For example:
 
 ~~~
-  2019-10-09 : date.
-  2019-10-09:05:36:44 : datetime.
+  '2019-10-09 : date.
+  '2019-10-09:05:36:44 : datetime.
 ~~~
 
 Both of these are subtypes of a more generic type `period` used for more general periods of time, using natural extensions of the iso 8601 format:
 
 ~~~
-  2019-10 : period.
-  2020    : period.
+  '2019-10 : period.
+  '2020    : period.
 ~~~
+
+Note: The ' here is to disambiguate between time periods and numbers.
 
 Being able to work with such datatypes simply and naturally is one of the things which is 
 important when working with bedelibry. For example, when making a query about a remark that was made
