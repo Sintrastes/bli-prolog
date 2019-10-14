@@ -135,7 +135,6 @@ lookupPrimaryID id = do
   relations <- getRelations
   entities <- getEntities
   aliases <- getAliases
-  lift $ putStrLn "In lookupPrimaryID" -- debugging
   let result =
         msum [lookup (==id) types
              ,fst <$> lookup (\x ->(fst x)== id) relations

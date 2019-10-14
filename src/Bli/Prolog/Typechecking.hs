@@ -6,13 +6,14 @@
 module Bli.Prolog.Typechecking where
 
 import Data.Bli.Prolog.Ast
+import Bli.Prolog.Interp (expandAliases, expandAliasesTerm)
 import Bli.Prolog.Interp.Data (isPlain)
 import qualified Data.Set as S
 import Data.List((\\), nub)
 import Data.Char
 import Control.Monad (join)
 import Data.Schema
-import Control.Monad.Bli.Pure
+import Control.Monad.Bli
 import qualified Data.BliSet as BliSet
 
 -- | Helper function. Checks to see which identifiers are used in a pure prolog term.
@@ -240,8 +241,11 @@ typecheckGoal terms = do
   return $ foldr joinErrors (Right Ok) results
 
 typecheckBliCommand :: BliCommandTyped -> Bli (Either [InvalidClause] Ok)
-typecheckBliCommand (T_QueryMode goal) = typecheckGoal goal
-typecheckBliCommand cmd@(T_LambdaQuery (bindingVars, terms)) = do
+typecheckBliCommand (T_QueryMode goal') = do
+  goal <- expandAliases goal'
+  typecheckGoal goal
+typecheckBliCommand cmd@(T_LambdaQuery (bindingVars, terms')) = do
+  terms <- expandAliases terms'
   result <- typecheckGoal terms
   let bodyVars = collectTypedBliCommandVars cmd 
   let lambdaError = 
@@ -249,9 +253,12 @@ typecheckBliCommand cmd@(T_LambdaQuery (bindingVars, terms)) = do
         then Right Ok
         else Left $ [BoundVarNotInBody]
   return $ joinErrors lambdaError result
-
-typecheckBliCommand (T_AssertMode terms) = typecheckGoal terms
-typecheckBliCommand (T_AssertClause (t,ts)) = do
+typecheckBliCommand (T_AssertMode terms') = do
+  terms <- expandAliases terms'
+  typecheckGoal terms
+typecheckBliCommand (T_AssertClause (t',ts')) = do
+  t  <- expandAliasesTerm t'
+  ts <- expandAliases ts'
   -- Note: We need to do more type-checking here. All free variables on the 
   -- RHS with expected type t should only be used in holes in the LHS
   -- with the same expected type.

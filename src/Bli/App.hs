@@ -48,7 +48,7 @@ processBliCommand command = do
   -- using a utiity function that checks if a command is an assertion or not if needed.
   let mapLeft f (Left x) = Left (f x)
       mapLeft f (Right x) = Right x
-  typecheckResult <- liftFromPure $ typecheckBliCommand command
+  typecheckResult <- typecheckBliCommand command
   -- Just deal with the first error. Later we will probably want to
   -- display multiple errors.
   case mapLeft head typecheckResult of
@@ -84,7 +84,9 @@ processBliCommand command = do
       return $ Result_AssertionFail_TypeNotDeclared x
     Right Ok -> do
       case command of 
-        (T_AssertMode goal) -> do
+        (T_AssertMode goal') -> do
+           -- First, expand all aliases 
+           goal <- expandAliases goal'
            -- Try inserting each of the terms individually, collecting errors
            let collected = 
                  foldr1 (>=>) 
@@ -100,7 +102,11 @@ processBliCommand command = do
              -- was already asserted.
              -- If there were any errors, the assertions fails.
              Left _ -> return $ Result_AssertionFail_AlreadyAsserted
-        (T_AssertClause clause) -> do
+        (T_AssertClause (head',body') ) -> do
+          -- First, expand all aliases 
+          head <- expandAliasesTerm head'
+          body <- expandAliases body'
+          let clause = (head, body)
           case tryInsert clause clauses of
                  Left _ -> return $ Result_AssertionFail_AlreadyAsserted 
                  Right result -> do setFacts result
@@ -112,7 +118,9 @@ processBliCommand command = do
                     map Solution 
                       $ map (filter (\(x,y) -> x `elem` vars)) 
                       $ map (\(Solution x) -> x) $ searchF tree
-        (T_QueryMode goal) -> do
+        (T_QueryMode goal') -> do
+           -- First, expand all aliases 
+          goal <- expandAliases goal'
           let limiting lst = 
                 case limit opts of
                   Nothing -> lst

@@ -77,16 +77,18 @@ getStoredRelations :: Goal -> Bli (String, [String])
 getStoredRelations goal = undefined
 
 -- | Helper function that replaces all occurences of 
---   ids in a string with their primary id, if it exists. 
+--   ids in a term with their primary id, if it exists. 
+expandAliasesTerm :: Term -> Bli Term
+expandAliasesTerm (Comp x ts) = do
+   pidX <- fromMaybe x <$> lookupPrimaryID x
+   args <- mapM expandAliasesTerm ts
+   return (Comp pidX args)
+expandAliasesTerm (Var x) = return $ Var x
+
+-- | Helper function that replaces all occurences of 
+--   ids in a goal with their primary id, if it exists. 
 expandAliases :: Goal -> Bli Goal
-expandAliases terms = mapM helper terms
-  where helper :: Term -> Bli Term
-        helper (Comp x ts) = do
-           lift $ putStrLn "In expandAliases" -- debugging.
-           pidX <- fromMaybe x <$> lookupPrimaryID x
-           args <- mapM helper ts
-           return (Comp pidX args)
-        helper (Var x) = return $ Var x
+expandAliases terms = mapM expandAliasesTerm terms
 
 -- Note: Here is where we can put our custom logic for
 -- e.x. dealing with the bedelibry backend.
