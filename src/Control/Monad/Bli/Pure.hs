@@ -1,5 +1,8 @@
 
-module Control.Monad.Bli.Pure where
+module Control.Monad.Bli.Pure (
+    module ReExport,
+    Bli
+  ) where
 
 --
 -- | A pure version of the Bli monad. 
@@ -15,6 +18,7 @@ import Control.Monad.State.Lazy
 import Data.Schema
 import Bli.App.Config (AppConfig)
 import Control.Monad.Bli.Common
+import Control.Monad.Bli.Pure.Generic as ReExport hiding (Bli)
 import qualified Control.Monad.Bli.Pure.Generic as Generic
 import qualified Control.Monad.Bli as Bli
 
@@ -31,33 +35,3 @@ type Bli a = Generic.Bli
  -- | The datastructure to use for storing aliases
     AliasDatastructure 
     a
-
-lookupPrimaryID = Generic.lookupPrimaryID @FactContainer @RelationContainer @EntityContainer @TypeContainer @AliasDatastructure
-setScopedFacts = Generic.setScopedFacts @FactContainer @RelationContainer @EntityContainer @TypeContainer @AliasDatastructure
-modifyScopedFacts = Generic.modifyScopedFacts @FactContainer @RelationContainer @EntityContainer @TypeContainer @AliasDatastructure
-getScopedFacts = Generic.getScopedFacts @FactContainer @RelationContainer @EntityContainer @TypeContainer @AliasDatastructure
-clearScope = Generic.clearScope @FactContainer @RelationContainer @EntityContainer @TypeContainer @AliasDatastructure
-newScopedFact = Generic.newScopedFact @FactContainer @RelationContainer @EntityContainer @TypeContainer @AliasDatastructure
-runBli = Generic.runBli  @FactContainer @RelationContainer @EntityContainer @TypeContainer @AliasDatastructure
-getConfig = Generic.getConfig @FactContainer @RelationContainer @EntityContainer @TypeContainer @AliasDatastructure
-getFacts = Generic.getFacts @FactContainer @RelationContainer @EntityContainer @TypeContainer @AliasDatastructure
-getRelations = Generic.getRelations @FactContainer @RelationContainer @EntityContainer @TypeContainer @AliasDatastructure
-getEntities = Generic.getEntities @FactContainer @RelationContainer @EntityContainer @TypeContainer @AliasDatastructure
-getTypes = Generic.getTypes @FactContainer @RelationContainer @EntityContainer @TypeContainer @AliasDatastructure
-getAliases = Generic.getAliases @FactContainer @RelationContainer @EntityContainer @TypeContainer @AliasDatastructure
-newAlias = Generic.newAlias @FactContainer @RelationContainer @EntityContainer @TypeContainer @AliasDatastructure
-newType = Generic.newType @FactContainer @RelationContainer @EntityContainer @TypeContainer @AliasDatastructure
-newEntity = Generic.newEntity @FactContainer @RelationContainer @EntityContainer @TypeContainer @AliasDatastructure
-newRelation = Generic.newRelation @FactContainer @RelationContainer @EntityContainer @TypeContainer @AliasDatastructure
-modifyConfig = Generic.modifyConfig @FactContainer @RelationContainer @EntityContainer @TypeContainer @AliasDatastructure
-modifyFacts = Generic.modifyFacts @FactContainer @RelationContainer @EntityContainer @TypeContainer @AliasDatastructure
-modifyRelations = Generic.modifyRelations @FactContainer @RelationContainer @EntityContainer @TypeContainer @AliasDatastructure
-modifyEntities = Generic.modifyEntities @FactContainer @RelationContainer @EntityContainer @TypeContainer @AliasDatastructure
-modifyTypes = Generic.modifyTypes @FactContainer @RelationContainer @EntityContainer @TypeContainer @AliasDatastructure
-setConfig = Generic.setConfig @FactContainer @RelationContainer @EntityContainer @TypeContainer @AliasDatastructure
-setFacts = Generic.setFacts @FactContainer @RelationContainer @EntityContainer @TypeContainer @AliasDatastructure
-setRelations = Generic.setRelations @FactContainer @RelationContainer @EntityContainer @TypeContainer @AliasDatastructure
-setEntities = Generic.setEntities @FactContainer @RelationContainer @EntityContainer @TypeContainer @AliasDatastructure
-setTypes = Generic.setTypes @FactContainer @RelationContainer @EntityContainer @TypeContainer @AliasDatastructure
-setAliases = Generic.setAliases @FactContainer @RelationContainer @EntityContainer @TypeContainer @AliasDatastructure
-liftFromPure = Generic.liftFromPure  @FactContainer @RelationContainer @EntityContainer @TypeContainer @AliasDatastructure
