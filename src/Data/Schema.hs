@@ -41,7 +41,11 @@ data TypedSchemaEntry =
 -- | A declaration that adds a new entity of a given type to the schema. 
   | TypeOf String String
 -- | An import statement for Bli Prolog.
-  | Using String deriving(Eq, Show)
+  | Using String 
+-- | Declaration of a new datatype with a given name,
+--   and a collection of constructors, which consist of a name, and
+--   a list of argument types for those constructors.
+  | DataType String [(String, [String])] deriving(Eq, Show)
 
 -- Note: We should probably refactor these all into newtypes, incase we
 -- want to make use of smart construtors later.
