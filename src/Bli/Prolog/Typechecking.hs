@@ -12,7 +12,7 @@ import qualified Data.Set as S
 import Data.List((\\), nub, intercalate)
 import Data.Char
 import Control.Monad (join)
-import Data.Schema
+import Data.Bli.Prolog.Schema
 import Control.Monad.Bli
 import qualified Data.BliSet as BliSet
 

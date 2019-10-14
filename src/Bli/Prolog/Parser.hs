@@ -10,7 +10,7 @@ import Control.Monad.Combinators (eitherP)
 import Bli.Prolog.Parser.Common
 import Bli.Prolog.Parser.Schema
 import Data.Bli.Prolog.Ast
-import Data.Schema
+import Data.Bli.Prolog.Schema
 import Control.Monad (join)
 
 -- | Loads a plain prolog file @filename@, and parses it into a list of clauses.

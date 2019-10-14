@@ -10,7 +10,7 @@ import Bli.Prolog.Parser.Common
 import Text.ParserCombinators.Parsec
 import Control.Monad.Combinators (eitherP)
 import Data.Bli.Prolog.Ast
-import Data.Schema
+import Data.Bli.Prolog.Schema
 
 parseTypedSchemaFile = parseFromFile typedSchemaFileP 
 parseTypedSchema = parse typedSchemaFileP ""

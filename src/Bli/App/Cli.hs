@@ -15,7 +15,7 @@ import Bli.App.Colors
 import Bli.App.Config
 import Bli.Prolog.Typechecking
 import Data.Bli.Prolog.Ast
-import Data.Schema
+import Data.Bli.Prolog.Schema
 import Data.Aeson
 import Bli.Prolog.Parser.Cli
 import Bli.Prolog.Parser.Schema

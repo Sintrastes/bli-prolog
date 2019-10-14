@@ -49,7 +49,7 @@ import Control.Monad
 import Control.Monad.Trans.State
 import Control.Monad.Trans.Class (lift)
 import Data.Bli.Prolog.Ast
-import Data.Schema
+import Data.Bli.Prolog.Schema
 import Bli.App.Config
 import Data.Alias
 import Data.BliSet

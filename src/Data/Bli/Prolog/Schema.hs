@@ -5,7 +5,7 @@
 --   if needed.
 --
 
-module Data.Schema where
+module Data.Bli.Prolog.Schema where
 
 import Language.Haskell.TH.Lift
 

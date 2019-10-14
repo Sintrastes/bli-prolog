@@ -5,7 +5,7 @@ import Data.Alias
 import Data.BliSet
 import Data.Map (Map)
 import Bli.App.Config
-import Data.Schema
+import Data.Bli.Prolog.Schema
 import Data.Bli.Prolog.Ast
 
 data BliStore t1 t2 t3 t4 alias = BliStore {

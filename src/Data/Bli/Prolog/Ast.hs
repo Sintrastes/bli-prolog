@@ -9,7 +9,7 @@ module Data.Bli.Prolog.Ast where
 
 import Language.Haskell.TH.Lift
 import Data.List (intercalate)
-import Data.Schema
+import Data.Bli.Prolog.Schema
 
 -- | An internal representation of prolog terms.
 data Term = Var Variable
