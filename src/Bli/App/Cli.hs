@@ -273,7 +273,10 @@ repl = do
                      printResponse $ "Or a pre-existing alias of a primary ID."
                      repl
              GetTypeOf t -> do
-               printResponse "Sorry, not implemented."
+               response <- typeOfAtom t
+               case response of
+                 Nothing -> printResponse "Did not typecheck"
+                 Just typ -> printResponse $ show typ
                repl
              ShowPort -> do
                 liftIO $ print (port config)
