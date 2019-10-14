@@ -16,7 +16,7 @@ import Bli.App.Config
 import Bli.Prolog.Typechecking
 import Data.Bli.Prolog.Ast
 import Data.Bli.Prolog.Schema
-import Data.Aeson
+import Data.Aeson hiding (json)
 import Bli.Prolog.Parser.Cli
 import Bli.Prolog.Parser.Schema
 import Bli.Prolog.Parser
@@ -71,13 +71,13 @@ processCliInput input = do
               result <-  processBliCommand command
               case result of
                 Result_QueryFail_AtomsNotInSchema atoms -> do
-                       printResponse $ (red colorOpts "Failure.")++" Query unsuccessful."
-                       printResponse $ "    The identifiers "++ show atoms
-                       printResponse $ "    have not been declared in a schema."
+                  printResponse $ (red colorOpts "Failure.")++" Query unsuccessful."
+                  printResponse $ "    The identifiers "++ show atoms
+                  printResponse $ "    have not been declared in a schema."
                 Result_QueryFail_BoundVarNotInBody -> do
-                      printResponse $ (red colorOpts "Failure.")++" Query unsuccessful."
-                      printResponse $ "    Variables bound by a lambda abstraction that do not appear"
-                      printResponse $ "    In the body of a query."
+                  printResponse $ (red colorOpts "Failure.")++" Query unsuccessful."
+                  printResponse $ "    Variables bound by a lambda abstraction that do not appear"
+                  printResponse $ "    In the body of a query."
                 Result_QueryFail_EntityNotDeclared t x -> do
                   printResponse $ (red colorOpts "Failure.")++" Query unsuccessful."
                   printResponse $ "    The term "++t++" has not been declared as an entity"
@@ -98,9 +98,13 @@ processCliInput input = do
                          (x:[]) -> do
                             if (show x == "true")
                             then printResponse (green colorOpts "True.")
-                            else return ()
+                            else case json opts of
+                                   True  -> liftIO $ mapM_ (putStrLn . solutionToJson) solutions
+                                   False -> liftIO $ mapM_ print solutions
                          _  -> do
-                            liftIO $ mapM_ (putStrLn . solutionToJson) solutions
+                            case json opts of
+                              True  -> liftIO $ mapM_ (putStrLn . solutionToJson) solutions
+                              False -> liftIO $ mapM_ print solutions 
                 Result_AssertionSuccess -> do
                   printResponse $ (green colorOpts "OK.")++" Assertion successful."
                 Result_AssertionFail_EntityNotDeclared t x -> do
