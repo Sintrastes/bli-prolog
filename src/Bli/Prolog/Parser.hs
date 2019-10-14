@@ -307,8 +307,9 @@ datatypeConstructorP :: Parser (String, [String])
 datatypeConstructorP = do
   symb "constructor"
   constructorName <- constructorP
-  symb ":"
+  csymb ':'
   types <- atomP `sepBy` (csymb ',')
+  csymb '.'
   return (constructorName, types)
 
 schemaEntityP :: Parser TypedSchemaEntry
@@ -335,7 +336,8 @@ typedSchemaLineP :: Parser BliCommandTyped
 typedSchemaLineP = do
     res <- (try schemaRelnP <|> try schemaEmptyRelnP 
        <|> try schemaStoredRelnP <|> try schemaEntityP
-       <|> try schemaExternalRelnP <|> typeDeclP)
+       <|> try schemaExternalRelnP <|> try typeDeclP 
+       <|> schemaDatatypeDeclP)
     return (T_AssertSchema res)
 
 typedBliFileP :: Parser [BliCommandTyped]
