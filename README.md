@@ -224,7 +224,7 @@ will attempt to declare new entities of a given type, storing this entity data i
 ~~~
 However, if we try to assert this again:
 ~~~
-  ?- programming_language(nim).
+  ?- programming_language(nim)!
   FAIL. Entity "nim" already exists in the configured server.
 ~~~
 
