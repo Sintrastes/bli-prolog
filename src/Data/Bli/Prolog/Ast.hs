@@ -16,6 +16,46 @@ data Term = Var Variable
           | Comp Atom Terms
           deriving (Eq, Read, Ord, Lift)
 
+
+data BliPrologType = 
+   Entity 
+ -- A user declared type, such as "person".
+ | DeclaredType String
+ -- Type of types, "type".
+ | TypTypes
+ | Predicate [BliPrologType]
+-- Note: Is there really a difference between predicates and goals?
+ | Goal [BliPrologType]
+ -- A type for rules: This allows for an interesting
+ -- design choice, where we allow for "first-class rules.",
+ -- and so predicates are allowed to talk about rules.
+ | Rule 
+ | StringLit
+ | IntLit
+ | DateTimeLit
+ -- A polymorphic list datatype
+ | List BliPrologType
+ | DateLit deriving(Eq)
+
+instance Show BliPrologType where
+  show Entity = "entity"
+  show (DeclaredType str) = str
+  show TypTypes = "type"
+  show (Predicate types) = "rel[" ++ (intercalate ", " (map show types)) ++ "]"
+  show (Goal types) = "goal[" ++ (intercalate ", " (map show types)) ++ "]"
+  show Rule = "rule"
+  show StringLit = "string"
+  show IntLit = "int"
+  show DateTimeLit = "datetime"
+  show (List t) = "list["++ show t ++"]" 
+  show DateLit = "date"
+
+-- Subtyping relation.
+infixr 9 <:
+(<:) :: BliPrologType -> BliPrologType -> Bool
+(<:) _ TypTypes = True
+(<:) _ _ = undefined
+
 instance Show Term where
   show (Var x) = x
   show (Comp id []) = id

@@ -105,19 +105,22 @@ solve goal' = do
   typePredicates <- getTypePredicates goal
   case () of
    _ | typePredicates /= [] -> do
+        -- Collection of types used in the type predicates
         let types = fmap (\(Comp x ts) -> x) typePredicates
-        -- For all types in the type predicates,
-        -- get a list of all elements of that type.
-        -- Bring facts of the form type(entity) into
-        -- scope, solve, and then bring them out of scope.
+        -- Lists of all entities of the types in the type predicates
         entityLists <- mapM getEntitiesOfType types
+        -- Get all of the type predicate facts that we need.
         let newFacts = join $ fmap (\(entities, typ) -> fmap (\x -> (Comp typ [Comp x []],[])) entities) 
                           $ zip entityLists types
+        -- Bring them into scope.
         newScopedFacts newFacts "_temp_"
+        -- Get the new list of facts after adding our scoped facts.
         prog <- toList <$> getFacts
         let solution = solve' prog goal
+        -- Bring the facts we needed out of scope.
         clearScope "_temp_"
         return solution
+
      | otherwise -> return $ solve' prog goal
 
 -- Uses the List monad for backtracking
