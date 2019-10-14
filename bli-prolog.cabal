@@ -50,8 +50,10 @@ library
       Bli.Prolog.Interp
       Bli.Prolog.Interp.Data
       Bli.Prolog.SearchStrategies
-      Control.Monad.Bli
       Control.Monad.Bli.Common
+      Control.Monad.Bli.Trans
+      Control.Monad.Bli.Trans.Generic
+      Control.Monad.Bli
       Control.Monad.Bli.Generic
       Control.Monad.Bli.Pure
       Control.Monad.Bli.Pure.Generic
