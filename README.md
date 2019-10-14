@@ -3,6 +3,8 @@ What Is It?
 
 An implementation of a dialect of pure prolog, called *bedelibry prolog* (or bli prolog), based on the [pure-prolog](https://github.com/kfl/pure-prolog) implementation by Ken Friis Larsen. Created for use in [bedelibry](https://github.com/Chinchillord/Bedellibrary).
 
+WARNING: The following readme is not meant to be documentation for bedelibry prolog at this stage in its development. This is merely meant to be an overview of what the language might look like once it is more fully implemented. Bedelibry is still in pre-release, and the API (either as presented below, or in the software itself) is liable to change as development progresses.
+
 How to install
 ==============
 
@@ -330,7 +332,22 @@ Type ":h" for help, or ":exit" to quit.
 EDSL
 ----
 
-Through the use of the quasiquoters found in `Data.Prolog.TemplateHaskell`, bli prolog can also be used as an EDSL in Haskell.
+Through the use of the quasiquoters found in `Data.Prolog.TemplateHaskell`, bli prolog can also be used as an EDSL in Haskell. The easiest way to do this is via the `query` function
+~~~
+query :: Bli (BliTerm (Query a)) -> Bli (ToHsData a)
+~~~
+which uses the type family `ToHsData` to convert from the internal representation of Bli terms to a native type in Haskell. For instance: `[bli| name(haskell, X). |]` has type `Bli (BliTerm (Query StringLiteral))`, and `query [bli| name(haskell, X). |]` has type `String`.
+
+Haskell Interop
+---------------
+
+Bedelibry prolog can also provide Haskell interoperability going the other way. To do this, the user can make a declaration as follows:
+
+~~~
+  extern my_haskell_function: string -> proc in MyHaskellModule.
+~~~
+
+which will look for a Haskell function `my_haskell_function :: String -> IO ()` in `MyHaskellModule`.
 
 Todo
 ----
