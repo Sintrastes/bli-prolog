@@ -1,8 +1,8 @@
 
 module Data.BliSet where
 
-import Prelude   hiding (filter, union)
-import Data.List hiding (filter, union, (\\))
+import Prelude   hiding (filter, union, lookup)
+import Data.List hiding (filter, lookup, union, (\\))
 import qualified Data.List as List
 import Data.Set (Set, (\\), singleton)
 import qualified Data.Set as Set
@@ -20,6 +20,12 @@ class (Traversable t, Filterable t, HasEmpty t) => BliSet t where
   lookup :: Ord a => (a -> Bool) -> t a -> Maybe a
   union  :: Ord a => t a -> t a -> t a
 
+isIn :: (BliSet t, Eq a, Ord a) => a -> t a -> Bool
+isIn x xs = 
+  case lookup (==x) xs of
+    (Just _) -> True
+    Nothing  -> False
+    
 instance BliSet [] where
   tryInsert x xs
       | x `elem` xs = Left xs

@@ -6,7 +6,7 @@ import Data.Time
 import Data.Time.Calendar
 import Data.Time.Clock
 
-data TimePeriod = Union [TimeInterval]
+data TimePeriod = Union [TimeInterval] deriving(Eq, Show)
 
 type TimeInterval = Interval UTCTime
 

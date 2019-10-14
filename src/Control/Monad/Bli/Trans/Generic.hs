@@ -116,8 +116,8 @@ newScopedFact clause scope = do
       newScopedFact clause scope
 
 -- | Checks to see if an identifier is a primary ID
-isPrimaryID :: (Monad m, BliSet t1, BliSet t2, BliSet t3, BliSet t4, Alias alias)
- => String -> BliT t1 t2 t3 t4 alias m Bool
+isPrimaryID :: (Monad m, BliSet t1, BliSet t2, BliSet t3, Alias alias)
+ => String -> BliT t1 t2 t3 t2 alias m Bool
 isPrimaryID id = do
   types <- getTypes
   relations <- getRelations
@@ -130,8 +130,8 @@ isPrimaryID id = do
     Just x  -> return $ True
     Nothing -> return $ False
 
-lookupPrimaryID :: (Monad m, BliSet t1, BliSet t2, BliSet t3, BliSet t4, Alias alias)
- => String -> BliT t1 t2 t3 t4 alias m (Maybe String)
+lookupPrimaryID :: (Monad m, BliSet t1, BliSet t2, BliSet t3, Alias alias)
+ => String -> BliT t1 t2 t3 t2 alias m (Maybe String)
 lookupPrimaryID id = do
   types <- getTypes
   relations <- getRelations
@@ -151,8 +151,8 @@ data NewAliasResult =
  | DoesNotHavePrimaryIDOrAlias
 
 -- | Attempts to add a new alias to the store. Returns a boolean flag to indicate success or failure.
-newAlias :: (Monad m, BliSet t1, BliSet t2, BliSet t3, BliSet t4, Alias alias)
- => String -> String -> BliT t1 t2 t3 t4 alias m NewAliasResult
+newAlias :: (Monad m, BliSet t1, BliSet t2, BliSet t3, Alias alias)
+ => String -> String -> BliT t1 t2 t3 t2 alias m NewAliasResult
 newAlias id1 id2 = do
   aliases <- getAliases
   let lookupResult = (getPID aliases id1 == getPID aliases id2) && (getPID aliases id1 /= Nothing)
@@ -195,8 +195,8 @@ newEntity name entityType = do
       return True
 
 -- | Attempts to add a new relation to the store. Returns a boolean flag to indicate success or failure.
-newRelation :: (Monad m, BliSet t1, BliSet t2, BliSet t3, BliSet t4, Alias alias)
- => String -> [String] -> BliT t1 t2 t3 t4 alias m Bool
+newRelation :: (Monad m, BliSet t1, BliSet t2, BliSet t3, Alias alias)
+ => String -> [String] -> BliT t1 t2 t3 t2 alias m Bool
 newRelation name argumentTypes = do
   relns <- getRelations
   case tryInsert (name, argumentTypes) relns of
@@ -261,9 +261,13 @@ getScopedFacts :: (Monad m, BliSet t1, BliSet t2, BliSet t3, BliSet t4, Alias al
 getScopedFacts = (scopedFacts <$> get)
 
 -- | Get the schema from a running bli application.
-getRelations :: (Monad m, BliSet t1, BliSet t2, BliSet t3, BliSet t4, Alias alias)
- => BliT t1 t2 t3 t4 alias m (t2 RelDecl)
-getRelations = relations <$> get
+getRelations :: (Monad m, BliSet t1, BliSet t2, BliSet t3, Alias alias)
+ => BliT t1 t2 t3 t2 alias m (t2 RelDecl)
+getRelations = do
+  standardRelations <- relations <$> get
+  let Right singleton = tryInsert "entity" empty
+  typePredicates    <- fmap (\typ -> (typ, singleton)) <$> types <$> get
+  return $ standardRelations `union` typePredicates
 
 getEntities :: (Monad m, BliSet t1, BliSet t2, BliSet t3, BliSet t4, Alias alias)
  => BliT t1 t2 t3 t4 alias m (t3 EntityDecl)

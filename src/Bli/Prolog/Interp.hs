@@ -6,6 +6,7 @@ import Data.List (nub)
 import Control.Monad(liftM)
 import Control.Monad.Bli
 import Data.Foldable
+import Data.BliSet (isIn)
 import Data.Alias
 import Data.Maybe
 import Data.Traversable (mapM)
@@ -65,7 +66,11 @@ freshen bound (tc, tb) = (subs sub tc, map (subs sub) tb)
 --   consist of *type predicates* -- i.e. predicates of the form
 --   id(X), where id is the identifier for a type in the current schema.
 getTypePredicates :: Goal -> Bli Goal
-getTypePredicates goal = return goal
+getTypePredicates goal = do
+  types <- getTypes
+  let termHead (Var x) = x
+      termHead (Comp x _) = x
+  return $ filter (\x -> termHead x `isIn` types) goal
 
 -- | Helper function to return a list of all of the stored
 --   relations (along with their type identifiers) which
@@ -99,7 +104,13 @@ solve goal' = do
   goal <- expandAliases goal'
   typePredicates <- getTypePredicates goal
   case () of
-   _ | typePredicates /= [] -> return $ solve' prog goal
+   _ | typePredicates /= [] -> do
+        types <- getTypes
+        -- For all types in the type predicates,
+        -- get a list of all elements of that type.
+        -- Bring facts of the form type(entity) into
+        -- scope, solve, and then bring them out of scope.
+        return $ solve' prog goal
      | otherwise -> return $ solve' prog goal
 
 -- Uses the List monad for backtracking

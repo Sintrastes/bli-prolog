@@ -14,9 +14,9 @@ dayP :: Parser TimeInterval
 dayP = do
   _ <- char '\''
   year' <- read <$> replicateM 4 digit :: Parser Integer
-  _ <- char ':'
+  _ <- char '-'
   month' <- read <$> replicateM 2 digit :: Parser Int
-  _ <- char ':'
+  _ <- char '-'
   day' <- read <$> replicateM 2 digit :: Parser Int
   return $ day year' month' day'
 
@@ -24,7 +24,7 @@ monthP :: Parser TimeInterval
 monthP = do
   _ <- char '\''
   year' <- read <$> replicateM 4 digit :: Parser Integer
-  _ <- char ':'
+  _ <- char '-'
   month' <- read <$> replicateM 2 digit :: Parser Int
   return $ month year' month'
 
