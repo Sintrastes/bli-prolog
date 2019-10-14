@@ -121,11 +121,11 @@ processCliInput input = do
                   printResponse $ (red colorOpts "Failure.")++" Assertion unsuccesful."
                   printResponse $ "    Type error."
                 Result_AssertionFail_AtomsNotInSchema atoms -> do
-                       printResponse $ (red colorOpts "Failure.")++" Assertion unsuccessful."
-                       printResponse $ "    The identifiers "++ show atoms
-                       printResponse $ "    have not been declared in a schema."
+                  printResponse $ (red colorOpts "Failure.")++" Assertion unsuccessful."
+                  printResponse $ "    The identifiers "++ show atoms
+                  printResponse $ "    have not been declared in a schema."
                 Result_AssertionFail_AlreadyAsserted -> do
-                    printResponse $ (yellow colorOpts "Already asserted.")
+                  printResponse $ (yellow colorOpts "Already asserted.")
 
 -- | Main entrypoint for the bli-prolog REPL.
 repl :: Bli ()

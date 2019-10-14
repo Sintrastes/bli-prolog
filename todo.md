@@ -1,6 +1,7 @@
 
 Todo
 ====
+  * Make our rel syntax just syntatic sugar for our more general functional syntax.
   * Implement scoped assertions.
   * Implement a module system like in the example files.
      * The idea is pretty simple, a module is just an alias to a file somehwere 
