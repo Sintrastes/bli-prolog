@@ -89,6 +89,7 @@ expandAliasesTerm (Comp (Identifier x) ts) = do
    args <- mapM expandAliasesTerm ts
    return (Comp (Identifier pidX) args)
 expandAliasesTerm (Var x) = return $ Var x
+expandAliasesTerm x = return x
 
 -- | Helper function that replaces all occurences of 
 --   ids in a goal with their primary id, if it exists. 

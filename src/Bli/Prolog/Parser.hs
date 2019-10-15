@@ -35,7 +35,7 @@ programP = do spacesOrComments
 -- | Parser for a prolog term.
 termP :: Parser Term
 termP =  (variableP >>= return . Var)
-    <|> literalP
+    <|> try literalP
     <|> (listP     <?> "list term")
 
 -- I guess this is syntax for a SNOC list?
@@ -91,9 +91,14 @@ clauseP = do t <- termP
 
 -- | Parser for a prolog literal. (i.e. not a list term)
 literalP :: Parser Term
-literalP = do id <- atomP
-              option (Comp id [])
-                     (parens termsP >>= return . Comp id)
+literalP = 
+           try ( do id <- appTermP
+                    terms <- parens termsP
+                    return $ Comp id terms )
+       <|> try (do id <- atomP
+                   terms <- parens termsP
+                   return $ Comp id terms )
+       <|> (\x -> Comp x []) <$> atomP
         -- I'm not sure if I'll even need this.
        {-  <|>
            do ts <- parens termsP
@@ -105,13 +110,19 @@ literalP = do id <- atomP
 termsP :: Parser Terms
 termsP = sepBy1 termP (csymb ',')
 
+appTermP :: Parser Atom
+appTermP = do id <- identifierP
+              char '('
+              atoms <- atomP `sepBy` csymb ','
+              char ')'
+              return $ AppTerm id atoms  
 
 -- | Parser for a bedelibry prolog identifier.
 atomP :: Parser Atom
-atomP = (Identifier <$> identifierP) 
-     <|> symbolicP
-     <|> quotedP
-     <|> intLiteralP
+atomP = try (Identifier <$> identifierP) 
+     <|> try symbolicP
+     <|> try quotedP
+     <|> try intLiteralP
      <|> TimeperiodLiteral <$> timePeriodP
   where
     -- I'm not sure how much of this is needed. I'll use an identifier here for now.

@@ -67,7 +67,7 @@ data Atom =
     Identifier String
   | Predicate String Terms
   | DataLit String Atoms
-  | FunctionApp String Atoms
+  | AppTerm String Atoms
   | IntLiteral Int
   | ListLiteral [Atom]
   | StringLiteral String

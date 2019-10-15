@@ -121,7 +121,7 @@ typeOfAtom (DataLit _ _) = do
   -- and see if our DataLit matches any of the types
   -- in our schema.
   undefined
-typeOfAtom (FunctionApp _ _) = do 
+typeOfAtom (AppTerm _ _) = do 
   -- 
   undefined
 typeOfAtom (ListLiteral xs) = do
