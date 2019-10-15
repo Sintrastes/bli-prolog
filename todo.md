@@ -18,9 +18,6 @@ Todo
 
   * Integrate implicit predication with REPL.
       * Write a contextual parser for implicit predications.
-  * Need to add specail logic to querying terms where the predicate
-    is unary, and the id of the predicate is the name of a type in the 
-    current schema.
   * Implement side-effects with asserting types. (first need to configure the entity server).
      * Note: I think that for assertions that produce a side effect (including adding a new entity
              to the schema -- either in memory, or part of the bedelibry server -- we should use
@@ -32,13 +29,14 @@ Todo
   * Modify BliResult to take into account the type-specific errors that I want to consider.
   * Make sure the typed bli command parsers are taking into account reserved words (like type, entity, rel) correctly.
       * Done, but need to add test cases for this.
+      * Also, this doesn't currently work correctly.
   * Modify our test cases to take into account the new parsers.
   * Add new test cases for the new BliResult options
   * Make :ls commands give a specific output when the relevant store is empty.
      * Done, but should add test cases for this.
-  * Refactor the configuration code to work with my new scheme.
   * Refactor the server code to use servant.
   * Fix the typechecking of rules.
+  * Refactor Ast so Atom is a an ADT, not just an alias for String.
     
 Notes
 -----
