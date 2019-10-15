@@ -6,6 +6,7 @@
 module Bli.App.Cli where
 
 import Control.Monad.Bli
+import Control.Monad
 import qualified Control.Monad.Bli.Pure as Pure
 import Bli.App
 import Bli.App.Api
@@ -128,6 +129,14 @@ processCliInput input = do
                 Result_AssertionFail_AlreadyAsserted -> do
                   printResponse $ (yellow colorOpts "Already asserted.")
 
+-- | Function used to use for tab completion in the REPL.
+completionFunction :: String -> IO [String]
+completionFunction x = 
+   if any (\y -> isPrefixOf x y) commandStrings
+   then return $ filter (isPrefixOf x) commandStrings
+   else return []
+ where commandStrings = join $ map bliReplCommandStrings [minBound..maxBound]
+
 -- | Main entrypoint for the bli-prolog REPL.
 repl :: Bli ()
 repl = do
@@ -141,7 +150,7 @@ repl = do
   let schema = [] 
   let colorOpts = not $ nocolor config
   -- Testing to see how this works.
-  liftIO $ setCompletionEntryFunction $ Just (\x -> if x == "tes" then return ["test"] else return [])
+  liftIO $ setCompletionEntryFunction $ Just completionFunction
   maybeLine <- liftIO $ readline (blue colorOpts command_prompt)
   case maybeLine of
     Nothing -> repl

@@ -238,6 +238,14 @@ typecheckBliCommand (T_AssertClause (t',ts')) = do
   -- Note: We need to do more type-checking here. All free variables on the 
   -- RHS with expected type t should only be used in holes in the LHS
   -- with the same expected type.
+
+  -- Get the indexes of all free vars in ts
+
+  -- Match the free vars on the LHS with their expected types
+
+  -- Make sure that each occurance of each variable on the RHS matches
+  -- its expected type on the LHS.
+  
   results1 <- typecheckGoal ts
   results2 <- typecheckTerm t
   return $ joinErrors results1 results2

@@ -42,7 +42,6 @@ Todo
     
 Notes
 -----
-  * Implement tab completion in the REPL.
   * Consider implementing string and list literals.
     * Note that we'll probably want to implement a system of literals that is also
       capable of dealing with data entities. E.x. 'Url("file:/home/nate/pdfs/my.pdf"). Where we use a tick

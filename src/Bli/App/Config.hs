@@ -127,7 +127,7 @@ data BliReplCommandType =
  | Cmd_SetMode
  | Cmd_ShowPort
  | Cmd_GetTypeOf
- | Cmd_GetPID deriving(Enum)
+ | Cmd_GetPID deriving(Enum, Bounded)
 
 -- | Takes a BliReplCommandType, and returns a list of the strings 
 --   which can be used to invoke that command.
@@ -217,7 +217,7 @@ data BliReplParseResult =
 parseBliReplCommand :: String -> BliReplParseResult
 parseBliReplCommand input =
   case lookup True $
-     zip (map (\x -> input `elem` (bliReplCommandStrings x)) (enumValues @BliReplCommandType)) 
+     zip (map (\x -> (filter (\x -> x /= ' ') input) `elem` (bliReplCommandStrings x)) (enumValues @BliReplCommandType)) 
          (enumValues @BliReplCommandType) of
     Just cmd -> 
       case typeToCommand cmd of
