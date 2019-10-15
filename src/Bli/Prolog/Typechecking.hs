@@ -114,12 +114,29 @@ data Ok = Ok
 
 -- | Helper function to return the type of an atom which has already been parsed.
 typeOfAtom :: Atom -> Bli (Maybe BliPrologType)
+typeOfAtom (StringLiteral string) = return $ Just $ StringLitT
+typeOfAtom (IntLiteral x) = return $ Just $ IntLitT
+typeOfAtom (DataLit _ _) = do
+  -- lookup user-defined datatypes in scope,
+  -- and see if our DataLit matches any of the types
+  -- in our schema.
+  undefined
+typeOfAtom (FunctionApp _ _) = do 
+  -- 
+  undefined
+typeOfAtom (ListLiteral xs) = do
+  -- Take the join of the types of all of the xs.
+  undefined
+typeOfAtom (Rule _ _) = return $ Just $ RuleT
+typeOfAtom (Goal _) = do
+  -- Lookup all free variables in the goal,
+  -- and lookup their types to determine
+  -- what type of perdicate this is.
+  undefined
+typeOfAtom (TimeperiodLiteral _) = return $ Just $ DateTimeLitT
 typeOfAtom (Identifier string) 
   -- A variable has no type.
   | isUpper (head string)            = return $ Nothing
-  | all id $ (map isNumber) $ string = return $ Just IntLitT
-  | head string == '"'               = return $ Just StringLitT
-  -- Todo: Check for date-time and date literals.
   | otherwise = do
       -- Check to see if the literal has a user-declared
       -- type
