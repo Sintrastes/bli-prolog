@@ -22,6 +22,7 @@ import Bli.Prolog.Parser.Schema
 import Bli.Prolog.Parser
 import Bli.Prolog.Interp
 import Data.List
+import Data.Alias (toKVList)
 import Control.Empty
 import System.Console.CmdArgs as CA hiding (program)
 import System.Console.Readline
@@ -195,7 +196,7 @@ repl = do
                  printResponse $ yellow colorOpts "No relations in store."
                  repl
                else do
-                 liftIO $ mapM_ print relations
+                 liftIO $ mapM_ printResponse $ map (\(name, types) -> "rel "++name++": " ++ intercalate ", " types ++ "." ) $ relations
                  repl
              ListTypes ->
                if types == empty
@@ -229,7 +230,7 @@ repl = do
                else do 
                  -- Note: To make this work, I probably need a "to list" function
                  -- for aliases, so that I can get this to print properly.
-                 liftIO $ print aliases
+                 mapM_ printResponse $ map (\(id1, id2) -> "alias " ++ id1 ++ " " ++ id2 ++ ".")  $ toKVList aliases
                  repl
              LoadFile filePath -> do
                 fileContents <- liftIO $ readFile filePath
@@ -245,8 +246,7 @@ repl = do
                       case parseTypedBli fileContents of
                           Left e -> printResponse "There has been a parse error."
                           Right lines -> do
-                              -- debugging
-                              liftIO $ print $ lines
+                              -- Note: We still need to do typechecking of the file here!
                               let (types, relations, entities, clauses) = groupSchemaClauses lines
                               newEntities entities
                               newFacts clauses

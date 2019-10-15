@@ -2,13 +2,23 @@
 
 type person.
 
-mother_child: person, person.
-father_child: person, person.
-sibling:      person, person.
-parent_child: person, person.
+rel mother_child: person, person.
+rel father_child: person, person.
+rel sibling:      person, person.
+rel parent_child: person, person.
 
 % Note that this should not compile unless we first declare
 % that all of the entities in the list below are people.
+
+marge: person.
+bart: person.
+lisa: person.
+maggie: person.
+mona: person.
+homer: person.
+jay: person.
+abe: person.
+abbie: person.
 
 mother_child(marge, bart).
 mother_child(marge, lisa).
