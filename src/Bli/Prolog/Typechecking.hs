@@ -114,11 +114,11 @@ data Ok = Ok
 
 -- | Helper function to return the type of an atom which has already been parsed.
 typeOfAtom :: Atom -> Bli (Maybe BliPrologType)
-typeOfAtom string 
+typeOfAtom (Identifier string) 
   -- A variable has no type.
   | isUpper (head string)            = return $ Nothing
-  | all id $ (map isNumber) $ string = return $ Just IntLit
-  | head string == '"'               = return $ Just StringLit
+  | all id $ (map isNumber) $ string = return $ Just IntLitT
+  | head string == '"'               = return $ Just StringLitT
   -- Todo: Check for date-time and date literals.
   | otherwise = do
       -- Check to see if the literal has a user-declared
@@ -127,12 +127,12 @@ typeOfAtom string
       entities <- getEntities
       let entityLookup = BliSet.lookup (\(a,b) -> string==a) entities
       return $ case entityLookup of
-        Just (_,typeOfX) -> Just $ DeclaredType typeOfX 
+        Just (_,typeOfX) -> Just $ DeclaredTypeT typeOfX 
         Nothing ->  do
           -- Check to see if the literal is in fact a type.
           let typeLookup = BliSet.lookup (==string) types
           case typeLookup of
-            Just _ -> Just $ TypTypes
+            Just _ -> Just $ TypTypesT
             Nothing -> Nothing
 
 -- | Data type representing all of the possible errors
@@ -144,7 +144,7 @@ data InvalidClause =
      BoundVarNotInBody 
      -- | Error to return when a query (or an assertion) of any kind contains
      --   identifiers which do not exist in any of the imported schemas.
-   | AtomsNotInSchema [Atom]
+   | AtomsNotInSchema [String]
 -- ... Identifier X is being used as an Nary predicate, but is declared to
 --     be a term of type Y in the schema.
    | NotAPredicate (String, Int, String)
@@ -175,7 +175,7 @@ joinErrors (Right Ok) (Right Ok) = Right Ok
 
 typecheckTerm :: Term -> Bli (Either [InvalidClause] Ok)
 typecheckTerm (Var x) = return $ Right Ok
-typecheckTerm (Comp p xs) = do
+typecheckTerm (Comp (Identifier p) xs) = do
   types     <- getTypes
   relations <- getRelations
   entities  <- getEntities
@@ -189,7 +189,7 @@ typecheckTerm (Comp p xs) = do
     Just (_, expectedTypes) -> do
       -- Helper function
       let termHead (Var x) = x
-          termHead (Comp x _) = x
+          termHead (Comp (Identifier x) _) = x
       -- Typecheck each of the individual arguments 
       -- of the predicate.
       let intermediateResults = map 

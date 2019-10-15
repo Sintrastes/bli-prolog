@@ -90,20 +90,22 @@ termP =  (variableP >>= return . Var)
 -- | Parser that handles lists as prolog terms.
 listP :: Parser Term
 listP = between (csymb '[') (csymb ']')
-               (option emptyListTermP listTermsP)
+               (option emptyListTerm listTermsP)
 
+-- I guess this is syntax for a SNOC list?
 listTermsP :: Parser Term
 listTermsP =
     do heads <- termsP
-       tail <- option emptyListTermP
+       tail  <- option emptyListTerm
                       (csymb '|' >> termP)
-       return (foldr consP tail heads)
+       return (foldr cons tail heads)
 
-emptyListTermP :: Term
-emptyListTermP = Comp "[]" []
+emptyListTerm :: Term
+emptyListTerm = Comp (ListLiteral []) []
 
-consP :: Term -> Term -> Term
-consP h t = Comp "." [h,t]
+-- Todo: Make this explicitly a partial function and do error handling.
+cons :: Term -> Term -> Term
+cons (Comp h []) (Comp (ListLiteral ts) []) = Comp (ListLiteral (h:ts)) [] 
 
 -- | Parser for a list of prolog terms.
 termsP :: Parser Terms
@@ -114,38 +116,41 @@ literalP :: Parser Term
 literalP = do id <- atomP
               option (Comp id [])
                      (parens termsP >>= return . Comp id)
-           <|>
+        -- I'm not sure if I'll even need this.
+       {-  <|>
            do ts <- parens termsP
               return $ commas ts
                 where commas [a] = a
-                      commas (h:t) = Comp "," [h, commas t]
+                      commas (h:t) = Comp "," [h, commas t] -}
 
 parens :: Parser p -> Parser p
 parens p = between (csymb '(') (csymb ')') p
 
+identifierP =
+        (do c <- lower
+            cs <- many (alphaNum <|> char '_')
+            case (c:cs) of
+              "rel"  -> fail "\"rel\" is a reserved keyword, and may not be used as an identifer."
+              "type" -> fail "\"type\" is a reserved keyword, and may not be used as an identifier."
+              "entity" -> fail "\"entity\" is a reserved keyword, and may not be used as an identifer."
+              otherwise -> return $ (c:cs)) <?> "atom"
 
 -- | Parser for a bedelibry prolog identifier.
 atomP :: Parser Atom
-atomP = plain <|> symbolic <|> quoted
+atomP = (Identifier <$> identifierP) <|> symbolicP <|> quotedP
   where
-    plain = (do c <- lower
-                cs <- many (alphaNum <|> char '_')
-                case (c:cs) of
-                  "rel"  -> fail "\"rel\" is a reserved keyword, and may not be used as an identifer."
-                  "type" -> fail "\"type\" is a reserved keyword, and may not be used as an identifier."
-                  "entity" -> fail "\"entity\" is a reserved keyword, and may not be used as an identifer."
-                  otherwise -> return (c:cs)) <?> "atom"
-    symbolic = (many1 $ oneOf "#$&*+-./:<=>?@\\^~") <?> "symbolic atom"
-    quoted = (do q <- char '"'
-                 s <- manyTill anyChar (try $ char '"')
-                 return $ "\""++s++"\"" ) <?> "string literal"
+    -- I'm not sure how much of this is needed. I'll use an identifier here for now.
+    symbolicP = Identifier <$> (many1 $ oneOf "#$&*+-./:<=>?@\\^~") <?> "symbolic atom"
+    quotedP = (do q <- char '"'
+                  s <- manyTill anyChar (try $ char '"')
+                  return $ StringLiteral s ) <?> "string literal"
 
 constructorP :: Parser String
 constructorP = do
   c1 <- char '\''
   c2 <- upper
   cs <- many (alphaNum <|> char '_')
-  return (c1:c2:cs)
+  return $ (c2:cs)
 
 -- | Parser for a bedelibry prolog variable.
 variableP :: Parser String

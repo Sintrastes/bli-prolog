@@ -69,7 +69,7 @@ getTypePredicates :: Goal -> Bli Goal
 getTypePredicates goal = do
   types <- getTypes
   let termHead (Var x) = x
-      termHead (Comp x _) = x
+      termHead (Comp (Identifier x) _) = x
   return $ filter (\x -> termHead x `isIn` types) goal
 
 -- | Helper function to return a list of all of the stored
@@ -84,10 +84,10 @@ getStoredRelations goal = undefined
 -- | Helper function that replaces all occurences of 
 --   ids in a term with their primary id, if it exists. 
 expandAliasesTerm :: Term -> Bli Term
-expandAliasesTerm (Comp x ts) = do
+expandAliasesTerm (Comp (Identifier x) ts) = do
    pidX <- fromMaybe x <$> lookupPrimaryID x
    args <- mapM expandAliasesTerm ts
-   return (Comp pidX args)
+   return (Comp (Identifier pidX) args)
 expandAliasesTerm (Var x) = return $ Var x
 
 -- | Helper function that replaces all occurences of 
@@ -106,11 +106,11 @@ solve goal' = do
   case () of
    _ | typePredicates /= [] -> do
         -- Collection of types used in the type predicates
-        let types = fmap (\(Comp x ts) -> x) typePredicates
+        let types = fmap (\(Comp (Identifier x) ts) -> x) typePredicates
         -- Lists of all entities of the types in the type predicates
         entityLists <- mapM getEntitiesOfType types
         -- Get all of the type predicate facts that we need.
-        let newFacts = join $ fmap (\(entities, typ) -> fmap (\x -> (Comp typ [Comp x []],[])) entities) 
+        let newFacts = join $ fmap (\(entities, typ) -> fmap (\x -> (Comp (Identifier typ) [Comp (Identifier x) []],[])) entities) 
                           $ zip entityLists types
         -- Bring them into scope.
         newScopedFacts newFacts "_temp_"
@@ -136,15 +136,15 @@ solve' prog g@(t1 : ts) = [Node g trees]
                        Nothing -> []
 --solve _ _ = []
 
-makeReportGoal goal = [Comp "_report" reportVars]
-    where reportVars = map (\ v -> Comp "=" [Comp v [], Var v]) vars
+makeReportGoal goal = [Comp (Identifier "_report") reportVars]
+    where reportVars = map (\ v -> Comp (Identifier "=") [Comp (Identifier v) [], Var v]) vars
           vars = variables goal
 
-isReportGoal (Comp "_report" _) = True
+isReportGoal (Comp (Identifier "_report") _) = True
 isReportGoal _                  = False
 
-getSolution (Comp "_report" args) = Solution sol
-    where sol = filter nontriv $ map (\ (Comp "=" [Comp v [], t]) -> (v, t)) args
+getSolution (Comp (Identifier "_report") args) = Solution sol
+    where sol = filter nontriv $ map (\ (Comp (Identifier "=") [Comp (Identifier v) [], t]) -> (v, t)) args
           nontriv (x, (Var y)) | x == y = False
           nontriv _ = True
 getSolution _ = error "getSolution should never be called like this"

@@ -299,7 +299,8 @@ repl = do
                      printResponse $ "Or a pre-existing alias of a primary ID."
                      repl
              GetTypeOf t -> do
-               response <- typeOfAtom t
+               -- TODO: Actually parse this into an atom here.
+               response <- typeOfAtom (Identifier t)
                case response of
                  Nothing -> printResponse "Did not typecheck"
                  Just typ -> printResponse $ show typ

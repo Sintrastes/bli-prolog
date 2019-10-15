@@ -15,7 +15,7 @@ import Data.TimePeriods
 -- | An internal representation of prolog terms.
 data Term = Var Variable
           | Comp Atom Terms
-          deriving (Eq, Ord, Lift) 
+          deriving (Eq, Ord, Read, Lift) 
 
 data BliPrologType = 
    EntityT 
@@ -70,9 +70,10 @@ data Atom =
   | FunctionApp String Atoms
   | IntLiteral Int
   | ListLiteral [Atom]
+  | StringLiteral String
   | Rule Term Terms
   | Goal Terms
-  | TimeperiodLiteral TimePeriod deriving(Eq, Ord, Show, Lift)
+  | TimeperiodLiteral TimePeriod deriving(Eq, Ord, Show, Read, Lift)
 
 type Atoms = [Atom]
 

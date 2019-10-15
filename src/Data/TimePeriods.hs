@@ -13,7 +13,7 @@ instance Lift UTCTime
 instance (Lift a, Ord a, Data a) => Lift (Interval a)
 instance (Ord a) => Ord (Interval a)
 
-data TimePeriod = Union [TimeInterval] deriving(Eq, Show, Lift, Ord)
+data TimePeriod = Union [TimeInterval] deriving(Eq, Show, Read, Lift, Ord)
 
 type TimeInterval = Interval UTCTime
 

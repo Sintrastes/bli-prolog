@@ -17,15 +17,19 @@ isPlain (c:cs) = C.isLower c && all (\c -> c == '_' || C.isAlphaNum c) cs
 isPlain _ = False
 
 instance Show Solution where
-  show (Solution bindings) = PP.render(renderB bindings)
+  -- This will need to be fixed later to provide
+  -- better formatting.
+  show (Solution bindings) = show bindings -- PP.render(renderB bindings)
+   {-
     where
       renderB [] = PP.text "true"
       renderB bindings = PP.braces $ PP.vcat $ map renderBindings bindings
 
       renderBindings (var, term) = PP.text var <+> PP.equals <+> renderT term
 
-      renderAtom a = if isPlain a then PP.text a
-                     else PP.text "'" <> PP.text a <> PP.text "'"
+      -- Todo: Change this for formatting purposes later.
+      renderAtom a = PP.text $ show a -- if isPlain a then PP.text a
+                            -- else PP.text "'" <> PP.text a <> PP.text "'"
 
       renderT (Var v) = PP.text v
       renderT (Comp a []) = renderAtom a
@@ -36,10 +40,12 @@ instance Show Solution where
 
       renderTerms terms = PP.sep $ PP.punctuate PP.comma $ map renderT terms
 
-      listTerm (Comp "[]" [])    = return []
-      listTerm (Comp "." [h, t]) = do tt <- listTerm t
-                                      return $ h:tt
-      listTerm _                 = Nothing
+      listTerm (Comp (ListLiteral xs) [])    = return xs
+      -- listTerm (Comp "." [h, t]) = do tt <- listTerm t
+      --                                 return $ h:tt
+      -- listTerm _                 = Nothing
+
+-}
 
 data SearchTree = Sol Solution
                 | Node Goal [SearchTree]
