@@ -248,13 +248,12 @@ repl = do
                               -- debugging
                               liftIO $ print $ lines
                               let (types, relations, entities, clauses) = groupSchemaClauses lines
+                              newEntities entities
+                              newFacts clauses
+                              newTypes types
+                              newRelations relations
                               return ()
-                              -- modifyEntities
-                              -- modifyFacts
-                              -- modifyTypes (\x -> x ++ clauses)
-                              -- modifyRelations  (\x -> x ++ entries)
-                  ".bsch" -> do
-                   -- Currently this will only parse the typed version.
+                  ".bsc" -> do
                       case parseTypedSchema fileContents of
                           Left e -> printResponse "There has been a parse error."
                           Right entries -> do
