@@ -8,6 +8,10 @@ module Control.Monad.Bli.Trans.Generic (
   NewAliasResult(..),
   runBli,
   initBli,
+  newTypes,
+  newFacts,
+  newEntities,
+  newRelations,
   runBliWithStore,
   newScopedFact,
   newScopedFacts,
@@ -96,6 +100,13 @@ newFact clause = do
     Right result -> do
       setFacts result
       return True
+
+-- | Attempts to add a collection of facts to the store. Returns a boolean flag to indicate success or failure.
+newFacts :: (Monad m, BliSet t1, BliSet t2, BliSet t3, BliSet t4, Alias alias)
+ => [Clause] -> BliT t1 t2 t3 t4 alias m Bool
+newFacts clauses = do
+  results <- mapM newFact clauses
+  return $ foldr (&&) True results
 
 -- | Tries to remove the given scope from the scoped facts. Returns
 --   a boolean flag to indicate success or failure.
@@ -202,6 +213,13 @@ newType typeName = do
       setTypes result
       return True
 
+-- | Attempts to add a collection of types to the store. Returns a boolean flag to indicate success or failure.
+newTypes :: (Monad m, BliSet t1, BliSet t2, BliSet t3, BliSet t4, Alias alias)
+ => [String] ->  BliT t1 t2 t3 t4 alias m Bool
+newTypes typeNames = do
+  results <- mapM newType typeNames 
+  return $ foldr (&&) True results
+
 -- | Attempts to add a new entity to the store. Returns a boolean flag to indicate success or failure.
 newEntity :: (Monad m, BliSet t1, BliSet t2, BliSet t3, BliSet t4, Alias alias)
  => String -> String -> BliT t1 t2 t3 t4 alias m Bool
@@ -213,6 +231,13 @@ newEntity name entityType = do
       setEntities result
       return True
 
+-- | Attempts to add a collection of entities to the store. Returns a boolean flag to indicate success or failure.
+newEntities :: (Monad m, BliSet t1, BliSet t2, BliSet t3, BliSet t4, Alias alias)
+ => [(String, String)] -> BliT t1 t2 t3 t4 alias m Bool
+newEntities entityPairs = do
+  results <- mapM (uncurry newEntity) entityPairs 
+  return $ foldr (&&) True results
+
 -- | Attempts to add a new relation to the store. Returns a boolean flag to indicate success or failure.
 newRelation :: (Monad m, BliSet t1, BliSet t2, BliSet t3, Alias alias)
  => String -> [String] -> BliT t1 t2 t3 t2 alias m Bool
@@ -223,6 +248,13 @@ newRelation name argumentTypes = do
     Right result -> do
       setRelations result
       return True
+
+-- | Attempts to add a new relation to the store. Returns a boolean flag to indicate success or failure.
+newRelations :: (Monad m, BliSet t1, BliSet t2, BliSet t3, Alias alias)
+ => [(String, [String])] -> BliT t1 t2 t3 t2 alias m Bool
+newRelations relDecs = do
+  results <- mapM (uncurry newRelation) relDecs
+  return $ foldr (&&) True results
 
 -- | Builtin types.
 initialTypes :: BliSet t4 => t4 TypeDecl

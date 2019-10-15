@@ -14,18 +14,17 @@ import Data.Bli.Prolog.Schema
 -- | An internal representation of prolog terms.
 data Term = Var Variable
           | Comp Atom Terms
-          deriving (Eq, Read, Ord, Lift)
-
+          deriving (Eq, Read, Ord, Lift) 
 
 data BliPrologType = 
    Entity 
+ -- Function from one BliPrologType to another.
+ | Func BliPrologType BliPrologType
  -- A user declared type, such as "person".
  | DeclaredType String
  -- Type of types, "type".
  | TypTypes
  | Predicate [BliPrologType]
--- Note: Is there really a difference between predicates and goals?
- | Goal [BliPrologType]
  -- A type for rules: This allows for an interesting
  -- design choice, where we allow for "first-class rules.",
  -- and so predicates are allowed to talk about rules.
@@ -41,8 +40,8 @@ instance Show BliPrologType where
   show Entity = "entity"
   show (DeclaredType str) = str
   show TypTypes = "type"
-  show (Predicate types) = "rel[" ++ (intercalate ", " (map show types)) ++ "]"
-  show (Goal types) = "goal[" ++ (intercalate ", " (map show types)) ++ "]"
+  show (Predicate []) = "pred"
+  show (Predicate types) = "pred[" ++ (intercalate ", " (map show types)) ++ "]"
   show Rule = "rule"
   show StringLit = "string"
   show IntLit = "int"
