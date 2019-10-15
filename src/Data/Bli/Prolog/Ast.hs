@@ -10,12 +10,12 @@ module Data.Bli.Prolog.Ast where
 import Language.Haskell.TH.Lift
 import Data.List (intercalate)
 import Data.Bli.Prolog.Schema
-import Data.TimePeriod
+import Data.TimePeriods
 
 -- | An internal representation of prolog terms.
 data Term = Var Variable
           | Comp Atom Terms
-          deriving (Eq, Read, Ord, Lift) 
+          deriving (Eq, Ord, Lift) 
 
 data BliPrologType = 
    EntityT 
@@ -38,33 +38,33 @@ data BliPrologType =
  | DateLitT deriving(Eq)
 
 instance Show BliPrologType where
-  show Entity = "entity"
-  show (DeclaredType str) = str
-  show TypTypes = "type"
-  show (Predicate []) = "pred"
-  show (Predicate types) = "pred[" ++ (intercalate ", " (map show types)) ++ "]"
-  show Rule = "rule"
-  show StringLit = "string"
-  show IntLit = "int"
-  show DateTimeLit = "datetime"
-  show (List t) = "list["++ show t ++"]" 
-  show DateLit = "date"
+  show EntityT = "entity"
+  show (DeclaredTypeT str) = str
+  show TypTypesT = "type"
+  show (PredicateT []) = "pred"
+  show (PredicateT types) = "pred[" ++ (intercalate ", " (map show types)) ++ "]"
+  show RuleT = "rule"
+  show StringLitT = "string"
+  show IntLitT = "int"
+  show DateTimeLitT = "datetime"
+  show (ListT t) = "list["++ show t ++"]" 
+  show DateLitT = "date"
 
 -- Subtyping relation.
 infixr 9 <:
 (<:) :: BliPrologType -> BliPrologType -> Bool
-(<:) _ TypTypes = True
+(<:) _ TypTypesT = True
 (<:) _ _ = undefined
 
 instance Show Term where
   show (Var x) = x
-  show (Comp id []) = id
-  show (Comp id ts) = id ++ "(" ++ (intercalate "," (map show ts)) ++ ")" 
+  show (Comp id []) = show id
+  show (Comp id ts) = show id ++ "(" ++ (intercalate "," (map show ts)) ++ ")" 
 
 -- | Used for identifiers for entities and prolog relations/predicates.
 --   Must begin with a lowercase letter.
 data Atom =
-  | Identifier String
+    Identifier String
   | Predicate String Terms
   | DataLit String Atoms
   | FunctionApp String Atoms
@@ -72,7 +72,7 @@ data Atom =
   | ListLiteral [Atom]
   | Rule Term Terms
   | Goal Terms
-  | TimeperiodLiteral TimePeriod
+  | TimeperiodLiteral TimePeriod deriving(Eq, Ord, Show, Lift)
 
 type Atoms = [Atom]
 

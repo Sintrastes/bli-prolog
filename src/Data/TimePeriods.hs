@@ -1,3 +1,4 @@
+{-# LANGUAGE DeriveLift #-}
 
 module Data.TimePeriods where
 
@@ -5,8 +6,14 @@ import Data.Interval
 import Data.Time
 import Data.Time.Calendar
 import Data.Time.Clock
+import Language.Haskell.TH.Lift
+import Data.Data
 
-data TimePeriod = Union [TimeInterval] deriving(Eq, Show)
+instance Lift UTCTime
+instance (Lift a, Ord a, Data a) => Lift (Interval a)
+instance (Ord a) => Ord (Interval a)
+
+data TimePeriod = Union [TimeInterval] deriving(Eq, Show, Lift, Ord)
 
 type TimeInterval = Interval UTCTime
 
