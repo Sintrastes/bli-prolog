@@ -9,6 +9,7 @@ import Text.ParserCombinators.Parsec
 import Control.Monad.Combinators (eitherP)
 import Data.Bli.Prolog.Ast
 import Bli.Prolog.Parser.Common
+import Bli.Prolog.Parser
 
 -- Note: In the future, we will probably have 
 -- a seperate syntax for making schema declarations

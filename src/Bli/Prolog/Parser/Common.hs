@@ -43,63 +43,6 @@ csymb c = (try(spacesOrComments >> char c) >> spacesOrComments)
 --   surrounded by whitespace.
 symb s = (try(spacesOrComments >> string s) >> spacesOrComments)
 
--- | Parser for a lambda query.
-lambdaGoalP :: Parser LambdaGoal
-lambdaGoalP = do skipMany (space >> return ())
-                 csymb '\\' <|> csymb 'λ' <|> csymb 'Λ'
-                 vars <- variableP `sepBy` (csymb ',')
-                 csymb '.'
-                 ts <- termsP
-                 csymb '.'
-                 return (vars, ts)                
-
--- | Parser for a plain prolog goal.                
-goalP :: Parser Goal
-goalP = do ts <- termsP
-           csymb '.'
-           return ts
-
--- | Parser for an assertion -- a prolog goal ending with a ! instead of a .
-assertionP :: Parser Goal
-assertionP = do ts <- termsP
-                csymb '!'
-                return ts
--- | Parser for a plain prolog clause. Depreciated. 
-clauseP :: Parser Clause
-clauseP = do t <- termP
-             body <- option []
-                     (symb ":-" >> termsP)
-             csymb '.'
-             return (t, body)
-
--- | Parser for the assertion of a prolog clause.
-assertClauseP :: Parser Clause
-assertClauseP = do t <- termP
-                   body <- option []
-                        (symb ":-" >> termsP)
-                   csymb '!'
-                   return (t, body)
-
--- | Parser for a prolog term.
-termP :: Parser Term
-termP =  (variableP >>= return . Var)
-    <|> literalP
-    <|> (listP     <?> "list term")
-
-
--- | Parser that handles lists as prolog terms.
-listP :: Parser Term
-listP = between (csymb '[') (csymb ']')
-               (option emptyListTerm listTermsP)
-
--- I guess this is syntax for a SNOC list?
-listTermsP :: Parser Term
-listTermsP =
-    do heads <- termsP
-       tail  <- option emptyListTerm
-                      (csymb '|' >> termP)
-       return (foldr cons tail heads)
-
 emptyListTerm :: Term
 emptyListTerm = Comp (ListLiteral []) []
 
@@ -107,25 +50,10 @@ emptyListTerm = Comp (ListLiteral []) []
 cons :: Term -> Term -> Term
 cons (Comp h []) (Comp (ListLiteral ts) []) = Comp (ListLiteral (h:ts)) [] 
 
--- | Parser for a list of prolog terms.
-termsP :: Parser Terms
-termsP = sepBy1 termP (csymb ',')
-
--- | Parser for a prolog literal. (i.e. not a list term)
-literalP :: Parser Term
-literalP = do id <- atomP
-              option (Comp id [])
-                     (parens termsP >>= return . Comp id)
-        -- I'm not sure if I'll even need this.
-       {-  <|>
-           do ts <- parens termsP
-              return $ commas ts
-                where commas [a] = a
-                      commas (h:t) = Comp "," [h, commas t] -}
-
 parens :: Parser p -> Parser p
 parens p = between (csymb '(') (csymb ')') p
 
+identifierP :: Parser String
 identifierP =
         (do c <- lower
             cs <- many (alphaNum <|> char '_')
@@ -135,15 +63,8 @@ identifierP =
               "entity" -> fail "\"entity\" is a reserved keyword, and may not be used as an identifer."
               otherwise -> return $ (c:cs)) <?> "atom"
 
--- | Parser for a bedelibry prolog identifier.
-atomP :: Parser Atom
-atomP = (Identifier <$> identifierP) <|> symbolicP <|> quotedP
-  where
-    -- I'm not sure how much of this is needed. I'll use an identifier here for now.
-    symbolicP = Identifier <$> (many1 $ oneOf "#$&*+-./:<=>?@\\^~") <?> "symbolic atom"
-    quotedP = (do q <- char '"'
-                  s <- manyTill anyChar (try $ char '"')
-                  return $ StringLiteral s ) <?> "string literal"
+intLiteralP :: Parser Atom
+intLiteralP = IntLiteral <$> read <$> many1 digit
 
 constructorP :: Parser String
 constructorP = do
