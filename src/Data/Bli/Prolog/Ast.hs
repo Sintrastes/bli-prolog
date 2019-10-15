@@ -10,6 +10,7 @@ module Data.Bli.Prolog.Ast where
 import Language.Haskell.TH.Lift
 import Data.List (intercalate)
 import Data.Bli.Prolog.Schema
+import Data.TimePeriod
 
 -- | An internal representation of prolog terms.
 data Term = Var Variable
@@ -17,24 +18,24 @@ data Term = Var Variable
           deriving (Eq, Read, Ord, Lift) 
 
 data BliPrologType = 
-   Entity 
+   EntityT 
  -- Function from one BliPrologType to another.
- | Func BliPrologType BliPrologType
+ | FuncT BliPrologType BliPrologType
  -- A user declared type, such as "person".
- | DeclaredType String
+ | DeclaredTypeT String
  -- Type of types, "type".
- | TypTypes
- | Predicate [BliPrologType]
+ | TypTypesT
+ | PredicateT [BliPrologType]
  -- A type for rules: This allows for an interesting
  -- design choice, where we allow for "first-class rules.",
  -- and so predicates are allowed to talk about rules.
- | Rule 
- | StringLit
- | IntLit
- | DateTimeLit
+ | RuleT 
+ | StringLitT
+ | IntLitT
+ | DateTimeLitT
  -- A polymorphic list datatype
- | List BliPrologType
- | DateLit deriving(Eq)
+ | ListT BliPrologType
+ | DateLitT deriving(Eq)
 
 instance Show BliPrologType where
   show Entity = "entity"
@@ -62,7 +63,18 @@ instance Show Term where
 
 -- | Used for identifiers for entities and prolog relations/predicates.
 --   Must begin with a lowercase letter.
-type Atom = String
+data Atom =
+  | Identifier String
+  | Predicate String Terms
+  | DataLit String Atoms
+  | FunctionApp String Atoms
+  | IntLiteral Int
+  | ListLiteral [Atom]
+  | Rule Term Terms
+  | Goal Terms
+  | TimeperiodLiteral TimePeriod
+
+type Atoms = [Atom]
 
 -- | Must begin with an uppercase letter.
 type Variable = String
