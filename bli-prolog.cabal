@@ -43,6 +43,7 @@ library
       Bli.App.Server
       Bli.App.Cli
       Bli.App.Api
+      Bli.App.Bedelibry
       Bli.App.Config
       Bli.App.Config.Util
       Bli.App.Config.Version
