@@ -272,8 +272,18 @@ initialTypes =
 -- | Run a Bli computation with some initial application configuration data.
 initBli :: (Monad m, BliSet t1, BliSet t2, BliSet t3, BliSet t4, Alias alias)
  => AppConfig -> BliT t1 t2 t3 t4 alias m a -> m a
-initBli config app = evalStateT app (BliStore config empty empty empty empty initialTypes empty empty empty) 
-
+initBli config app = evalStateT app 
+  (BliStore {
+    config = config,
+    facts  = empty,
+    scopedFacts = empty,
+    relations = empty,
+    entities = empty,
+    types = initialTypes,
+    dataTypes = empty,
+    procs = empty,
+    aliases = empty
+  })
 -- | Run a Bli application with some initial state.
 runBli :: (Monad m, BliSet t1, BliSet t2, BliSet t3, BliSet t4, Alias alias)
   => AppConfig
