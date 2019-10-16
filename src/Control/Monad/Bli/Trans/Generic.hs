@@ -368,17 +368,18 @@ newConstrs constrDecs = do
 --   Returns "True" on success, False otherwise.
 newDataType :: (Monad m, BliSet t1, BliSet t2, BliSet t3, BliSet t4, Alias alias)
  => DataTypeDecl -> BliT t1 t2 t3 t4 alias m Bool
-newDataType (typeName,constrs) = do
+newDataType (typeName, constrs) = do
   -- Note: I want this to short-circuit if there are errors ANYWHERE here,
   -- to ensure data integrity.
-  resultAddType <- newType typeName
-  case resultAddType of
-    False -> return False
-    True  -> do
+  dataTypes <- dataTypes <$> get
+  case tryInsert typeName dataTypes of
+    Left _ -> return False
+    Right newDataTypes -> do
+      setDataTypes newDataTypes
       newConstrs $ map (\constr -> 
                            (constr, typeName))
                         constrs
-
+      
 -- | Helper function to lookup the type of a data constructor
 --   from the store.
 --   Note: If we allow for ambigious data constructors, this should return a list.
@@ -494,6 +495,11 @@ setEntities val = modify (\bliCtx -> bliCtx { entities = val } )
 setTypes :: (Monad m, BliSet t1, BliSet t2, BliSet t3, BliSet t4, Alias alias)
  => t4 TypeDecl -> BliT t1 t2 t3 t4 alias m ()
 setTypes val = modify (\bliCtx -> bliCtx { types = val } )
+
+-- | Set the relations of a running bli application
+setDataTypes :: (Monad m, BliSet t1, BliSet t2, BliSet t3, BliSet t4, Alias alias)
+ => t2 String -> BliT t1 t2 t3 t4 alias m ()
+setDataTypes val = modify (\bliCtx -> bliCtx { dataTypes = val } )
 
 setAliases :: (Monad m, BliSet t1, BliSet t2, BliSet t3, BliSet t4, Alias alias)
  => alias String -> BliT t1 t2 t3 t4 alias m ()

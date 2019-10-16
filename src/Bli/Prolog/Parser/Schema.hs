@@ -107,8 +107,16 @@ schemaDatatypeDeclP = do
   symb "datatype"
   typeName <- identifierP
   symb "where"
-  constructors <- many datatypeConstructorP
+  constructors <- many (try datatypeConstructorP <|> datatypeConstructorEmptyP)
   return $ DataType typeName constructors
+
+
+datatypeConstructorEmptyP :: Parser (String, [String])
+datatypeConstructorEmptyP = do
+  symb "constructor"
+  constructorName <- constructorP
+  csymb '.'
+  return (constructorName, [])
 
 datatypeConstructorP :: Parser (String, [String])
 datatypeConstructorP = do
