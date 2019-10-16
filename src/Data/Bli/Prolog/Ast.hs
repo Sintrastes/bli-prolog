@@ -57,6 +57,10 @@ infixr 9 <:
 (<:) (DeclaredTypeT x) EntityT = True
 (<:) _ _ = undefined
 
+-- | Computes the least upper bound of two BliPrologTypes.
+joinTypes :: BliPrologType -> BliPrologType -> BliPrologType
+joinTypes = undefined
+
 instance Show Term where
   show (Var x) = x
   show (Comp id []) = show id
@@ -83,7 +87,7 @@ instance Show Atom where
   show (IntLiteral n) = show n
   show (ListLiteral xs) = show xs
   show (StringLiteral str) = "\"" ++ str ++ "\""
-  show (Rule t ts) = show t ++ " :- " ++ intercalate ", " (map show ts) ++ "."
+  show (Rule t ts) = "{" ++ show t ++ " :- " ++ intercalate ", " (map show ts) ++ "}"
   show (Goal ts) = intercalate ", " $ map show ts
   show (TimeperiodLiteral timeperiod) = show timeperiod
 

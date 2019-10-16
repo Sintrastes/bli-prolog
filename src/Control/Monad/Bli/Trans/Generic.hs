@@ -274,7 +274,8 @@ initialTypes =
         tryInsert "type" >>=
         tryInsert "entity" >>=
         tryInsert "proc" >>=
-        tryInsert "period"
+        tryInsert "period" >>=
+        tryInsert "rule"
   in result
 
 -- | Builtin procs.

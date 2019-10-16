@@ -32,11 +32,28 @@ programP = do spacesOrComments
               clauses <- many1 clauseP
               return clauses
 
+
+-- | Parser for a prolog term which is not a rule.
+termP' :: Parser Term
+termP' =  (variableP >>= return . Var)
+    <|> try literalP
+    <|> (listP     <?> "list term")
+
 -- | Parser for a prolog term.
 termP :: Parser Term
 termP =  (variableP >>= return . Var)
-    <|> try literalP
-    <|> (listP     <?> "list term")
+    <|> try ruleP
+    <|> try (literalP)
+    <|> ((listP) <?> "list term")
+
+
+-- A top level term -- each of the alternatives must consume all of their
+-- input to be valid.
+topLevelTermP :: Parser Term
+topLevelTermP = (variableP >>= return . Var)
+    <|> try (terminated literalP)
+    <|> try ((terminated listP) <?> "list term")
+    <|> ruleP
 
 -- I guess this is syntax for a SNOC list?
 listTermsP :: Parser Term
@@ -56,9 +73,11 @@ assertClauseP = do t <- termP
 
 -- | Parser that handles lists as prolog terms.
 listP :: Parser Term
-listP = between (csymb '[') (csymb ']')
-               (option emptyListTerm listTermsP)
-
+listP = do
+  res <- between (csymb '[') (csymb ']')
+                 (option emptyListTerm listTermsP)
+  many space
+  return res
 
 -- | Parser for a lambda query.
 lambdaGoalP :: Parser LambdaGoal
@@ -95,17 +114,40 @@ assertionP :: Parser Goal
 assertionP = do ts <- termsP
                 csymb '!'
                 return ts
--- | Parser for a plain prolog clause. Depreciated. 
-clauseP :: Parser Clause
+-- | Parser for a plain prolog clause, parsed as a Rule. 
+ruleP :: Parser Term
+ruleP = do csymb '{'
+           t <- termP'
+           symb ":-"
+           body <- termsP
+           csymb '}'
+           return $ Comp (Rule t body) []
+
+-- | Parser for a plain prolog clause, parsed as a Rule. 
+clauseP :: Parser (Term, Terms)
 clauseP = do t <- termP
              body <- option []
                      (symb ":-" >> termsP)
              csymb '.'
-             return (t, body)
+             return $ (t, body)
+
 
 -- | Parser for a prolog literal. (i.e. not a list term)
 literalP :: Parser Term
 literalP = 
+           try ( do id <- appTermP
+                    terms <- parens termsP
+                    many space
+                    return $ Comp id terms )
+       <|> try (do id <- atomP
+                   terms <- parens termsP
+                   many space
+                   return $ Comp id terms )
+       <|> (\x -> Comp x []) <$> atomP
+
+-- | Parser for a prolog literal which is not an atom.
+literalP' :: Parser Term
+literalP' = 
            try ( do id <- appTermP
                     terms <- parens termsP
                     return $ Comp id terms )
@@ -114,10 +156,13 @@ literalP =
                    return $ Comp id terms )
        <|> (\x -> Comp x []) <$> atomP
 
-
 -- | Parser for a list of prolog terms.
 termsP :: Parser Terms
 termsP = sepBy1 termP (csymb ',')
+
+-- | Parser for a list of prolog terms not containing any rules.
+termsP' :: Parser Terms
+termsP' = sepBy1 termP' (csymb ',')
 
 appTermP :: Parser Atom
 appTermP = do id <- identifierP
@@ -128,16 +173,22 @@ appTermP = do id <- identifierP
 
 -- | Parser for a bedelibry prolog identifier.
 atomP :: Parser Atom
-atomP = try (Identifier <$> identifierP) 
-     <|> try symbolicP
-     <|> try quotedP
-     <|> try intLiteralP
-     <|> try dataConstructorP
-     <|> try dataConstructorEmptyP
-     <|> TimeperiodLiteral <$> timePeriodP
+atomP = do
+  res <- (Identifier <$> identifierP) 
+    -- <|> try symbolicP
+       <|> try quotedP
+       <|> try intLiteralP
+       <|> try dataConstructorP
+       <|> try dataConstructorEmptyP
+       <|> TimeperiodLiteral <$> timePeriodP
+  return res
+  --justAtom <- try ((symb ":-") >> return False) <|> return True
+  --case justAtom of
+  --  True -> return res
+  --  False -> fail "Not an atom."
   where
     -- I'm not sure how much of this is needed. I'll use an identifier here for now.
-    symbolicP = Identifier <$> (many1 $ oneOf "#$&*+-./:<=>?@\\^~") <?> "symbolic atom"
+    -- symbolicP = Identifier <$> (many1 $ oneOf "#$&*+-./:<=>?@\\^~") <?> "symbolic atom"
     quotedP = (do q <- char '"'
                   s <- manyTill anyChar (try $ char '"')
                   return $ StringLiteral s ) <?> "string literal"

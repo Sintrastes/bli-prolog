@@ -28,6 +28,9 @@ collectTermVars = nub . go
   where go (Var x) = [x]
         go (Comp _ ts) = join $ map go ts 
 
+collectGoalVars :: Terms -> [Variable]
+collectGoalVars goal = nub $ join $ map collectTermVars goal
+
 -- | Helper function. Checks to see which identifiers are used in a pure prolog clause.
 collectClauseAtoms :: Clause -> [(Atom, Int)]
 collectClauseAtoms (t, ts) = nub $ collectTermAtoms t ++ (join $ map collectTermAtoms ts)
@@ -128,10 +131,15 @@ typeOfAtom (ListLiteral xs) = do
   -- Take the join of the types of all of the xs.
   undefined
 typeOfAtom (Rule _ _) = return $ Just $ RuleT
-typeOfAtom (Goal _) = do
+typeOfAtom (Goal goal) = do
   -- Lookup all free variables in the goal,
-  -- and lookup their types to determine
-  -- what type of perdicate this is.
+  let freeVars = collectGoalVars goal
+  -- Lookup their types to determine
+  -- what type of predicate this is.
+  -- Note: These vars might be in multiple positions,
+  -- and hence, we have to make sure that the
+  -- expected types in these positions are all compatible
+  -- with eachother.
   undefined
 typeOfAtom (TimeperiodLiteral _) = return $ Just $ DateTimeLitT
 typeOfAtom (Identifier string) 
