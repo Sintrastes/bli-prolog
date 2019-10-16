@@ -35,7 +35,7 @@ data BliPrologType =
  | DateTimeLitT
  -- A polymorphic list datatype
  | ListT BliPrologType
- | DateLitT deriving(Eq)
+ | DateLitT deriving(Eq, Ord)
 
 instance Show BliPrologType where
   show EntityT = "entity"

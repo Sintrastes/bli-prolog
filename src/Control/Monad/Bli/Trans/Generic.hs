@@ -68,6 +68,10 @@ import Data.Map (Map)
 import qualified Data.Map as Map
 import Data.Map.Lens
 
+-- For dealing with user-defined "proc" types.
+import Data.Dynamic
+import Type.Reflection
+
 type BliT t1 t2 t3 t4 alias m a = 
  StateT (BliStore t1 t2 t3 t4 alias) m a
 
@@ -269,6 +273,16 @@ initialTypes =
         tryInsert "period"
   in result
 
+-- | Builtin procs.
+initialProcs :: BliSet t2 => t2 ProcContainer
+initialProcs = 
+  let Right result =
+        tryInsert (ProcContainer ("putStrLn",
+                                  [StringLitT],
+                                  toDyn (putStrLn :: String -> IO ())))
+                   empty
+  in result
+
 -- | Run a Bli computation with some initial application configuration data.
 initBli :: (Monad m, BliSet t1, BliSet t2, BliSet t3, BliSet t4, Alias alias)
  => AppConfig -> BliT t1 t2 t3 t4 alias m a -> m a
@@ -281,7 +295,8 @@ initBli config app = evalStateT app
     entities = empty,
     types = initialTypes,
     dataTypes = empty,
-    procs = empty,
+    dataTypeConstrs = empty,
+    procs = initialProcs,
     aliases = empty
   })
 -- | Run a Bli application with some initial state.
@@ -295,7 +310,27 @@ runBli :: (Monad m, BliSet t1, BliSet t2, BliSet t3, BliSet t4, Alias alias)
   -> BliT t1 t2 t3 t4 alias m a
   -> m a
 runBli config facts relns ents types aliases app =
-  evalStateT app (BliStore config facts empty relns ents types empty empty aliases)
+  evalStateT app (BliStore {
+    config = config,
+    facts  = facts,
+    scopedFacts = empty,
+    relations = relns,
+    entities = empty,
+    types = types, -- `union` initialTypes,
+    dataTypes = empty,
+    dataTypeConstrs = empty,
+    procs = empty,
+    aliases = aliases
+  })
+
+lookupTypeOfDataConstr :: (Monad m, BliSet t1, BliSet t2, BliSet t3, BliSet t4, Alias alias)
+ => String -> BliT t1 t2 t3 t4 alias m String
+lookupTypeOfDataConstr x = do
+  undefined
+-- Note: This won't work. We need a different model.
+--  dataTypes <- dataTypes <$> get
+--  case lookup (\(constr,_) -> x==constr) dataTypes of
+--    Just (_,
 
 -- | 
 runBliWithStore :: (Monad m, BliSet t1, BliSet t2, BliSet t3, BliSet t4, Alias alias)
