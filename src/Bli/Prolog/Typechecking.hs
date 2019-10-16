@@ -203,26 +203,33 @@ typecheckTerm (Comp (Identifier p) xs) = do
     Nothing -> case BliSet.lookup (\(a,b) -> a == p) entities of
                  Just (_,t)  -> return $ Left $ [NotAPredicate (p,length xs,t)]
                  Nothing -> return $ Left $ [AtomsNotInSchema [p]]
-    Just (_, expectedTypes) -> do
+    Just (_, expectedTypes') -> do
+      -- Quick fix. The better approach to this is probably re-writing our RelDecls
+      let expectedTypes = map (\x -> if x == "string" then StringLitT else DeclaredTypeT x)
+                              expectedTypes'
       -- Helper function
-      let termHead (Var x) = x
-          termHead (Comp (Identifier x) _) = x
+      let termHead (Var x) = Identifier x
+          termHead (Comp x _) = x
       -- Typecheck each of the individual arguments 
       -- of the predicate.
-      let intermediateResults = map 
-            (\(expectedType, x, n) -> 
+      intermediateResults <- mapM 
+            (\(expectedType, x, n) -> do
              -- Find the type of x in the entity store
              -- Note: I should write a generic typeOf function,
              -- with an abstract representation of the types of terms
              -- that I can return from this function.
-             case BliSet.lookup (\(a,b) -> x==a) entities of
-               -- Ignore variables in type-checking.
-               Nothing | isUpper (head x) -> Right Ok
-                       | otherwise -> Left $ EntityNotDeclared x expectedType
-               Just (_,typeOfX)  -> 
-                 if typeOfX == expectedType
-                 then Right Ok
-                 else Left $ TypeError (p, n, expectedType, typeOfX))
+             
+             -- Note: This is probably not needed with my typeOfAtom function
+             --case BliSet.lookup (\(a,b) -> x==a) entities of
+             --  -- Ignore variables in type-checking.
+             --  Nothing | isUpper (head x) -> Right Ok
+             --          | otherwise -> Left $ EntityNotDeclared x expectedType
+             --  Just (_,typeOfX)  -> 
+             typeOfX <- typeOfAtom x
+             if typeOfX == Just expectedType
+             then return $ Right Ok
+             -- The formatting here isn't the most ideal.
+             else return $ Left $ TypeError (p, n, show expectedType, show typeOfX))
                (zip3 expectedTypes (map termHead xs) [1..length xs])
       -- Return all of the errors that were encountered, or none
       -- if no errors were encountered.
