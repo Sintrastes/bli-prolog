@@ -23,6 +23,7 @@ typedSchemaLineP = do
        <|> try schemaEntityP
        <|> try schemaExternalRelnP
        <|> try typeDeclP 
+       <|> try schemaEntityRelnP
        <|> try schemaDatatypeDeclP
        <|> schemaExternalRelnHSP)
     return (T_AssertSchema res)
@@ -46,6 +47,18 @@ schemaRelnP = do
   id <- identifierP
   (csymb ':') <?> "Missing \":\" in relation definition."
   args <- identifierP `sepBy1` (csymb ',')
+  (csymb '.') <?> "Missing terminating \".\" to relation declaration."
+  return $ Pred NotStored id args []
+
+-- | Syntatic sugar for (e.x) rel p: entity, entity, entity.
+--   using the Prolog notation: p/3.
+schemaEntityRelnP :: Parser TypedSchemaEntry
+schemaEntityRelnP = do
+  symb "rel"
+  id <- identifierP
+  char '/'
+  n <- read <$> many1 digit
+  let args = replicate n "entity"
   (csymb '.') <?> "Missing terminating \".\" to relation declaration."
   return $ Pred NotStored id args []
 

@@ -59,8 +59,10 @@ identifierP =
             cs <- many (alphaNum <|> char '_')
             case (c:cs) of
               "rel"  -> fail "\"rel\" is a reserved keyword, and may not be used as an identifer."
-              "type" -> fail "\"type\" is a reserved keyword, and may not be used as an identifier."
-              "entity" -> fail "\"entity\" is a reserved keyword, and may not be used as an identifer."
+              -- This screws things up by throwing errors here. The logic for not using these
+              -- reserved words incorrectly should be implemented somewhere else.
+              -- "type" -> fail "\"type\" is a reserved keyword, and may not be used as an identifier."
+              -- "entity" -> fail "\"entity\" is a reserved keyword, and may not be used as an identifer."
               otherwise -> return $ (c:cs)) <?> "atom"
 
 intLiteralP :: Parser Atom
