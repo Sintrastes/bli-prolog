@@ -17,10 +17,14 @@ parseTypedSchema = parse typedSchemaFileP ""
 
 typedSchemaLineP :: Parser BliCommandTyped
 typedSchemaLineP = do
-    res <- (try schemaRelnP <|> try schemaEmptyRelnP 
-       <|> try schemaStoredRelnP <|> try schemaEntityP
-       <|> try schemaExternalRelnP <|> try typeDeclP 
-       <|> schemaDatatypeDeclP)
+    res <- (try schemaRelnP 
+       <|> try schemaEmptyRelnP 
+       <|> try schemaStoredRelnP
+       <|> try schemaEntityP
+       <|> try schemaExternalRelnP
+       <|> try typeDeclP 
+       <|> try schemaDatatypeDeclP
+       <|> schemaExternalRelnHSP)
     return (T_AssertSchema res)
 
 typedSchemaFileP :: Parser TypedSchema
@@ -71,6 +75,19 @@ schemaExternalRelnP = do
   args <- identifierP `sepBy1` (csymb ',')
   (csymb '.') <?> "Missing terminating \".\" to relation declaration."
   return $ Pred External id args []
+
+schemaExternalRelnHSP :: Parser TypedSchemaEntry
+schemaExternalRelnHSP = do
+  symb "extern"
+  symb "rel"
+  id <- identifierP
+  (csymb ':') <?> "Missing \":\" in relation definition."
+  args <- identifierP `sepBy1` (csymb ',')
+  symb "in"
+  c  <- upper
+  cs <- many $ alphaNum
+  (csymb '.') <?> "Missing terminating \".\" to relation declaration."
+  return $ Pred (ExternalHS (c:cs)) id args []
 
 schemaDatatypeDeclP :: Parser TypedSchemaEntry
 schemaDatatypeDeclP = do

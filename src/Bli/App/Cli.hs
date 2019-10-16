@@ -129,7 +129,7 @@ processCliInput input = do
                   printResponse $ "    Not a predicate."
                 Result_AssertionFail_TypeError ((p, n, expectedType, actualType):_) -> do
                   printResponse $ (red colorOpts "Failure.")++" Assertion unsuccesful."
-                  printResponse $ "    Type error. In predicate "++p++"at argument "++show n++","
+                  printResponse $ "    Type error. In predicate "++p++" at argument "++show n++","
                   printResponse $ "    expected a term of type "++expectedType++" but instead recieved a term of type "++actualType++"."
                 Result_AssertionFail_AtomsNotInSchema atoms -> do
                   printResponse $ (red colorOpts "Failure.")++" Assertion unsuccessful."

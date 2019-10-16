@@ -24,6 +24,8 @@ data IsStored =
 -- Special type of storage handled
 -- by the bedebliry server.
  | External
+-- Function found in the given haskell module
+ | ExternalHS String
  | NotStored deriving(Eq, Show, Lift)
 
 -- | Experimental, for lambek calculus support.

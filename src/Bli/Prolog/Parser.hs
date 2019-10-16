@@ -76,6 +76,20 @@ goalP = do ts <- termsP
            csymb '.'
            return ts
 
+-- | Parser for a plain data constructor, like 'True.
+dataConstructorEmptyP :: Parser Atom
+dataConstructorEmptyP = do
+  id <- constructorP 
+  return $ DataLit id []
+
+-- | Parser for a data constructor with arguments, like 'Url.
+dataConstructorP :: Parser Atom
+dataConstructorP = do
+  id   <- constructorP
+  args <- parens (atomP `sepBy1` csymb ',')
+  return $ DataLit id args
+  
+
 -- | Parser for an assertion -- a prolog goal ending with a ! instead of a .
 assertionP :: Parser Goal
 assertionP = do ts <- termsP
@@ -99,12 +113,7 @@ literalP =
                    terms <- parens termsP
                    return $ Comp id terms )
        <|> (\x -> Comp x []) <$> atomP
-        -- I'm not sure if I'll even need this.
-       {-  <|>
-           do ts <- parens termsP
-              return $ commas ts
-                where commas [a] = a
-                      commas (h:t) = Comp "," [h, commas t] -}
+
 
 -- | Parser for a list of prolog terms.
 termsP :: Parser Terms
@@ -123,6 +132,8 @@ atomP = try (Identifier <$> identifierP)
      <|> try symbolicP
      <|> try quotedP
      <|> try intLiteralP
+     <|> try dataConstructorP
+     <|> try dataConstructorEmptyP
      <|> TimeperiodLiteral <$> timePeriodP
   where
     -- I'm not sure how much of this is needed. I'll use an identifier here for now.
