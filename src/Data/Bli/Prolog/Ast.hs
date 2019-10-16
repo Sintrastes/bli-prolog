@@ -73,7 +73,18 @@ data Atom =
   | StringLiteral String
   | Rule Term Terms
   | Goal Terms
-  | TimeperiodLiteral TimePeriod deriving(Eq, Ord, Show, Read, Lift)
+  | TimeperiodLiteral TimePeriod deriving(Eq, Ord, Read, Lift)
+
+instance Show Atom where
+  show (Identifier x) = x
+  show (Predicate x ts) = x ++ "(" ++ intercalate ", " (map show ts) ++ ")"
+  show (AppTerm x ts) = x ++ "(" ++ intercalate ", " (map show ts) ++ ")"
+  show (IntLiteral n) = show n
+  show (ListLiteral xs) = show xs
+  show (StringLiteral str) = "\"" ++ str ++ "\""
+  show (Rule t ts) = show t ++ " :- " ++ intercalate ", " (map show ts) ++ "."
+  show (Goal ts) = intercalate ", " $ map show ts
+  show (TimeperiodLiteral timeperiod) = show timeperiod
 
 type Atoms = [Atom]
 

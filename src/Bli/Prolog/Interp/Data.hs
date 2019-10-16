@@ -19,15 +19,13 @@ isPlain _ = False
 instance Show Solution where
   -- This will need to be fixed later to provide
   -- better formatting.
-  show (Solution bindings) = show bindings -- PP.render(renderB bindings)
-   {-
+  show (Solution bindings) = PP.render(renderB bindings)
     where
       renderB [] = PP.text "true"
       renderB bindings = PP.braces $ PP.vcat $ map renderBindings bindings
 
       renderBindings (var, term) = PP.text var <+> PP.equals <+> renderT term
 
-      -- Todo: Change this for formatting purposes later.
       renderAtom a = PP.text $ show a -- if isPlain a then PP.text a
                             -- else PP.text "'" <> PP.text a <> PP.text "'"
 
@@ -36,16 +34,14 @@ instance Show Solution where
       renderT comp@(Comp f args) =
         case listTerm comp of
           Just tt -> PP.brackets $ renderTerms tt
-          Nothing -> renderAtom f <> (PP.parens $ renderTerms args)
+          Nothing -> renderAtom f <> (PP.parens $ renderTerms $ args)
 
-      renderTerms terms = PP.sep $ PP.punctuate PP.comma $ map renderT terms
+      renderTerms terms = PP.sep $ PP.punctuate PP.comma $ map renderT $ terms
 
-      listTerm (Comp (ListLiteral xs) [])    = return xs
-      -- listTerm (Comp "." [h, t]) = do tt <- listTerm t
-      --                                 return $ h:tt
-      -- listTerm _                 = Nothing
+      listTerm (Comp (ListLiteral xs) []) = Just $ map (\x -> Comp x []) xs
+      listTerm _                          = Nothing
 
--}
+
 
 data SearchTree = Sol Solution
                 | Node Goal [SearchTree]

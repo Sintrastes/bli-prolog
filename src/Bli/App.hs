@@ -36,6 +36,18 @@ import Control.Monad.IO.Class
 -- if we allow interacting with the Bli server, we might have to
 -- allow impurity here.
 
+
+assertClause head' body' = do
+-- First, expand all aliases 
+      clauses <- getFacts
+      head <- expandAliasesTerm head'
+      body <- expandAliases body'
+      let clause = (head, body)
+      case tryInsert clause clauses of
+             Left _ -> return $ Result_AssertionFail_AlreadyAsserted 
+             Right result -> do setFacts result
+                                return $ Result_AssertionSuccess
+
 processTypecheckedBliCommand :: BliCommandTyped -> Bli BliResult
 processTypecheckedBliCommand command = do
   opts      <- getConfig
@@ -51,7 +63,7 @@ processTypecheckedBliCommand command = do
 
        results <- checkForTypePredicateAssertion goal
 
-       let ok results = True
+       let ok results = results /= []
 
        if ok results
        then do
@@ -80,21 +92,15 @@ processTypecheckedBliCommand command = do
     (T_AssertClause (term, []) ) -> do
        let goal = [term]
        results <- checkForTypePredicateAssertion goal
-       let ok results = True
+       let ok results = results /= []
        if ok results
        then do
+         liftIO $ print results -- debugging
          let Comp (Identifier typeId) [Comp (Identifier entityId) []] = term
          return $ Result_AssertionSuccess_AddedEntityLocally entityId typeId
-       else return $ head results
-    (T_AssertClause (head',body') ) -> do
-      -- First, expand all aliases 
-      head <- expandAliasesTerm head'
-      body <- expandAliases body'
-      let clause = (head, body)
-      case tryInsert clause clauses of
-             Left _ -> return $ Result_AssertionFail_AlreadyAsserted 
-             Right result -> do setFacts result
-                                return $ Result_AssertionSuccess
+       else assertClause term []
+    (T_AssertClause (head,body) ) -> do
+      assertClause head body
     (T_LambdaQuery (vars, goal)) -> do
       tree <- makeReportTree goal
       let searchF = searchFunction (search opts) $ depth opts

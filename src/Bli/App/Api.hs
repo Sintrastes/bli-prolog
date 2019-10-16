@@ -60,7 +60,7 @@ data BliResult =
  | Result_AssertionFail_TypeNotDeclared String
  | Result_AssertionFail_CannotDeclareEntityOfBuiltinType String
  | Result_AssertionFail_CannotDeclaraDatatypeAsEntity
- | Result_AssertionFail_EntityNotDeclared String String
+ | Result_AssertionFail_EntityNotDeclared String String deriving(Show, Eq)
 
 
 --data BliResult =
