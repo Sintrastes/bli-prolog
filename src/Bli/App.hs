@@ -146,6 +146,14 @@ processTypecheckedBliCommand command = do
                   return $ Result_AssertionSuccess
         TypeOf termId typeId -> do
           addEntityToSchema termId typeId
+        DataType typeName constrs -> do
+          result <- newDataType (typeName, constrs)
+          case result of      
+            False -> do
+              -- TODO: Make this more specific
+              return $ Result_AssertionFail_AlreadyAsserted
+            True -> do
+              return $ Result_AssertionSuccess
 
 -- | Check to see if the user is asserting a type predicate
 checkForTypePredicateAssertion :: Goal -> Bli [BliResult]
