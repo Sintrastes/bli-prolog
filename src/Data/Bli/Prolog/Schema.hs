@@ -56,7 +56,7 @@ data TypedSchemaEntry =
 type TypeDecl   = String
 type EntityDecl = (String, String)
 type RelDecl    = (String, [String])
-
+type DataTypeDecl = (String, [(String, [String])])
 type TypedSchema = [TypedSchemaEntry]
 
 

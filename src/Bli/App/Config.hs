@@ -42,6 +42,7 @@ command_prompt = "?- "
 response_prompt = "  "
 
 -- | Helper function for printing a response prompt in the Bli monad.
+printResponse :: MonadIO m => String -> m ()
 printResponse string = liftIO $ putStrLn $ response_prompt ++ string
 
 -- | The path (relative to the user's home directory) of 
@@ -55,6 +56,11 @@ configFileName = "/config.yaml"
 
 -- | The name of the file to use for the list of modules.
 moduleFileName = "/modules.yaml"
+
+-- | Pattern synonyms for our file extension types.
+pattern BliPlExtension = ".bpl"
+pattern PlainPlExtension = ".pl"
+pattern SchemaFileExtension = ".bsc"
 
 data ModuleData = ModuleData { name :: String, file_path :: String } deriving(Generic)
 

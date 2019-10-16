@@ -190,6 +190,15 @@ This can also be used to construct enums in bedelibry prolog, for example:
     constructor 'False.
 ~~~
 
+Refinement Types
+----------------
+
+Note: I may use a different syntax for this later.
+
+~~~
+type my_type = my_type2(X), p(X).
+~~~
+
 Assertions
 ----------
 Assertions in bli prolog are made by terminating queries with a "!" instead of a ".". This works for both rules and simple facts.

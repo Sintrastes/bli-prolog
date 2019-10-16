@@ -15,6 +15,7 @@ data BliStore t1 t2 t3 t4 alias = BliStore {
   relations   :: t2 RelDecl,
   entities    :: t3 EntityDecl,
   types       :: t4 TypeDecl,
+  dataTypes   :: t2 DataTypeDecl,
   aliases     :: alias String
 }
 

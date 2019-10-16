@@ -272,13 +272,13 @@ repl = do
                   Nothing -> repl
                   Just fileContents -> do
                     case fileExtension filePath of
-                       ".pl"   -> do
+                       PlainPlExtension   -> do
                           case clausesFromString fileContents of
                               Left e -> printResponse "There has been a parse error."
                               Right clauses -> do
                                    printResponse "Need to implement the logic for adding clauses here."
                                   -- modifyProgram (\x -> x ++ clauses)
-                       ".bpl"  -> do
+                       BliPlExtension  -> do
                           -- Currently this will only parse the typed version
                           case parseTypedBli fileContents of
                               Left e -> printResponse "There has been a parse error."
@@ -290,7 +290,7 @@ repl = do
                                   newTypes types
                                   newRelations relations
                                   return ()
-                       ".bsc" -> do
+                       SchemaFileExtension -> do
                           case parseTypedSchema fileContents of
                               Left e -> printResponse "There has been a parse error."
                               Right entries -> do
