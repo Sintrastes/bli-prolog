@@ -7,6 +7,7 @@ module Bli.App.Cli where
 
 import Control.Monad.Bli
 import Control.Monad
+import Control.Exception.Base
 import qualified Control.Monad.Bli.Pure as Pure
 import Bli.App
 import Bli.App.Api
@@ -258,45 +259,65 @@ repl = do
                  mapM_ printResponse $ map (\(id1, id2) -> "alias " ++ id1 ++ " " ++ id2 ++ ".")  $ toKVList aliases
                  repl
              LoadFile filePath -> do
-                fileContents <- liftIO $ readFile filePath
-                case fileExtension filePath of
-                  ".pl"   -> do
-                      case clausesFromString fileContents of
-                          Left e -> printResponse "There has been a parse error."
-                          Right clauses -> do
-                               printResponse "Need to implement the logic for adding clauses here."
-                              -- modifyProgram (\x -> x ++ clauses)
-                  ".bpl"  -> do
-                      -- Currently this will only parse the typed version
-                      case parseTypedBli fileContents of
-                          Left e -> printResponse "There has been a parse error."
-                          Right lines -> do
-                              -- Note: We still need to do typechecking of the file here!
-                              let (types, relations, entities, clauses) = groupSchemaClauses lines
-                              newEntities entities
-                              newFacts clauses
-                              newTypes types
-                              newRelations relations
-                              return ()
-                  ".bsc" -> do
-                      case parseTypedSchema fileContents of
-                          Left e -> printResponse "There has been a parse error."
-                          Right entries -> do
-                               printResponse $ show entries
-                               printResponse "Need to implement the logic for modifying the schema here."
-                               -- modifySchema (\x -> x ++ (getArities entries))
-                repl
+                maybeFileContents <- do
+                  -- Handle file read exceptions.
+                  liftIO $ catch (Just <$> readFile filePath)
+                                 (\e -> do
+                                    printResponse $ (red colorOpts "Error") ++ " reading file " ++ filePath ++ ":"
+                                    mapM_ (\x -> printResponse $ "  " ++ x) (splitOn "\n" (show (e :: IOException)))
+                                    return Nothing)
+                case maybeFileContents of
+                  -- If there was an error parsing the file contents,
+                  -- Continue with the REPl.
+                  Nothing -> repl
+                  Just fileContents -> do
+                    case fileExtension filePath of
+                       ".pl"   -> do
+                          case clausesFromString fileContents of
+                              Left e -> printResponse "There has been a parse error."
+                              Right clauses -> do
+                                   printResponse "Need to implement the logic for adding clauses here."
+                                  -- modifyProgram (\x -> x ++ clauses)
+                       ".bpl"  -> do
+                          -- Currently this will only parse the typed version
+                          case parseTypedBli fileContents of
+                              Left e -> printResponse "There has been a parse error."
+                              Right lines -> do
+                                  -- Note: We still need to do typechecking of the file here!
+                                  let (types, relations, entities, clauses) = groupSchemaClauses lines
+                                  newEntities entities
+                                  newFacts clauses
+                                  newTypes types
+                                  newRelations relations
+                                  return ()
+                       ".bsc" -> do
+                          case parseTypedSchema fileContents of
+                              Left e -> printResponse "There has been a parse error."
+                              Right entries -> do
+                                    printResponse $ show entries
+                                    printResponse "Need to implement the logic for modifying the schema here."
+                                   -- modifySchema (\x -> x ++ (getArities entries))
+                    repl
              ExportFile filePath -> do
                 case fileExtension filePath of
                   ".pl" -> do
                     let contents = undefined
-                    liftIO $ writeFile filePath contents
+                    liftIO $ catch (writeFile filePath contents)
+                                   (\e -> do
+                                      printResponse $ (red colorOpts "Error") ++ " writing file "++ filePath ++ ":"
+                                      mapM_ (\x -> printResponse $ "  " ++ x) (splitOn "\n" (show (e :: IOException))))
                   ".bpl"  -> do
                     let contents = undefined
-                    liftIO $ writeFile filePath contents
+                    liftIO $ catch (writeFile filePath contents)
+                                   (\e -> do
+                                      printResponse $ (red colorOpts "Error") ++ " writing file "++ filePath ++ ":"
+                                      mapM_ (\x -> printResponse $ "  " ++ x) (splitOn "\n" (show (e :: IOException))))
                   ".bsch" -> do
                     let contents = undefined
-                    liftIO $ writeFile filePath contents
+                    liftIO $ catch (writeFile filePath contents)
+                                   (\e -> do
+                                      printResponse $ (red colorOpts "Error") ++ " writing file "++ filePath ++ ":"
+                                      mapM_ (\x -> printResponse $ "  " ++ x) (splitOn "\n" (show (e :: IOException))))
                 -- io $ putStrLn $ yellow colorOpts "Export command not implemented."
                 repl
              Alias arg1 arg2 -> do
