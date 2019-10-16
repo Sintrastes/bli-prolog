@@ -48,6 +48,8 @@ data BliResult =
  | Result_QueryFail_NotAPredicate [(String, Int, String)]
  | Result_QuerySuccess [Solution]
  | Result_AssertionSuccess
+ | Result_AssertionSuccess_AddedEntityLocally String String
+ | Result_AssertionSuccess_AddedEntityBedelibry String String
  | Result_AssertionFail_AlreadyAsserted
 -- Error: X should have arity Y.
 --        Z should have arity W.

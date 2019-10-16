@@ -109,6 +109,14 @@ processCliInput input = do
                               False -> liftIO $ mapM_ print solutions 
                 Result_AssertionSuccess -> do
                   printResponse $ (green colorOpts "OK.")++" Assertion successful."
+                -- Note: If we have stored somewhere a list of how to make a type into
+                -- its plural form, then we can have better responses here.
+                Result_AssertionSuccess_AddedEntityLocally entityName entityType  -> do
+                  printResponse $ (green colorOpts "Ok. ")++"Added "++entityName++" to the list of entities of type "++entityType++"."
+                Result_AssertionSuccess_AddedEntityBedelibry entityName entityType -> do
+                  printResponse $ (green colorOpts "Ok.")
+                  printResponse $ "    Added "++entityName++" to the list of entities of type"
+                  printResponse $ "    "++entityType++" in the Bedelibry server."
                 Result_AssertionFail_EntityNotDeclared t x -> do
                   printResponse $ (red colorOpts "Failure.")++" Assertion unsuccessful."
                   printResponse $ "    The term "++t++" has not been declared as an entity"

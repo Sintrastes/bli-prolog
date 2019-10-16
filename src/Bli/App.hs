@@ -54,7 +54,11 @@ processTypecheckedBliCommand command = do
        let ok results = True
 
        if ok results
-       then return Result_AssertionSuccess
+       then do
+         -- Note: This should be an AddedEntityLocally result,
+         -- but we can return mutliple results here, so I need
+         -- to figure out how to handle that.
+         return Result_AssertionSuccess
        else do  -- Note: If there is a mixutre of type predicates
                 -- and other predicates being asserted, I don't know
                 -- what to do.
@@ -78,7 +82,9 @@ processTypecheckedBliCommand command = do
        results <- checkForTypePredicateAssertion goal
        let ok results = True
        if ok results
-       then return $ Result_AssertionSuccess
+       then do
+         let Comp (Identifier typeId) [Comp (Identifier entityId) []] = term
+         return $ Result_AssertionSuccess_AddedEntityLocally entityId typeId
        else return $ head results
     (T_AssertClause (head',body') ) -> do
       -- First, expand all aliases 
