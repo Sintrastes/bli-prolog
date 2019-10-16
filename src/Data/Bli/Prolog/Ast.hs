@@ -55,7 +55,9 @@ infixr 9 <:
 (<:) :: BliPrologType -> BliPrologType -> Bool
 (<:) _ TypTypesT = True
 (<:) (DeclaredTypeT x) EntityT = True
-(<:) _ _ = undefined
+-- Anything is a subtype of itself.
+(<:) x y | x == y = True
+(<:) _ _ = False
 
 -- | Computes the least upper bound of two BliPrologTypes.
 joinTypes :: BliPrologType -> BliPrologType -> BliPrologType
@@ -82,6 +84,8 @@ data Atom =
 
 instance Show Atom where
   show (Identifier x) = x
+  show (DataLit x []) = "'" ++ x
+  show (DataLit x xs) = "'" ++ x ++ "(" ++ intercalate ", " (map show xs) ++ ")"
   show (Predicate x ts) = x ++ "(" ++ intercalate ", " (map show ts) ++ ")"
   show (AppTerm x ts) = x ++ "(" ++ intercalate ", " (map show ts) ++ ")"
   show (IntLiteral n) = show n

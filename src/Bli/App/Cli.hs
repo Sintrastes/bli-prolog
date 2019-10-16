@@ -30,9 +30,24 @@ import System.Console.CmdArgs as CA hiding (program)
 import System.Console.Readline
 import Control.Monad.IO.Class
 
--- Helper function to get the file extension of a filepath.
+-- | Helper function to get the file extension of a filepath.
 fileExtension :: String -> String
 fileExtension filePath = "." ++ (last $ splitOn "." filePath)
+
+-- | Helper function for formatting error messages dealing with n-ary predicates.
+fmt :: Int -> String
+fmt 0 = "null"
+fmt 1 = "un"
+fmt 2 = "bi"
+fmt 3 = "tri"
+fmt 4 = "quater"
+fmt 5 = "quin"
+fmt 6 = "sen"
+fmt 7 = "septen"
+fmt 8 = "octon"
+fmt 9 = "noven"
+fmt 10 = "den"
+fmt n = (show n) ++ "-"
 
 -- (types, relations, entities, clauses)
 groupSchemaClauses :: [BliCommandTyped] -> ([TypeDecl], [RelDecl], [EntityDecl], [Clause])
@@ -88,9 +103,10 @@ processCliInput input = do
                 Result_QueryFail_TypeNotDeclared t -> do
                   printResponse $ (red colorOpts "Failure.")++" Query unsuccessful."
                   printResponse $ "    The type "++t++"\n    has not been declared."
-                Result_QueryFail_NotAPredicate _ -> do
-                  printResponse $ (red colorOpts "Failure.")++" Assertion unsuccesful."
-                  printResponse $ "    Not a predicate."
+                Result_QueryFail_NotAPredicate ((id, n, typ):_) -> do
+                  printResponse $ (red colorOpts "Failure.")++" Query unsuccesful."
+                  printResponse $ "    Identifier "++id++" is being used as an "++fmt n++"ary predicate"
+                  printResponse $ "    but is declared to be a term of type "++typ++"."
                 Result_QueryFail_TypeError _ -> do
                   printResponse $ (red colorOpts "Failure.")++" Query unsuccesful."
                   printResponse $ "    Type error."
@@ -125,9 +141,10 @@ processCliInput input = do
                 Result_AssertionFail_TypeNotDeclared t -> do
                   printResponse $ (red colorOpts "Failure.")++" Assertion unsuccessful."
                   printResponse $ "    The type "++t++"\n    has not been declared."
-                Result_AssertionFail_NotAPredicate _ -> do
-                  printResponse $ (red colorOpts "Failure.")++" Assertion unsuccesful."
-                  printResponse $ "    Not a predicate."
+                Result_AssertionFail_NotAPredicate ((id, n, typ):_) -> do
+                  printResponse $ (red colorOpts "Failure.")++" Assertion unsuccessful."
+                  printResponse $ "    Identifier "++id++" is being used as an "++fmt n++"ary predicate"
+                  printResponse $ "    but is declared to be a term of type "++typ++"."
                 Result_AssertionFail_TypeError ((p, n, expectedType, actualType):_) -> do
                   printResponse $ (red colorOpts "Failure.")++" Assertion unsuccesful."
                   printResponse $ "    Type error. In predicate "++p++" at argument "++show n++","

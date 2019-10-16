@@ -211,8 +211,8 @@ newAlias id1 id2 = do
             Nothing -> return DoesNotHavePrimaryIDOrAlias
 
 -- | Attempts to add a new type to the store. Returns a boolean flag to indicate success or failure.
-newType :: (Monad m, BliSet t1, BliSet t2, BliSet t3, BliSet t4, Alias alias)
- => String ->  BliT t1 t2 t3 t4 alias m Bool
+newType :: (Monad m, BliSet t1, BliSet t2, BliSet t3, Alias alias)
+ => String ->  BliT t1 t2 t3 t2 alias m Bool
 newType typeName = do
   types <- getTypes
   case tryInsert typeName types of
@@ -222,8 +222,8 @@ newType typeName = do
       return True
 
 -- | Attempts to add a collection of types to the store. Returns a boolean flag to indicate success or failure.
-newTypes :: (Monad m, BliSet t1, BliSet t2, BliSet t3, BliSet t4, Alias alias)
- => [String] ->  BliT t1 t2 t3 t4 alias m Bool
+newTypes :: (Monad m, BliSet t1, BliSet t2, BliSet t3, Alias alias)
+ => [String] ->  BliT t1 t2 t3 t2 alias m Bool
 newTypes typeNames = do
   results <- mapM newType typeNames 
   return $ foldr (&&) True results
@@ -428,9 +428,12 @@ getEntities :: (Monad m, BliSet t1, BliSet t2, BliSet t3, BliSet t4, Alias alias
  => BliT t1 t2 t3 t4 alias m (t3 EntityDecl)
 getEntities = entities <$> get
 
-getTypes :: (Monad m, BliSet t1, BliSet t2, BliSet t3, BliSet t4, Alias alias)
- => BliT t1 t2 t3 t4 alias m (t4 TypeDecl)
-getTypes = types <$> get
+getTypes :: (Monad m, BliSet t1, BliSet t2, BliSet t3, Alias alias)
+ => BliT t1 t2 t3 t2 alias m (t2 TypeDecl)
+getTypes = do
+  standardTypes <- types <$> get
+  dataTypes <- dataTypes <$> get
+  return $ standardTypes `union` dataTypes
 
 getAliases :: (Monad m, BliSet t1, BliSet t2, BliSet t3, BliSet t4, Alias alias)
  => BliT t1 t2 t3 t4 alias m (alias String)

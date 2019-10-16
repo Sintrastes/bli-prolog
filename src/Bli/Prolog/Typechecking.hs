@@ -119,11 +119,14 @@ data Ok = Ok
 typeOfAtom :: Atom -> Bli (Maybe BliPrologType)
 typeOfAtom (StringLiteral string) = return $ Just $ StringLitT
 typeOfAtom (IntLiteral x) = return $ Just $ IntLitT
-typeOfAtom (DataLit _ _) = do
+typeOfAtom (DataLit name args) = do
   -- lookup user-defined datatypes in scope,
   -- and see if our DataLit matches any of the types
   -- in our schema.
-  undefined
+  maybeConstrType <- lookupTypeOfDataConstr name
+  case maybeConstrType of
+    Nothing -> return $ Nothing
+    Just constrType -> return $ Just $ DeclaredTypeT constrType
 typeOfAtom (AppTerm _ _) = do 
   -- 
   undefined
@@ -218,6 +221,7 @@ typecheckTerm (Comp (Identifier p) xs) = do
                                        "period"  -> DateTimeLitT
                                        "int"     -> IntLitT
                                        "entity"  -> EntityT
+                                       "rule"    -> RuleT
                                        otherwise -> DeclaredTypeT x)
                               expectedTypes'
       -- Helper function
@@ -244,6 +248,9 @@ typecheckTerm (Comp (Identifier p) xs) = do
       -- Return all of the errors that were encountered, or none
       -- if no errors were encountered.
       return $ collectErrors intermediateResults
+typecheckTerm (Comp x xs) = do
+  typeOfX <- typeOfAtom x
+  return $ Left $ [NotAPredicate (show x, length xs, show typeOfX)]
 
 typecheckGoal :: Goal -> Bli (Either [InvalidClause] Ok)
 typecheckGoal terms = do
