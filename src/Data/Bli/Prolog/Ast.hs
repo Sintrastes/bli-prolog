@@ -54,6 +54,7 @@ instance Show BliPrologType where
 infixr 9 <:
 (<:) :: BliPrologType -> BliPrologType -> Bool
 (<:) _ TypTypesT = True
+(<:) (DeclaredTypeT x) EntityT = True
 (<:) _ _ = undefined
 
 instance Show Term where

@@ -209,6 +209,7 @@ typecheckTerm (Comp (Identifier p) xs) = do
                                        "string"  -> StringLitT
                                        "period"  -> DateTimeLitT
                                        "int"     -> IntLitT
+                                       "entity"  -> EntityT
                                        otherwise -> DeclaredTypeT x)
                               expectedTypes'
       -- Helper function
@@ -227,7 +228,10 @@ typecheckTerm (Comp (Identifier p) xs) = do
                       -- Variables do not need type-checking in this case.
                         Identifier str | isUpper (head str) -> return $ Right Ok
                         _ -> return $ Left $ EntityNotDeclared (show x) (show expectedType)
-                    Just typeOfX -> return $ Left $ TypeError (p, n, show expectedType, show typeOfX))
+                    Just typeOfX -> do
+                      if typeOfX <: expectedType
+                      then return $ Right Ok
+                      else return $ Left $ TypeError (p, n, show expectedType, show typeOfX))
                (zip3 expectedTypes (map termHead xs) [1..length xs])
       -- Return all of the errors that were encountered, or none
       -- if no errors were encountered.
