@@ -122,16 +122,9 @@ prettyShowClause (head, body) = (show head) ++ " :-\n  " ++ intercalate ", " (ma
 --   Is sometimes interpreted in the source code as a degenerate clause, i.e.
 --   
 --     person(nate) :- .
-data BliCommand = QueryMode Goal 
-                | AssertMode Goal
-                | AssertClause Clause
-             -- Make new assertions into the active schema
-                | AssertTypePred SchemaEntry
-                | LambdaQuery LambdaGoal
-  deriving(Show, Eq, Lift)
 
 -- | Version of BliCommand, using our typed schemas.
-data BliCommandTyped =
+data BliCommand =
    T_QueryMode Goal
  | T_LambdaQuery LambdaGoal
  | T_AssertMode Goal
@@ -139,13 +132,13 @@ data BliCommandTyped =
  | T_AssertSchema TypedSchemaEntry deriving(Show, Eq, Lift)
 
 -- | Helper function to check if a BliCommand is an assertion.
-isAssertion :: BliCommandTyped -> Bool
+isAssertion :: BliCommand -> Bool
 isAssertion (T_QueryMode _) = False
 isAssertion (T_LambdaQuery _) = False
 isAssertion _ = True
 
 -- | Helper function to check if a BliCommand is a query.
-isQuery :: BliCommandTyped -> Bool
+isQuery :: BliCommand -> Bool
 isQuery = not . isAssertion
 
 type Program = Clauses

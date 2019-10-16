@@ -46,17 +46,9 @@ collectProgramAtoms = nub . join . map collectClauseAtoms
 -- | Helper function. Checks to see which variables are used in a pure prolog program.
 collectProgramVars :: Program -> [Variable]
 collectProgramVars = nub . join . map collectClauseVars
-
+ 
 -- | Helper function. Checks to see which identifiers are used in a bli prolog command.
-collectBliCommandAtoms :: BliCommand -> [(Atom,Int)]
-collectBliCommandAtoms (QueryMode goal)       = nub . join . (map collectTermAtoms) $ goal
-collectBliCommandAtoms (AssertMode goal)      = nub . join . (map collectTermAtoms) $ goal
-collectBliCommandAtoms (AssertClause clause)  = collectClauseAtoms clause
-collectBliCommandAtoms (LambdaQuery (_,goal)) = nub . join . (map collectTermAtoms) $ goal
-collectBliCommandAtoms (AssertTypePred _)     = []
-
--- | Helper function. Checks to see which identifiers are used in a bli prolog command.
-collectTypedBliCommandAtoms :: BliCommandTyped -> [(Atom,Int)]
+collectTypedBliCommandAtoms :: BliCommand -> [(Atom,Int)]
 collectTypedBliCommandAtoms (T_QueryMode goal)       = nub . join . (map collectTermAtoms) $ goal
 collectTypedBliCommandAtoms (T_AssertMode goal)      = nub . join . (map collectTermAtoms) $ goal
 collectTypedBliCommandAtoms (T_AssertClause clause)  = collectClauseAtoms clause
@@ -64,15 +56,7 @@ collectTypedBliCommandAtoms (T_LambdaQuery (_,goal)) = nub . join . (map collect
 collectTypedBliCommandAtoms (T_AssertSchema _) = []
 
 -- | Helper function. Checks to see which variables are used in a bli prolog command.
-collectBliCommandVars :: BliCommand -> [Variable]
-collectBliCommandVars (QueryMode goal)       = nub . join . (map collectTermVars) $ goal
-collectBliCommandVars (AssertMode goal)      = nub . join . (map collectTermVars) $ goal
-collectBliCommandVars (AssertClause clause)  = collectClauseVars clause
-collectBliCommandVars (LambdaQuery (_,goal)) = nub . join . (map collectTermVars) $ goal
-collectBliCommandVars (AssertTypePred _)     = []
-
--- | Helper function. Checks to see which variables are used in a bli prolog command.
-collectTypedBliCommandVars :: BliCommandTyped -> [Variable]
+collectTypedBliCommandVars :: BliCommand -> [Variable]
 collectTypedBliCommandVars (T_QueryMode goal)       = nub . join . (map collectTermVars) $ goal
 collectTypedBliCommandVars (T_AssertMode goal)      = nub . join . (map collectTermVars) $ goal
 collectTypedBliCommandVars (T_AssertClause clause)  = collectClauseVars clause
@@ -80,12 +64,12 @@ collectTypedBliCommandVars (T_LambdaQuery (_,goal)) = nub . join . (map collectT
 collectTypedBliCommandVars (T_AssertSchema _) = []
 
 -- | Helper function. Checks to see which identifiers are used in a bli prolog program.
-collectBliProgramAtoms :: BliProgram -> [(Atom, Int)]
-collectBliProgramAtoms = nub . join . map collectBliCommandAtoms
+-- collectBliProgramAtoms :: BliProgram -> [(Atom, Int)]
+-- collectBliProgramAtoms = nub . join . map collectBliCommandAtoms
 
 -- | Helper function. Checks to see which variables are used in a bli prolog program.
-collectBliProgramVars :: BliProgram -> [Variable]
-collectBliProgramVars = nub . join . map collectBliCommandVars
+-- collectBliProgramVars :: BliProgram -> [Variable]
+-- collectBliProgramVars = nub . join . map collectBliCommandVars
 
 -- | Utility function to find the arity usages of atoms that 
 --   are not declared as valid in a schema, given a list of atoms
@@ -257,7 +241,7 @@ typecheckGoal terms = do
   results <- mapM typecheckTerm terms
   return $ foldr joinErrors (Right Ok) results
 
-typecheckBliCommand :: BliCommandTyped -> Bli (Either [InvalidClause] Ok)
+typecheckBliCommand :: BliCommand -> Bli (Either [InvalidClause] Ok)
 typecheckBliCommand (T_QueryMode goal') = do
   goal <- expandAliases goal'
   typecheckGoal goal

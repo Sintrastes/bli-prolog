@@ -20,7 +20,7 @@ import Bli.Prolog.Parser.Schema
 parseBliCommandTyped string = parse bliCommandTypedP "" string
 
 -- | Parser for a bedelibry command.
-bliCommandTypedP :: Parser BliCommandTyped
+bliCommandTypedP :: Parser BliCommand
 bliCommandTypedP = do 
   result <- (try (terminated typedSchemaLineP) `eitherP` (try (terminated assertClauseP) `eitherP` (try (terminated assertionP) `eitherP` (try (terminated goalP) `eitherP` (terminated lambdaGoalP)))))
   case result of

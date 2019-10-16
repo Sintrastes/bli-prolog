@@ -15,7 +15,7 @@ import Data.Bli.Prolog.Schema
 parseTypedSchemaFile = parseFromFile typedSchemaFileP 
 parseTypedSchema = parse typedSchemaFileP ""
 
-typedSchemaLineP :: Parser BliCommandTyped
+typedSchemaLineP :: Parser BliCommand
 typedSchemaLineP = do
     res <- (try schemaRelnP 
        <|> try schemaEmptyRelnP 

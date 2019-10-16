@@ -193,7 +193,7 @@ atomP = do
                   s <- manyTill anyChar (try $ char '"')
                   return $ StringLiteral s ) <?> "string literal"
 
-typedBliFileP :: Parser [BliCommandTyped]
+typedBliFileP :: Parser BliProgram
 typedBliFileP = do
   lines' <- many $ try typedSchemaLineP `eitherP` clauseP
   let lines = map (\line -> case line of

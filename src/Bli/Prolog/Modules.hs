@@ -9,6 +9,7 @@ import Data.Bli.Prolog.Ast
 import Control.Monad.Bli
 import Bli.App.Config (getBliModuleData)
 import Data.Yaml
+import Bli.Util (groupClauses)
 
 -- | Helper function to load a bli program
 --   into the given context.
@@ -16,7 +17,6 @@ import Data.Yaml
 --   Note: I might want to put this somewhere else later.
 loadBliProgram :: BliProgram -> Bli ()
 loadBliProgram prog = undefined
-
 -- | Helper function to load a Bli program from a file.
 --   Returns a boolean flag to indicate success/failure.
 -- 

@@ -9,6 +9,7 @@ import Control.Monad.Bli
 import Control.Monad
 import Control.Exception.Base
 import qualified Control.Monad.Bli.Pure as Pure
+import Bli.Util
 import Bli.App
 import Bli.App.Api
 import Bli.App.Json
@@ -48,19 +49,6 @@ fmt 8 = "octon"
 fmt 9 = "noven"
 fmt 10 = "den"
 fmt n = (show n) ++ "-"
-
--- (types, relations, entities, clauses)
-groupSchemaClauses :: [BliCommandTyped] -> ([TypeDecl], [RelDecl], [EntityDecl], [Clause])
-groupSchemaClauses commands = go commands ([], [], [], []) 
- where go [] xs = xs
-       go ((T_AssertClause c):xs) (types,relations,entities,clauses)
-           = go xs (types, relations, entities, c:clauses)
-       go ((T_AssertSchema (Type t)):xs) (types,relations,entities,clauses)
-           = go xs (t:types, relations, entities, clauses)
-       go ((T_AssertSchema (TypeOf t ty)):xs) (types,relations,entities,clauses)
-           = go xs (types, relations, (t,ty):entities, clauses)
-       go ((T_AssertSchema (Pred isStored name argTypes dirs)):xs) (types,relations,entities,clauses)
-           = go xs (types, (name, argTypes):relations, entities, clauses)
 
 -- | Helper function to process bli-prolog commands in a running application.
 processCliInput :: String -> Bli ()

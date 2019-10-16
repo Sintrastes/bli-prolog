@@ -48,7 +48,7 @@ assertClause head' body' = do
              Right result -> do setFacts result
                                 return $ Result_AssertionSuccess
 
-processTypecheckedBliCommand :: BliCommandTyped -> Bli BliResult
+processTypecheckedBliCommand :: BliCommand -> Bli BliResult
 processTypecheckedBliCommand command = do
   opts      <- getConfig
   clauses   <- getFacts
@@ -167,7 +167,7 @@ checkForTypePredicateAssertion goal = do
          return $ [Result_AssertionSuccess]
        else return []
 
-processBliCommand :: BliCommandTyped -> Bli BliResult
+processBliCommand :: BliCommand -> Bli BliResult
 processBliCommand command = do
   opts      <- getConfig
   clauses   <- getFacts

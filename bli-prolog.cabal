@@ -32,6 +32,7 @@ library
       Data.TimePeriods
       Data.Bli.Prolog.Ast
       Data.Bli.Prolog.Schema
+      Bli.Util
       Bli.Prolog.TH
       Bli.Prolog.Typechecking
       Bli.Prolog.Parser
