@@ -35,6 +35,118 @@ import Control.Monad.IO.Class
 -- Note: currently this uses the pure Bli monad, but eventually,
 -- if we allow interacting with the Bli server, we might have to
 -- allow impurity here.
+
+processTypecheckedBliCommand :: BliCommandTyped -> Bli BliResult
+processTypecheckedBliCommand command = do
+  opts      <- getConfig
+  clauses   <- getFacts
+  types     <- getTypes 
+  relations <- getRelations
+  entities  <- getEntities
+  aliases   <- getAliases
+  case command of 
+    (T_AssertMode goal') -> do
+       -- First, expand all aliases 
+       goal <- expandAliases goal'
+
+       results <- checkForTypePredicateAssertion goal
+
+       let ok results = True
+
+       if ok results
+       then return Result_AssertionSuccess
+       else do  -- Note: If there is a mixutre of type predicates
+                -- and other predicates being asserted, I don't know
+                -- what to do.
+         -- Otherwise, try inserting each of the terms individually, collecting errors
+         let collected = 
+               foldr1 (>=>) 
+                   (map (\term -> \result -> tryInsert (term, []) result) 
+                        goal)
+                  =<< Right clauses 
+         case collected of
+         -- If all is well, update the store.
+           Right result -> do 
+                   setFacts result 
+                   return $ Result_AssertionSuccess
+           -- We can probably refine this to get it to tell us which of the terms
+           -- was already asserted.
+           -- If there were any errors, the assertions fails.
+           Left _ -> return $ Result_AssertionFail_AlreadyAsserted
+    (T_AssertClause (term, []) ) -> do
+       let goal = [term]
+       results <- checkForTypePredicateAssertion goal
+       let ok results = True
+       if ok results
+       then return $ Result_AssertionSuccess
+       else return $ head results
+    (T_AssertClause (head',body') ) -> do
+      -- First, expand all aliases 
+      head <- expandAliasesTerm head'
+      body <- expandAliases body'
+      let clause = (head, body)
+      case tryInsert clause clauses of
+             Left _ -> return $ Result_AssertionFail_AlreadyAsserted 
+             Right result -> do setFacts result
+                                return $ Result_AssertionSuccess
+    (T_LambdaQuery (vars, goal)) -> do
+      tree <- makeReportTree goal
+      let searchF = searchFunction (search opts) $ depth opts
+      return $ Result_QuerySuccess $ 
+                map Solution 
+                  $ map (filter (\(x,y) -> x `elem` vars)) 
+                  $ map (\(Solution x) -> x) $ searchF tree
+    (T_QueryMode goal') -> do
+       -- First, expand all aliases 
+       goal <- expandAliases goal'
+       let limiting lst = 
+            case limit opts of
+              Nothing -> lst
+              Just n  -> take n lst
+       let searchF = searchFunction (search opts) $ depth opts
+       tree <- makeReportTree goal
+       let solutions = limiting $ searchF tree
+       return $ Result_QuerySuccess solutions
+    (T_AssertSchema schemaEntry) -> do
+      case schemaEntry of
+        Pred _ predName argTypes _ -> do
+          -- Add predicate to schema if not already in schema,
+          -- and if each of the argument types is also in the schema,
+          -- otherwise, return an error.
+          let isJust (Just x) = True -- Helper function
+              isJust Nothing  = False
+          let typesNotInSchema = map snd $
+                filter (\(x,y) -> not $ isJust x)
+                  (zip (map (\x -> BliSet.lookup (==x) types) argTypes) argTypes)
+          if typesNotInSchema == []
+          then case tryInsert (predName, argTypes) relations of
+                 Left _       -> return $ Result_AssertionFail_AlreadyAsserted
+                 Right result -> do
+                     setRelations result
+                     return $ Result_AssertionSuccess
+          else return $ Result_AssertionFail_TypeNotDeclared (head typesNotInSchema)
+        Type typeName -> do
+          -- Add type to schema if not in schema.
+          case tryInsert typeName types of
+              Left _ -> return $ Result_AssertionFail_AlreadyAsserted
+              Right result -> do
+                  setTypes result
+                  return $ Result_AssertionSuccess
+        TypeOf termId typeId -> do
+          addEntityToSchema termId typeId
+
+-- | Check to see if the user is asserting a type predicate
+checkForTypePredicateAssertion :: Goal -> Bli [BliResult]
+checkForTypePredicateAssertion goal = do
+       typePredicates <- getTypePredicates goal
+       if typePredicates == goal 
+       then do
+         results <- mapM (\(Comp (Identifier typ) [Comp (Identifier x) []]) -> 
+                             addEntityToSchema x typ) goal
+         -- if everything went successfully...
+         return $ [Result_AssertionSuccess]
+       else return []
+
 processBliCommand :: BliCommandTyped -> Bli BliResult
 processBliCommand command = do
   opts      <- getConfig
@@ -76,87 +188,40 @@ processBliCommand command = do
     Left (EntityNotDeclared x t) -> do
       case isAssertion command of
         True -> do
-          return $ Result_AssertionFail_EntityNotDeclared x t
+          -- Check to see if we are trying to assert type predicates,
+          -- in which case we do not need to typecheck those terms.
+          case command of
+            (T_AssertMode goal) -> do
+              typePredicates <- getTypePredicates goal
+              case typePredicates == goal of
+                True -> do
+                  -- Asserting type predicates -- this is fine.
+                  processTypecheckedBliCommand command
+                False -> return $ Result_AssertionFail_EntityNotDeclared x t
+            (T_AssertClause (term,[])) -> do
+              let goal = [term]
+              typePredicates <- getTypePredicates goal
+              case typePredicates == goal of
+                True -> do
+                  -- Asserting type predicates -- this is fine.
+                  processTypecheckedBliCommand command
+                False -> return $ Result_AssertionFail_EntityNotDeclared x t
+            _ -> do
+              return $ Result_AssertionFail_EntityNotDeclared x t
         False -> do
           return $ Result_QueryFail_EntityNotDeclared x t
     Left (TypeNotDeclared x) -> do
       -- This should only occur for assertions.
       return $ Result_AssertionFail_TypeNotDeclared x
     Right Ok -> do
-      case command of 
-        (T_AssertMode goal') -> do
-           -- First, expand all aliases 
-           goal <- expandAliases goal'
-           -- Try inserting each of the terms individually, collecting errors
-           let collected = 
-                 foldr1 (>=>) 
-                     (map (\term -> \result -> tryInsert (term, []) result) 
-                          goal)
-                    =<< Right clauses 
-           case collected of
-           -- If all is well, update the store.
-             Right result -> do 
-                     setFacts result 
-                     return $ Result_AssertionSuccess
-             -- We can probably refine this to get it to tell us which of the terms
-             -- was already asserted.
-             -- If there were any errors, the assertions fails.
-             Left _ -> return $ Result_AssertionFail_AlreadyAsserted
-        (T_AssertClause (head',body') ) -> do
-          -- First, expand all aliases 
-          head <- expandAliasesTerm head'
-          body <- expandAliases body'
-          let clause = (head, body)
-          case tryInsert clause clauses of
-                 Left _ -> return $ Result_AssertionFail_AlreadyAsserted 
-                 Right result -> do setFacts result
-                                    return $ Result_AssertionSuccess
-        (T_LambdaQuery (vars, goal)) -> do
-          tree <- makeReportTree goal
-          let searchF = searchFunction (search opts) $ depth opts
-          return $ Result_QuerySuccess $ 
-                    map Solution 
-                      $ map (filter (\(x,y) -> x `elem` vars)) 
-                      $ map (\(Solution x) -> x) $ searchF tree
-        (T_QueryMode goal') -> do
-           -- First, expand all aliases 
-          goal <- expandAliases goal'
-          let limiting lst = 
-                case limit opts of
-                  Nothing -> lst
-                  Just n  -> take n lst
-          let searchF = searchFunction (search opts) $ depth opts
-          tree <- makeReportTree goal
-          let solutions = limiting $ searchF tree
-          return $ Result_QuerySuccess solutions
-        (T_AssertSchema schemaEntry) -> do
-          case schemaEntry of
-            Pred _ predName argTypes _ -> do
-              -- Add predicate to schema if not already in schema,
-              -- and if each of the argument types is also in the schema,
-              -- otherwise, return an error.
-              let isJust (Just x) = True -- Helper function
-                  isJust Nothing  = False
-              let typesNotInSchema = map snd $
-                    filter (\(x,y) -> not $ isJust x)
-                      (zip (map (\x -> BliSet.lookup (==x) types) argTypes) argTypes)
-              if typesNotInSchema == []
-              then case tryInsert (predName, argTypes) relations of
-                     Left _       -> return $ Result_AssertionFail_AlreadyAsserted
-                     Right result -> do
-                         setRelations result
-                         return $ Result_AssertionSuccess
-              else return $ Result_AssertionFail_TypeNotDeclared (head typesNotInSchema)
-            Type typeName -> do
-              -- Add type to schema if not in schema.
-              case tryInsert typeName types of
-                  Left _ -> return $ Result_AssertionFail_AlreadyAsserted
-                  Right result -> do
-                      setTypes result
-                      return $ Result_AssertionSuccess
-            TypeOf termId typeId -> do
-              -- Add term to schema if type is already in schema, and term not already in schema.
-              case BliSet.lookup (==typeId) types of
+      processTypecheckedBliCommand command
+
+-- | Add term to schema if type is already in schema, and term not already in schema.
+addEntityToSchema :: String -> String -> Bli BliResult
+addEntityToSchema termId typeId = do
+  types <- getTypes
+  entities <- getEntities
+  case BliSet.lookup (==typeId) types of
                 Nothing -> return $ Result_AssertionFail_TypeNotDeclared typeId
                 Just _ -> 
                   case tryInsert (termId, typeId) entities of

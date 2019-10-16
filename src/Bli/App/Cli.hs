@@ -128,6 +128,13 @@ processCliInput input = do
                   printResponse $ "    have not been declared in a schema."
                 Result_AssertionFail_AlreadyAsserted -> do
                   printResponse $ (yellow colorOpts "Already asserted.")
+                Result_AssertionFail_CannotDeclareEntityOfBuiltinType str -> do
+                  printResponse $ (red colorOpts "Failure.")++ " Assertion unsuccessful."
+                  printResponse $ "    Cannot declare an entity of builtin type "++ str ++ "."
+                Result_AssertionFail_CannotDeclaraDatatypeAsEntity -> do
+                  printResponse $ (red colorOpts "Failure.")++" Assertion unsuccessful."
+                  printResponse $ "    Cannot declare a datatype or data constructor as"
+                  printResponse $ "    an entity."
 
 -- | Function used to use for tab completion in the REPL.
 completionFunction :: String -> IO [String]

@@ -56,6 +56,8 @@ data BliResult =
  | Result_AssertionFail_NotAPredicate [(String, Int, String)]
  | Result_AssertionFail_TypeError [(String, Int, String, String)]
  | Result_AssertionFail_TypeNotDeclared String
+ | Result_AssertionFail_CannotDeclareEntityOfBuiltinType String
+ | Result_AssertionFail_CannotDeclaraDatatypeAsEntity
  | Result_AssertionFail_EntityNotDeclared String String
 
 
