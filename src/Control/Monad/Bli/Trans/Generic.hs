@@ -12,6 +12,10 @@ module Control.Monad.Bli.Trans.Generic (
   newFacts,
   newEntities,
   newRelations,
+  lookupTypeOfDataConstr,
+  newDataType,
+  newConstr,
+  newConstrs,
   runBliWithStore,
   newScopedFact,
   newScopedFacts,
@@ -323,14 +327,68 @@ runBli config facts relns ents types aliases app =
     aliases = aliases
   })
 
+-- | Adds a new constructor to the store if it's type
+--   has already been declared as a datatype, and all of its
+--   arguments are valid types.
+--   Returns a boolean result to indicate success/failure.
+newConstr :: (Monad m, BliSet t1, BliSet t2, BliSet t3, BliSet t4, Alias alias)
+-- | Constructor declaration
+ => (String, [String])
+-- | Type of constructor
+ -> String
+ -> BliT t1 t2 t3 t4 alias m Bool
+newConstr constr typeName = do
+  dataTypes <- dataTypes <$> get
+  dataConstrs <- dataTypeConstrs <$> get
+  -- If type has been declared as a datatype...
+  case lookup (==typeName) dataTypes of
+    Nothing -> return $ False
+    Just _  -> do 
+       case tryInsert (constr, typeName) dataConstrs of
+         Left _ -> return $ False
+         Right result -> do
+           setDataConstrs result
+           return $ True
+           
+setDataConstrs :: (Monad m, BliSet t1, BliSet t2, BliSet t3, BliSet t4, Alias alias)
+ => t2 ((String, [String]), String) -> BliT t1 t2 t3 t4 alias m ()
+setDataConstrs val = modify (\bliCtx -> bliCtx { dataTypeConstrs = val } )
+
+-- | Attemps to add a collection of new constructors to the store if everything
+--   typechecks. Returns a boolean result to indicate success/failure.
+newConstrs :: (Monad m, BliSet t1, BliSet t2, BliSet t3, BliSet t4, Alias alias)
+ -- Constructor name, constructor argument types, constructor type. 
+ => [((String, [String]), String)] 
+ -> BliT t1 t2 t3 t4 alias m Bool
+newConstrs constrDecs = do
+  results <- mapM (uncurry newConstr) constrDecs
+  return $ foldr (&&) True results
+
+-- | Helper function to add a new datatype to the store.
+--   Returns "True" on success, False otherwise.
+newDataType :: (Monad m, BliSet t1, BliSet t2, BliSet t3, BliSet t4, Alias alias)
+ => DataTypeDecl -> BliT t1 t2 t3 t4 alias m Bool
+newDataType (typeName,constrs) = do
+  -- Note: I want this to short-circuit if there are errors ANYWHERE here,
+  -- to ensure data integrity.
+  resultAddType <- newType typeName
+  case resultAddType of
+    False -> return False
+    True  -> do
+      newConstrs $ map (\constr -> 
+                           (constr, typeName))
+                        constrs
+
+-- | Helper function to lookup the type of a data constructor
+--   from the store.
+--   Note: If we allow for ambigious data constructors, this should return a list.
 lookupTypeOfDataConstr :: (Monad m, BliSet t1, BliSet t2, BliSet t3, BliSet t4, Alias alias)
- => String -> BliT t1 t2 t3 t4 alias m String
+ => String -> BliT t1 t2 t3 t4 alias m (Maybe String)
 lookupTypeOfDataConstr x = do
-  undefined
--- Note: This won't work. We need a different model.
---  dataTypes <- dataTypes <$> get
---  case lookup (\(constr,_) -> x==constr) dataTypes of
---    Just (_,
+  dataTypeConstrs <- dataTypeConstrs <$> get
+  case lookup (\((constrName,_),_) -> x==constrName) dataTypeConstrs of
+    Just (_,typ) -> return $ Just typ
+    Nothing -> return $ Nothing
 
 -- | 
 runBliWithStore :: (Monad m, BliSet t1, BliSet t2, BliSet t3, BliSet t4, Alias alias)

@@ -34,7 +34,8 @@ data BliStore t1 t2 t3 t4 alias = BliStore {
   -- they are displayed to the user.
   dataTypes       :: t2 String,
   -- This is really a map, I should probably consider changing the type
-  dataTypeConstrs :: t2 (String, String),
+  -- Maps a constructor (name and list of arg types) to its type.
+  dataTypeConstrs :: t2 ((String, [String]), String),
   -- | Name of the declared proc, a list of BliPrologTypes to use as
   -- argument to the procedure, and the procedure itself as a Dynamic
   -- value.
