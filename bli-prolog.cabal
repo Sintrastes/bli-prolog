@@ -115,8 +115,24 @@ library
       TypeFamilies
   default-language: Haskell2010
 
-executable bli-prolog
-  main-is: src/Main.hs
+-- Interpreter for bli prolog
+executable blipl
+  main-is: src/Interpreter.hs
+  other-modules:
+      Paths_bli_prolog
+  build-depends:
+      base <5
+    , cmdargs
+    , readline
+    , split
+    , bli-prolog
+  extensions:
+    TemplateHaskell
+  default-language: Haskell2010
+
+-- Compiler for bli prolog
+executable bliplc
+  main-is: src/Compiler.hs
   other-modules:
       Paths_bli_prolog
   build-depends:
