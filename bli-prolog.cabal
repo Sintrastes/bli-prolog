@@ -40,6 +40,7 @@ library
       Bli.Prolog.Parser.Common
       Bli.Prolog.Parser.Schema
       Bli.Prolog.Parser.Cli
+      Bli.Prolog.Compiler
       Bli.App
       Bli.App.Server
       Bli.App.Cli
@@ -70,6 +71,7 @@ library
     , yaml
     , scientific
     , split
+    , Cabal
     , containers
     , unordered-containers
     , parsec
