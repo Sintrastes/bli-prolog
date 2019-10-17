@@ -184,7 +184,6 @@ repl = do
   entities  <- getEntities
   aliases   <- getAliases
   let colorOpts = not $ nocolor config
-  -- Testing to see how this works.
   liftIO $ setCompletionEntryFunction $ Just completionFunction
   maybeLine <- liftIO $ readline (blue colorOpts command_prompt)
   case maybeLine of

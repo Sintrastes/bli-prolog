@@ -13,6 +13,7 @@ import Bli.Prolog.Interp.Data
 import Bli.Prolog.SearchStrategies
 import Bli.Prolog.Typechecking
 import Control.Monad.Bli
+import Control.Monad.Bli.Common (ProcContainer(..))
 import Control.Monad.Bli.Pure (liftFromPure)
 import Bli.App.Api
 import Bli.App.Config
@@ -56,6 +57,19 @@ processTypecheckedBliCommand command = do
   relations <- getRelations
   entities  <- getEntities
   aliases   <- getAliases
+  procs     <- getProcs
+  -- Helper function to check if an identifier represents a procedure.
+  let isProc x = 
+        case BliSet.lookup (\(ProcContainer (y,_,_)) -> x==y) procs of
+          Just _  -> True
+          Nothing -> False
+  -- Helper function to check if an identifier represents a procedure,
+  -- and if it does, returns the stored procedure itself, as well
+  -- as the types of its arguments.
+  let getProc x =
+        case BliSet.lookup (\(ProcContainer (y,_,_)) -> x==y) procs of
+          Just (ProcContainer (_,argTypes,procedure)) -> Just (argTypes, procedure)
+          Nothing -> Nothing
   case command of 
     (T_AssertMode goal') -> do
        -- First, expand all aliases 
@@ -108,6 +122,18 @@ processTypecheckedBliCommand command = do
                 map Solution 
                   $ map (filter (\(x,y) -> x `elem` vars)) 
                   $ map (\(Solution x) -> x) $ searchF tree
+    -- Handle procedures
+    (T_QueryMode [Comp (Identifier id) args])
+       | isProc id -> do
+         -- liftIO $ putStrLn "This is a procedure."
+         -- Special handling for putStrLn as a proof of concept.
+         -- This won't be needed later.
+         if id == "putStrLn"
+         then do
+           let (Comp (StringLiteral s) []) = head args
+           liftIO $ putStrLn s
+           return $ Result_QuerySuccess []
+         else return $ Result_QuerySuccess []
     (T_QueryMode goal') -> do
        -- First, expand all aliases 
        goal <- expandAliases goal'

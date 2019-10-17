@@ -8,6 +8,7 @@ module Control.Monad.Bli.Trans.Generic (
   NewAliasResult(..),
   runBli,
   initBli,
+  getProcs,
   newTypes,
   newFacts,
   newEntities,
@@ -152,6 +153,10 @@ newScopedFacts :: (Monad m, BliSet t1, BliSet t2, BliSet t3, BliSet t4, Alias al
 newScopedFacts clauses scope = do
   results <- mapM (\x -> newScopedFact x scope) clauses
   return $ foldr (&&) True results
+
+getProcs :: (Monad m, BliSet t1, BliSet t2, BliSet t3, BliSet t4, Alias alias)
+ => BliT t1 t2 t3 t4 alias m (t2 ProcContainer)
+getProcs = procs <$> get
 
 -- | Checks to see if an identifier is a primary ID
 isPrimaryID :: (Monad m, BliSet t1, BliSet t2, BliSet t3, Alias alias)
