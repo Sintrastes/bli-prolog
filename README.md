@@ -257,7 +257,7 @@ First-class rules
 Note: This is an experimental feature. The following is only an example
 of how this might work in the future, if implemented.
 
-~~~
+~~~prolog
   %
   % first_class_rules.bpl
   %
@@ -294,6 +294,60 @@ of how this might work in the future, if implemented.
   according_to(nate, cool(haskell)).
     True.
 ~~~
+
+Structural subtyping
+--------------------
+
+Structural subtyping in Bli Prolog can be used both with entitiy types, and datatypes.
+
+Unlike in Haskell, where constructors have to belong to a unique algebraic data type, in Bli Prolog, the type of a constructor can be inferred from context, or specifically stated with type annotations. For example, compare the following, which is invalid haskell:
+
+~~~haskell
+  -- Ok
+  data MyType1 = A | B | C
+ 
+  -- Will not compile with MyType1 in the same scope
+  data MyType2 = A | B | C | D
+~~~
+
+with the following, which is valid Bli Prolog:
+
+~~~prolog
+  % Ok.
+  datatype my_type_1 where
+    constructor 'A
+    constructor 'B
+    constructor 'C
+
+  % All good!
+  datatype my_type_2 where
+    constructor 'A
+    constructor 'B
+    constructor 'C
+    constructor 'D
+~~~
+
+If enabled, Bli Prolog will automatically deduce from the above that my_type_1 is a subtype of my_type_2, which we write `my_type_1 <: my_type_2`, which means that in any context (for instance, a relation) in which we expect a term of type `my_type_2`, we can also supply a term of type `my_type_1`.
+
+Structural subtyping can also be enabled for entity types. For instance:
+
+~~~ prolog
+  structural type duck with
+      proc quack: duck.
+      proc walk: duck.
+  
+  type unidentified_entity.
+  
+  proc quack: unidentified_entity.
+  proc walk: unidentified_entity.
+  
+  bob: unidentified_entity.
+  
+  ?- { duck(bob). }
+    > True.
+~~~
+
+Note: This feature is similar to typeclasses in Haskell, and what are sometimes called traits or interfaces in other languages.
 
 Command line interface
 =========
