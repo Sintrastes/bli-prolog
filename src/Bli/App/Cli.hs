@@ -142,28 +142,28 @@ processBliCommandRepl command = do
 -- | Helper function to process bli-prolog commands in a running application.
 processCliInput :: String -> Bli ()
 processCliInput input = do
-          -- Get schema, clauses, and options from context.
-          -- Temporary, to get this to compile.
-          let schema = []
-          types     <- getTypes
-          relations <- getRelations
-          entities  <- getEntities
-          facts     <- getFacts
-          opts      <- getConfig
-          aliases   <- getAliases
-          let colorOpts = not $ nocolor opts
-          -- Parse and handle the command
-          let parserOutput = parseBliCommandTyped input
-          case parserOutput of
-            Left err -> do printResponse $ ((red colorOpts "Error")++" parsing query string:")
-                           printResponse $ foldr1 (\x -> \y -> x ++ "\n" ++ y) $
-                                             (map (\x -> "  " ++ x)) $ 
-                                             (splitOn "\n" $ show err)
-                           printResponse $ 
-                             (yellow colorOpts
-                                "All bli prolog commands end with either a '.' or an '!'.")
-            Right command -> do
-              processBliCommandRepl command
+  -- Get schema, clauses, and options from context.
+  -- Temporary, to get this to compile.
+  let schema = []
+  types     <- getTypes
+  relations <- getRelations
+  entities  <- getEntities
+  facts     <- getFacts
+  opts      <- getConfig
+  aliases   <- getAliases
+  let colorOpts = not $ nocolor opts
+  -- Parse and handle the command
+  let parserOutput = parseBliCommandTyped input
+  case parserOutput of
+    Left err -> do printResponse $ ((red colorOpts "Error")++" parsing query string:")
+                   printResponse $ foldr1 (\x -> \y -> x ++ "\n" ++ y) $
+                                          (map (\x -> "  " ++ x)) $ 
+                                          (splitOn "\n" $ show err)
+                   printResponse $ 
+                     (yellow colorOpts
+                        "All bli prolog commands end with either a '.' or an '!'.")
+    Right command -> do
+      processBliCommandRepl command
 
 -- | Function used for tab completion in the REPL.
 completionFunction :: String -> IO [String]
