@@ -47,10 +47,12 @@ bliPrologProgramP = do
   slines' <- many $ try typedSchemaLineP `eitherP` clauseP
   -- Symbol to indicate that we are done with definitions, and
   -- everything from now on is to be interpreted as a command.
-  symb "?-"
-  csymb '{'
-  plines' <- many goalP
-  csymb '}'
+  plines' <- option [] (do
+    symb "?-"
+    csymb '{'
+    lines <- many goalP
+    csymb '}'
+    return lines)
   let slines = map (\line -> case line of
                               Left sEntry  -> sEntry
                               Right clause -> T_AssertClause clause) slines'

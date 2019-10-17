@@ -20,6 +20,7 @@ typedSchemaLineP = do
     res <- (try schemaRelnP 
        <|> try schemaEmptyRelnP 
        <|> try schemaStoredRelnP
+       <|> try usingDeclP
        <|> try schemaEntityP
        <|> try schemaExternalRelnP
        <|> try typeDeclP 

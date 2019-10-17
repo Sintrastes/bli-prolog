@@ -34,6 +34,7 @@ library
       Data.Bli.Prolog.Schema
       Bli.Util
       Bli.Prolog
+      Bli.Prolog.Modules
       Bli.Prolog.TH
       Bli.Prolog.Typechecking
       Bli.Prolog.Parser
@@ -77,6 +78,7 @@ library
     , unordered-containers
     , parsec
     , parser-combinators
+    , data-ordlist
     , liquidhaskell-cabal >= 0.2.1
     , pretty
     , witherable
