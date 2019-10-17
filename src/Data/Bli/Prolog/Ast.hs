@@ -50,18 +50,6 @@ instance Show BliPrologType where
   show (ListT t) = "list["++ show t ++"]" 
   show DateLitT = "date"
 
--- Subtyping relation.
-infixr 9 <:
-(<:) :: BliPrologType -> BliPrologType -> Bool
-(<:) _ TypTypesT = True
-(<:) (DeclaredTypeT x) EntityT = True
--- Anything is a subtype of itself.
-(<:) x y | x == y = True
-(<:) _ _ = False
-
--- | Computes the least upper bound of two BliPrologTypes.
-joinTypes :: BliPrologType -> BliPrologType -> BliPrologType
-joinTypes = undefined
 
 instance Show Term where
   show (Var x) = x

@@ -63,13 +63,21 @@ collectTypedBliCommandVars (T_AssertClause clause)  = collectClauseVars clause
 collectTypedBliCommandVars (T_LambdaQuery (_,goal)) = nub . join . (map collectTermVars) $ goal
 collectTypedBliCommandVars (T_AssertSchema _) = []
 
--- | Helper function. Checks to see which identifiers are used in a bli prolog program.
--- collectBliProgramAtoms :: BliProgram -> [(Atom, Int)]
--- collectBliProgramAtoms = nub . join . map collectBliCommandAtoms
+-- Subtyping relation.
+infixr 9 <:
+(<:) :: BliPrologType -> BliPrologType -> Bli Bool
+(<:) _ TypTypesT = return $ True
+(<:) (DeclaredTypeT x) EntityT = return $ True
+-- (<:) (DeclaredTypeT x) (DeclaredTypeT y) = do
+  -- check for either datatype structural subtyping,
+  -- and/or entity structural subtyping if it is enabled.
+-- Anything is a subtype of itself.
+(<:) x y | x == y = return $ True
+(<:) _ _ = return $ False
 
--- | Helper function. Checks to see which variables are used in a bli prolog program.
--- collectBliProgramVars :: BliProgram -> [Variable]
--- collectBliProgramVars = nub . join . map collectBliCommandVars
+-- | Computes the least upper bound of two BliPrologTypes.
+joinTypes :: BliPrologType -> BliPrologType -> BliPrologType
+joinTypes = undefined
 
 -- | Utility function to find the arity usages of atoms that 
 --   are not declared as valid in a schema, given a list of atoms
@@ -225,7 +233,8 @@ typecheckTerm (Comp (Identifier p) xs) = do
                         Identifier str | isUpper (head str) -> return $ Right Ok
                         _ -> return $ Left $ EntityNotDeclared (show x) (show expectedType)
                     Just typeOfX -> do
-                      if typeOfX <: expectedType
+                      subTypeOfExpected <- typeOfX <: expectedType
+                      if subTypeOfExpected
                       then return $ Right Ok
                       else return $ Left $ TypeError (p, n, show expectedType, show typeOfX))
                (zip3 expectedTypes (map termHead xs) [1..length xs])
