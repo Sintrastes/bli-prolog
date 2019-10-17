@@ -20,6 +20,7 @@ import Bli.Prolog.Typechecking
 import Data.Bli.Prolog.Ast
 import Data.Bli.Prolog.Schema
 import Data.Aeson hiding (json)
+import Text.ParserCombinators.Parsec (parse)
 import Bli.Prolog.Parser.Cli
 import Bli.Prolog.Parser.Schema
 import Bli.Prolog.Parser
@@ -53,7 +54,7 @@ fmt n = (show n) ++ "-"
 -- | Helper function to process a bli prolog command at the REPL.
 processBliCommandRepl :: BliCommand -> Bli ()
 processBliCommandRepl command = do
-  let schema = []
+  -- Get schema, clauses, and options from context.
   types     <- getTypes
   relations <- getRelations
   entities  <- getEntities
@@ -63,6 +64,7 @@ processBliCommandRepl command = do
   let colorOpts = not $ nocolor opts
   
   result <- processBliCommand command
+  -- Handle the result of processing the command.
   case result of
     Result_QueryFail_AtomsNotInSchema atoms -> do
       printResponse $ (red colorOpts "Failure.")++" Query unsuccessful."
@@ -150,6 +152,7 @@ processCliInput input = do
   opts      <- getConfig
   aliases   <- getAliases
   let colorOpts = not $ nocolor opts
+
   -- Parse and handle the command
   let parserOutput = parseBliCommandTyped input
   case parserOutput of
@@ -350,13 +353,18 @@ repl = do
                      printResponse $ "Failure. Neither " ++ arg1 ++ " nor " ++ arg2 ++ " are a primary ID"
                      printResponse $ "Or a pre-existing alias of a primary ID."
                      repl
-             GetTypeOf t -> do
-               -- TODO: Actually parse this into an atom here.
-               response <- typeOfAtom (Identifier t)
-               case response of
-                 Nothing -> printResponse "Did not typecheck"
-                 Just typ -> printResponse $ show typ
-               repl
+             GetTypeOf input -> do
+               let maybeAtom = parse atomP "" input
+               case maybeAtom of
+                 Left e -> do 
+                   printResponse $ show e
+                   repl
+                 Right atom -> do 
+                   response <- typeOfAtom atom
+                   case response of
+                     Nothing -> printResponse "Did not typecheck"
+                     Just typ -> printResponse $ show typ
+                   repl
              ShowPort -> do
                 liftIO $ print (port config)
                 repl
