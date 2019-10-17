@@ -46,7 +46,7 @@ program = QuasiQuoter {
             things ++ " are not handled by the regex quasiquoter."
         parserTH :: String -> Q Exp
         parserTH s =
-          case parse programP "" s of
+          case parse prologProgramP "" s of
             Left  err    -> fail (show err)
             Right x      -> [e| x |]
 

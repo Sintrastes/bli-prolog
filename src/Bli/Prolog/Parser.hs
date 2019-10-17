@@ -15,23 +15,48 @@ import Data.Bli.Prolog.Schema
 import Control.Monad (join)
 
 -- | Loads a plain prolog file @filename@, and parses it into a list of clauses.
-clausesFromFile filename = parseFromFile programP filename
+clausesFromFile filename = parseFromFile prologProgramP filename
 
 -- | Parses a plain prolog file directly from a string into a list of clauses.
-clausesFromString context = parse programP "" context
+clausesFromString context = parse prologProgramP "" context
 
 -- | Loads a bli file, and parses it.
-parseTypedBliFile = parseFromFile typedBliFileP 
+parseTypedBliFile = parseFromFile bliPrologProgramP 
 
 -- | Parses a bli file directly from its stirng representation
-parseTypedBli = parse typedBliFileP ""
+parseTypedBli = parse bliPrologProgramP ""
 
 -- | Parser for a pure prolog program. 
-programP :: Parser Program
-programP = do spacesOrComments
-              clauses <- many1 clauseP
-              return clauses
+prologProgramP :: Parser Program
+prologProgramP = do spacesOrComments
+                    clauses <- many1 clauseP
+                    return clauses
 
+-- | Parser for a bli prolog schema. Only contains assertions. No queries.
+bliPrologSchemaP :: Parser BliProgram
+bliPrologSchemaP = do
+  lines' <- many $ try typedSchemaLineP `eitherP` clauseP
+  let lines = map (\line -> case line of
+                              Left sEntry  -> sEntry
+                              Right clause -> T_AssertClause clause) lines'
+  return lines
+
+-- | Parser for a bli prolog program.
+bliPrologProgramP :: Parser BliProgram
+bliPrologProgramP = do
+  slines' <- many $ try typedSchemaLineP `eitherP` clauseP
+  -- Symbol to indicate that we are done with definitions, and
+  -- everything from now on is to be interpreted as a command.
+  symb "?-"
+  csymb '{'
+  plines' <- many goalP
+  csymb '}'
+  let slines = map (\line -> case line of
+                              Left sEntry  -> sEntry
+                              Right clause -> T_AssertClause clause) slines'
+  let plines = map T_QueryMode plines'
+  
+  return $ slines ++ plines
 
 -- | Parser for a prolog term which is not a rule.
 termP' :: Parser Term
@@ -192,11 +217,3 @@ atomP = do
     quotedP = (do q <- char '"'
                   s <- manyTill anyChar (try $ char '"')
                   return $ StringLiteral s ) <?> "string literal"
-
-typedBliFileP :: Parser BliProgram
-typedBliFileP = do
-  lines' <- many $ try typedSchemaLineP `eitherP` clauseP
-  let lines = map (\line -> case line of
-                              Left sEntry  -> sEntry
-                              Right clause -> T_AssertClause clause) lines'
-  return lines
