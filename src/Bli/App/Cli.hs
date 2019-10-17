@@ -50,6 +50,95 @@ fmt 9 = "noven"
 fmt 10 = "den"
 fmt n = (show n) ++ "-"
 
+-- | Helper function to process a bli prolog command at the REPL.
+processBliCommandRepl :: BliCommand -> Bli ()
+processBliCommandRepl command = do
+  let schema = []
+  types     <- getTypes
+  relations <- getRelations
+  entities  <- getEntities
+  facts     <- getFacts
+  opts      <- getConfig
+  aliases   <- getAliases
+  let colorOpts = not $ nocolor opts
+  
+  result <- processBliCommand command
+  case result of
+    Result_QueryFail_AtomsNotInSchema atoms -> do
+      printResponse $ (red colorOpts "Failure.")++" Query unsuccessful."
+      printResponse $ "    The identifiers "++ show atoms
+      printResponse $ "    have not been declared in a schema."
+    Result_QueryFail_BoundVarNotInBody -> do
+      printResponse $ (red colorOpts "Failure.")++" Query unsuccessful."
+      printResponse $ "    Variables bound by a lambda abstraction that do not appear"
+      printResponse $ "    In the body of a query."
+    Result_QueryFail_EntityNotDeclared t x -> do
+      printResponse $ (red colorOpts "Failure.")++" Query unsuccessful."
+      printResponse $ "    The term "++t++" has not been declared as an entity"
+      printResponse $ "    of type "++x++"."
+    Result_QueryFail_TypeNotDeclared t -> do
+      printResponse $ (red colorOpts "Failure.")++" Query unsuccessful."
+      printResponse $ "    The type "++t++"\n    has not been declared."
+    Result_QueryFail_NotAPredicate ((id, n, typ):_) -> do
+      printResponse $ (red colorOpts "Failure.")++" Query unsuccesful."
+      printResponse $ "    Identifier "++id++" is being used as an "++fmt n++"ary predicate"
+      printResponse $ "    but is declared to be a term of type "++typ++"."
+    Result_QueryFail_TypeError _ -> do
+      printResponse $ (red colorOpts "Failure.")++" Query unsuccesful."
+      printResponse $ "    Type error."
+    Result_QuerySuccess solutions -> do
+      case solutions of
+        [] -> do
+          printResponse (yellow colorOpts "No solutions.")
+        (x:[]) -> do
+          if (show x == "true")
+          then printResponse (green colorOpts "True.")
+          else case json opts of
+            True  -> liftIO $ mapM_ (putStrLn . solutionToJson) solutions
+            False -> liftIO $ mapM_ print solutions
+        _  -> do
+          case json opts of
+            True  -> liftIO $ mapM_ (putStrLn . solutionToJson) solutions
+            False -> liftIO $ mapM_ print solutions 
+    Result_AssertionSuccess -> do
+      printResponse $ (green colorOpts "OK.")++" Assertion successful."
+      -- Note: If we have stored somewhere a list of how to make a type into
+      -- its plural form, then we can have better responses here.
+    Result_AssertionSuccess_AddedEntityLocally entityName entityType  -> do
+      printResponse $ (green colorOpts "Ok. ")++"Added "++entityName++" to the list of entities of type "++entityType++"."
+    Result_AssertionSuccess_AddedEntityBedelibry entityName entityType -> do
+      printResponse $ (green colorOpts "Ok.")
+      printResponse $ "    Added "++entityName++" to the list of entities of type"
+      printResponse $ "    "++entityType++" in the Bedelibry server."
+    Result_AssertionFail_EntityNotDeclared t x -> do
+      printResponse $ (red colorOpts "Failure.")++" Assertion unsuccessful."
+      printResponse $ "    The term "++t++" has not been declared as an entity"
+      printResponse $ "    of type "++x++"."
+    Result_AssertionFail_TypeNotDeclared t -> do
+      printResponse $ (red colorOpts "Failure.")++" Assertion unsuccessful."
+      printResponse $ "    The type "++t++"\n    has not been declared."
+    Result_AssertionFail_NotAPredicate ((id, n, typ):_) -> do
+      printResponse $ (red colorOpts "Failure.")++" Assertion unsuccessful."
+      printResponse $ "    Identifier "++id++" is being used as an "++fmt n++"ary predicate"
+      printResponse $ "    but is declared to be a term of type "++typ++"."
+    Result_AssertionFail_TypeError ((p, n, expectedType, actualType):_) -> do
+      printResponse $ (red colorOpts "Failure.")++" Assertion unsuccesful."
+      printResponse $ "    Type error. In predicate "++p++" at argument "++show n++","
+      printResponse $ "    expected a term of type "++expectedType++" but instead recieved a term of type "++actualType++"."
+    Result_AssertionFail_AtomsNotInSchema atoms -> do
+      printResponse $ (red colorOpts "Failure.")++" Assertion unsuccessful."
+      printResponse $ "    The identifiers "++ show atoms
+      printResponse $ "    have not been declared in a schema."
+    Result_AssertionFail_AlreadyAsserted -> do
+      printResponse $ (yellow colorOpts "Already asserted.")
+    Result_AssertionFail_CannotDeclareEntityOfBuiltinType str -> do
+      printResponse $ (red colorOpts "Failure.")++ " Assertion unsuccessful."
+      printResponse $ "    Cannot declare an entity of builtin type "++ str ++ "."
+    Result_AssertionFail_CannotDeclaraDatatypeAsEntity -> do
+      printResponse $ (red colorOpts "Failure.")++" Assertion unsuccessful."
+      printResponse $ "    Cannot declare a datatype or data constructor as"
+      printResponse $ "    an entity."
+
 -- | Helper function to process bli-prolog commands in a running application.
 processCliInput :: String -> Bli ()
 processCliInput input = do
@@ -74,84 +163,9 @@ processCliInput input = do
                              (yellow colorOpts
                                 "All bli prolog commands end with either a '.' or an '!'.")
             Right command -> do
-              result <-  processBliCommand command
-              case result of
-                Result_QueryFail_AtomsNotInSchema atoms -> do
-                  printResponse $ (red colorOpts "Failure.")++" Query unsuccessful."
-                  printResponse $ "    The identifiers "++ show atoms
-                  printResponse $ "    have not been declared in a schema."
-                Result_QueryFail_BoundVarNotInBody -> do
-                  printResponse $ (red colorOpts "Failure.")++" Query unsuccessful."
-                  printResponse $ "    Variables bound by a lambda abstraction that do not appear"
-                  printResponse $ "    In the body of a query."
-                Result_QueryFail_EntityNotDeclared t x -> do
-                  printResponse $ (red colorOpts "Failure.")++" Query unsuccessful."
-                  printResponse $ "    The term "++t++" has not been declared as an entity"
-                  printResponse $ "    of type "++x++"."
-                Result_QueryFail_TypeNotDeclared t -> do
-                  printResponse $ (red colorOpts "Failure.")++" Query unsuccessful."
-                  printResponse $ "    The type "++t++"\n    has not been declared."
-                Result_QueryFail_NotAPredicate ((id, n, typ):_) -> do
-                  printResponse $ (red colorOpts "Failure.")++" Query unsuccesful."
-                  printResponse $ "    Identifier "++id++" is being used as an "++fmt n++"ary predicate"
-                  printResponse $ "    but is declared to be a term of type "++typ++"."
-                Result_QueryFail_TypeError _ -> do
-                  printResponse $ (red colorOpts "Failure.")++" Query unsuccesful."
-                  printResponse $ "    Type error."
-                Result_QuerySuccess solutions -> do
-                    case solutions of
-                         [] -> do
-                            printResponse (yellow colorOpts "No solutions.")
-                         (x:[]) -> do
-                            if (show x == "true")
-                            then printResponse (green colorOpts "True.")
-                            else case json opts of
-                                   True  -> liftIO $ mapM_ (putStrLn . solutionToJson) solutions
-                                   False -> liftIO $ mapM_ print solutions
-                         _  -> do
-                            case json opts of
-                              True  -> liftIO $ mapM_ (putStrLn . solutionToJson) solutions
-                              False -> liftIO $ mapM_ print solutions 
-                Result_AssertionSuccess -> do
-                  printResponse $ (green colorOpts "OK.")++" Assertion successful."
-                -- Note: If we have stored somewhere a list of how to make a type into
-                -- its plural form, then we can have better responses here.
-                Result_AssertionSuccess_AddedEntityLocally entityName entityType  -> do
-                  printResponse $ (green colorOpts "Ok. ")++"Added "++entityName++" to the list of entities of type "++entityType++"."
-                Result_AssertionSuccess_AddedEntityBedelibry entityName entityType -> do
-                  printResponse $ (green colorOpts "Ok.")
-                  printResponse $ "    Added "++entityName++" to the list of entities of type"
-                  printResponse $ "    "++entityType++" in the Bedelibry server."
-                Result_AssertionFail_EntityNotDeclared t x -> do
-                  printResponse $ (red colorOpts "Failure.")++" Assertion unsuccessful."
-                  printResponse $ "    The term "++t++" has not been declared as an entity"
-                  printResponse $ "    of type "++x++"."
-                Result_AssertionFail_TypeNotDeclared t -> do
-                  printResponse $ (red colorOpts "Failure.")++" Assertion unsuccessful."
-                  printResponse $ "    The type "++t++"\n    has not been declared."
-                Result_AssertionFail_NotAPredicate ((id, n, typ):_) -> do
-                  printResponse $ (red colorOpts "Failure.")++" Assertion unsuccessful."
-                  printResponse $ "    Identifier "++id++" is being used as an "++fmt n++"ary predicate"
-                  printResponse $ "    but is declared to be a term of type "++typ++"."
-                Result_AssertionFail_TypeError ((p, n, expectedType, actualType):_) -> do
-                  printResponse $ (red colorOpts "Failure.")++" Assertion unsuccesful."
-                  printResponse $ "    Type error. In predicate "++p++" at argument "++show n++","
-                  printResponse $ "    expected a term of type "++expectedType++" but instead recieved a term of type "++actualType++"."
-                Result_AssertionFail_AtomsNotInSchema atoms -> do
-                  printResponse $ (red colorOpts "Failure.")++" Assertion unsuccessful."
-                  printResponse $ "    The identifiers "++ show atoms
-                  printResponse $ "    have not been declared in a schema."
-                Result_AssertionFail_AlreadyAsserted -> do
-                  printResponse $ (yellow colorOpts "Already asserted.")
-                Result_AssertionFail_CannotDeclareEntityOfBuiltinType str -> do
-                  printResponse $ (red colorOpts "Failure.")++ " Assertion unsuccessful."
-                  printResponse $ "    Cannot declare an entity of builtin type "++ str ++ "."
-                Result_AssertionFail_CannotDeclaraDatatypeAsEntity -> do
-                  printResponse $ (red colorOpts "Failure.")++" Assertion unsuccessful."
-                  printResponse $ "    Cannot declare a datatype or data constructor as"
-                  printResponse $ "    an entity."
+              processBliCommandRepl command
 
--- | Function used to use for tab completion in the REPL.
+-- | Function used for tab completion in the REPL.
 completionFunction :: String -> IO [String]
 completionFunction x = 
    if any (\y -> isPrefixOf x y) commandStrings

@@ -33,6 +33,7 @@ library
       Data.Bli.Prolog.Ast
       Data.Bli.Prolog.Schema
       Bli.Util
+      Bli.Prolog
       Bli.Prolog.TH
       Bli.Prolog.Typechecking
       Bli.Prolog.Parser
