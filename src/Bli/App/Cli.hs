@@ -143,8 +143,6 @@ processBliCommandRepl command = do
 processCliInput :: String -> Bli ()
 processCliInput input = do
   -- Get schema, clauses, and options from context.
-  -- Temporary, to get this to compile.
-  let schema = []
   types     <- getTypes
   relations <- getRelations
   entities  <- getEntities
@@ -182,8 +180,6 @@ repl = do
   relations <- getRelations
   entities  <- getEntities
   aliases   <- getAliases
-  -- Temporary, to get this to compile
-  let schema = [] 
   let colorOpts = not $ nocolor config
   -- Testing to see how this works.
   liftIO $ setCompletionEntryFunction $ Just completionFunction
@@ -319,19 +315,19 @@ repl = do
                     repl
              ExportFile filePath -> do
                 case fileExtension filePath of
-                  ".pl" -> do
+                  PlainPlExtension -> do
                     let contents = undefined
                     liftIO $ catch (writeFile filePath contents)
                                    (\e -> do
                                       printResponse $ (red colorOpts "Error") ++ " writing file "++ filePath ++ ":"
                                       mapM_ (\x -> printResponse $ "  " ++ x) (splitOn "\n" (show (e :: IOException))))
-                  ".bpl"  -> do
+                  BliPlExtension  -> do
                     let contents = undefined
                     liftIO $ catch (writeFile filePath contents)
                                    (\e -> do
                                       printResponse $ (red colorOpts "Error") ++ " writing file "++ filePath ++ ":"
                                       mapM_ (\x -> printResponse $ "  " ++ x) (splitOn "\n" (show (e :: IOException))))
-                  ".bsch" -> do
+                  SchemaFileExtension -> do
                     let contents = undefined
                     liftIO $ catch (writeFile filePath contents)
                                    (\e -> do
