@@ -15,6 +15,7 @@ import Data.Yaml
 import Bli.Util (groupClauses)
 import Control.Monad.IO.Class
 import qualified Data.BliSet as BliSet
+import Data.List
 
 subset xs ys = all (\x -> x `elem` ys) xs
 
@@ -32,7 +33,8 @@ loadBliProgramFromFile filePath = do
       case maybeProg of
         Nothing -> error "Error loading file"
         Just prog -> do 
-          case BliSet.lookup (\(a,b) -> b == filePath) modData of
+          
+          case BliSet.lookup (\(a,b) -> isSuffixOf filePath b) modData of
             Nothing -> go prog [] modData
             Just (modName,_) -> go prog [modName] modData
  where go prog loadedMods modData = do
