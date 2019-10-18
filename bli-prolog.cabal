@@ -43,6 +43,7 @@ library
       Bli.Prolog.Parser.Schema
       Bli.Prolog.Parser.Cli
       Bli.Prolog.Compiler
+      Bli.Prolog.Compiler.TH
       Bli.App
       Bli.App.Server
       Bli.App.Cli
@@ -81,6 +82,7 @@ library
     , data-ordlist
     , liquidhaskell-cabal >= 0.2.1
     , pretty
+    , process
     , witherable
     , mtl
     , transformers

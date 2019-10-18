@@ -1,0 +1,13 @@
+-- Note: This is only a template,
+-- Not valid Haskell.
+
+module Main where
+
+import Bli.Prolog.Compiler.TH
+import Bli.Prolog
+
+main :: IO ()
+main = do
+  let Just program = $(getBliProgramFromFile' "<FILEPATH>")
+  executeProgram program
+  return ()
