@@ -9,58 +9,63 @@ import Test.Tasty
 import Test.Tasty.HUnit
 
 import Bli.App
+import Bli.App.Api
 import Bli.App.Config
 import Bli.App.Api
-import Prolog.Analysis
+import Bli.Prolog.Typechecking
 import Control.Monad
-import Control.Monad.Bli.Pure
-import Data.Prolog.TemplateHaskell
+import Control.Monad.Bli
+import Bli.Prolog.TH
+
+initCmd command = initBli (AppConfig { options = (startOptions "tests"), version = "tests" }) command
 
 app_tests = testGroup "App"
   [
-    testCase "Assert schema twice" $ 
-      let command = processBliCommand [bli| test: 0 |]
-                 >> processBliCommand [bli| test: 0 |]
-          result = runBli (startOptions "tests") [] [] command in
+    testCase "Assert schema twice" $ do
+      let command = processBliCommand [bli| rel test. |]
+                 >> processBliCommand [bli| rel test. |]
+      result <- initCmd command
       Result_AssertionFail_AlreadyAsserted @=? result 
-  , testCase "Assert fact twice" $
-      let command = processBliCommand [bli| test: 0 |]
-                 >> processBliCommand [bli| test! |]
-                 >> processBliCommand [bli| test! |]
-          result = runBli (startOptions "tests") [] [] command in
+  , testCase "Assert fact twice" $ do
+      let command = processBliCommand [bli| rel test. |]
+                 >> processBliCommand [bli|test! |]
+                 >> processBliCommand [bli|test! |]
+      result <- initCmd command
       Result_AssertionFail_AlreadyAsserted @=? result 
-  , testCase "Assert rule twice" $
-      let command = processBliCommand [bli| a: 0 |]
-                 >> processBliCommand [bli| b: 0 |]
+  , testCase "Assert rule twice" $ do
+      let command = processBliCommand [bli| rel a. |]
+                 >> processBliCommand [bli| rel b. |]
                  >> processBliCommand [bli| a :- b! |]
                  >> processBliCommand [bli| a :- b! |]
-          result = runBli (startOptions "tests") [] [] command in
+      result <- initCmd command
       Result_AssertionFail_AlreadyAsserted @=? result 
-  , testCase "Query undeclared predicate." $
+  , testCase "Query undeclared predicate." $ do
       let command = processBliCommand [bli| test. |]
-          result = runBli (startOptions "tests") [] [] command in
-      Result_QueryFail (AtomsNotInSchema ["test"]) @=? result
+      result <- initCmd command
+      Result_QueryFail_AtomsNotInSchema ["test"] @=? result
   -- Note: We should also test more complicated exampels here
   -- with nested predicates.
-  , testCase "Query with wrong arity." $ 
-      let command = processBliCommand [bli| test: 0  |]
+  -- Note: These examples here actually show that I still need a WrongArities
+  -- result.
+  , testCase "Query with wrong arity." $ do
+      let command = processBliCommand [bli| rel test.  |]
                  >> processBliCommand [bli| test(X). |]
-          result = runBli (startOptions "tests") [] [] command in
-      Result_QueryFail_WrongArities [("test", 1)] @=? result
-  , testCase "Assertion with wrong arity." $ 
-      let command = processBliCommand [bli| test: 0  |]
+      result <- initCmd command
+      Result_QueryFail_WrongArities [("test", 1, 0)] @=? result
+  , testCase "Assertion with wrong arity." $ do 
+      let command = processBliCommand [bli| rel test/0.  |]
                  >> processBliCommand [bli| test(X)! |]
-          result = runBli (startOptions "tests") [] [] command in
-      Result_AssertionFail_WrongArities [("test", 1)] @=? result
+      result <- initCmd command
+      Result_AssertionFail_WrongArities [("test", 1, 0)] @=? result
 
-  , testCase "Lambda query with wrong arity." $
-      let command = processBliCommand [bli| test: 0  |]
+  , testCase "Lambda query with wrong arity." $ do
+      let command = processBliCommand [bli| rel test.  |]
                  >> processBliCommand [bli| \X. test(X). |]
-          result = runBli (startOptions "tests") [] [] command in
-      Result_QueryFail_WrongArities [("test", 1)] @=? result
-  , testCase "Bound variable not in body." $
-      let command = processBliCommand [bli| test: 0  |]
+      result <- initCmd command
+      Result_QueryFail_WrongArities [("test", 1, 0)] @=? result
+  , testCase "Bound variable not in body." $ do
+      let command = processBliCommand [bli| rel test.  |]
                  >> processBliCommand [bli| \X,Y. test(X). |]
-          result = runBli (startOptions "tests") [] [] command in
-      Result_QueryFail BoundVarNotInBody @=? result
+      result <- initCmd command
+      Result_QueryFail_BoundVarNotInBody @=? result
   ] 

@@ -17,6 +17,7 @@ parseTypedSchema = parse typedSchemaFileP ""
 
 typedSchemaLineP :: Parser BliCommand
 typedSchemaLineP = do
+    many space
     res <- (try schemaRelnP 
        <|> try schemaEmptyRelnP 
        <|> try schemaStoredRelnP

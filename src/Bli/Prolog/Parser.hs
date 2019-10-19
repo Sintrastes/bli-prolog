@@ -27,10 +27,10 @@ parseTypedBliFile = parseFromFile bliPrologProgramP
 parseTypedBli = parse bliPrologProgramP ""
 
 -- | Parser for a pure prolog program. 
-prologProgramP :: Parser Program
+prologProgramP :: Parser [(Term, Terms)]
 prologProgramP = do spacesOrComments
                     clauses <- many1 clauseP
-                    return clauses
+                    return $ clauses
 
 -- | Parser for a bli prolog schema. Only contains assertions. No queries.
 bliPrologSchemaP :: Parser BliProgram
@@ -68,10 +68,12 @@ termP' =  (variableP >>= return . Var)
 
 -- | Parser for a prolog term.
 termP :: Parser Term
-termP =  (variableP >>= return . Var)
-    <|> try ruleP
-    <|> try (literalP)
-    <|> ((listP) <?> "list term")
+termP = do
+   many space 
+   (variableP >>= return . Var)
+      <|> try ruleP
+      <|> try (literalP)
+      <|> ((listP) <?> "list term")
 
 
 -- A top level term -- each of the alternatives must consume all of their

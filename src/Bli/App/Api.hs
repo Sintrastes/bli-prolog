@@ -46,6 +46,7 @@ data BliResult =
  | Result_QueryFail_TypeNotDeclared String
  | Result_QueryFail_EntityNotDeclared String String
  | Result_QueryFail_NotAPredicate [(String, Int, String)]
+ | Result_QueryFail_WrongArities [(String,Int,Int)]
  | Result_QuerySuccess [Solution]
  | Result_AssertionSuccess
  | Result_AssertionSuccess_AddedEntityLocally String String
@@ -54,6 +55,7 @@ data BliResult =
 -- Error: X should have arity Y.
 --        Z should have arity W.
 --        ... etc...
+ | Result_AssertionFail_WrongArities [(String,Int,Int)]
  | Result_AssertionFail_AtomsNotInSchema [String]
  | Result_AssertionFail_NotAPredicate [(String, Int, String)]
  | Result_AssertionFail_TypeError [(String, Int, String, String)]
