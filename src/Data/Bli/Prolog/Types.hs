@@ -20,6 +20,11 @@ class TypeOfBliType where
 --   If we combine two monomorphic types, we get a
 --   monomorphic type.
 --
+
+-- | Experimental, for lambek calculus support.
+data Direction = LeftArr 
+               | RightArr deriving(Eq, Show, Lift)
+
 type family CombineMode a b
   type instance CombineMode Polymorphic Polymorphic = Polymorphic
   type instance CombineMode Polymorphic Monomorphic = Polymorphic
@@ -30,7 +35,7 @@ data BliPrologType where
    TypeVar :: String -> (BliPrologType Monomorphic) -> BliPrologType Polymorphic
    EntityT :: BliPrologType Monomorphic
  -- Function from one BliPrologType to another.
-   FuncT :: BliPrologType a -> BliPrologType b -> BliPrologTypes (CombineMode a b)
+   FuncT :: Direction -> BliPrologType a -> BliPrologType b -> BliPrologTypes (CombineMode a b)
  -- A user declared type, such as "person".
    DeclaredTypeT :: String -> BliPrologType Monomorphic
  -- Type of types, "type".

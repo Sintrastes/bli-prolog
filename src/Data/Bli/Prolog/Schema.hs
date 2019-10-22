@@ -8,6 +8,7 @@
 module Data.Bli.Prolog.Schema where
 
 import Language.Haskell.TH.Lift
+import Data.Bli.Prolog.Types
 
 -- | A schema (curretly) is a list of identifiers,
 --   together with their arity. In the future,
@@ -27,10 +28,6 @@ data IsStored =
 -- Function found in the given haskell module
  | ExternalHS String
  | NotStored deriving(Eq, Show, Lift)
-
--- | Experimental, for lambek calculus support.
-data Direction = LeftArr 
-               | RightArr deriving(Eq, Show, Lift)
 
 -- | For our typed schema entry, we can either declare that a predicate
 --   with a given identity can take arguments of the supplied types,

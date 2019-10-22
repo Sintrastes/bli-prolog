@@ -42,6 +42,7 @@ library
       Bli.Prolog.Parser.DateTime
       Bli.Prolog.Parser.Common
       Bli.Prolog.Parser.Schema
+      Bli.Prolog.Parser.Types
       Bli.Prolog.Parser.Cli
       Bli.Prolog.Compiler
       Bli.Prolog.Compiler.TH

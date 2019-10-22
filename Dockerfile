@@ -3,6 +3,7 @@ MAINTAINER "Nathan Bedell" "nbedell@tulane.edu"
 RUN apt -y update
 RUN apt -y install git \
                    zlib1g-dev \
+                   libghc-readline-dev \
                    software-properties-common
 RUN add-apt-repository -y ppa:hvr/ghc
 RUN apt update
