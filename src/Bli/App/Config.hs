@@ -422,56 +422,6 @@ json (AppConfig options _) = json' options
 server (AppConfig options _) = server' options
 port (AppConfig options _) = port' options
 burl (AppConfig options _) = burl' options
- 
--- | Note: These are things which should not be able to be configured through
---   the command line. Or, if they are, it should be through a very specific interface
---   (like Haskell's -XWhateverExtension).
---
---   Most likely, these should be read from a configuration file, or from
---   the command line, or using language pragmas. 
---
---   This is mostly for me to experiment around with different things. I will
---   probably set some defaults eventually
-data LanguageOption =
-
- -- | This gives access to the untyped version of bli prolog, and the original syntax
- -- for schema files, if anyone wants access to that fragment of the language.
- -- Note: Keeping this around might be interesting in the future, e.x. for
- -- implementing some form of gradual typing with this syntax.
-    UntypedLanguage
- -- | When set, this allows for
- --   names to be used unambigously in different ways.
- --
- --   For instance, programming_langauge can refer to a type, as well as
- --   a unary predicate on entities.
- --
- --   However, this extension allows user-declared predicates to have multiple
- --   roles. For instance, a predicate "pred : type -> type -> type" under this
- --   extension is considered to be different from a predicate "pred: type -> type".   
-  |  PredicateOverloading
- -- | This works similarly to the above, except it allows for entities
- --   with the same name to be declared of different types.
- --   This is a bit more confusing, because of the ambiguity in how this
- --   should be interpreted semantically. Does 
- --
- --       nate : person
- --       nate : animal
- --
- --   mean that nate (person) and nate (animal) refer to two different entities,
- --   or does this mean that nate is both a person and an animal?
- --
- --   This makes entity overloading a more difficult extension to implement.
- --   Perhaps this might be better a multiple extensions with slightly different
- --   behavior. Otherwise, we need a system here for how these sort of ambiguities
- --   will be handled.   
-  | EntityOverloading
- --   This extension is pretty straightforward (I think). It allows for an identifier
- --   to stand for both an entity, and for a predicate. For instance, programming_language
- --   is an entity of type *type*, whereas programming_language is also a unary predicate.
- --   With this extension set, users are allowed to declare their own identifiers
- --   as being predicates and as being entities. This should be relatively straightforward
- --   because there is no way of confusing the semantics here.
-  | PredicateEntityOverloading
 
 -- | Starting options for the bli-prolog exectuable.
 startOptions version =

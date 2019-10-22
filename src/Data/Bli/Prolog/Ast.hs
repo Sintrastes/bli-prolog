@@ -79,6 +79,10 @@ prettyShowClause (head, body) = (show head) ++ " :-\n  " ++ intercalate ", " (ma
 
 -- | Version of BliCommand, using our typed schemas.
 data BliCommand =
+-- Note: Going forward, I want to merge these
+-- into a single case. A goal is just the same as
+-- a lambda query which binds all free variables
+-- contained in the query.
    QueryMode Goal
  | LambdaQuery LambdaGoal
  | MkAlias String String 
@@ -101,5 +105,4 @@ type Clauses = [Clause]
 
 -- | A type synonym for BliPrograms,
 -- which can contain both assertions and queries.
--- (Note: this may or may not be needed).
 type BliProgram = [BliCommand]
