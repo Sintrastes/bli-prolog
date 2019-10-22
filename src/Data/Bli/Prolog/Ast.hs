@@ -83,7 +83,7 @@ data BliCommand =
  | LambdaQuery LambdaGoal
  | AssertMode Goal
  | AssertClause Clause 
- | AssertSchema TypedSchemaEntry deriving(Show, Eq, Lift)
+ | AssertSchema SchemaEntry deriving(Show, Eq, Lift)
 
 -- | Helper function to check if a BliCommand is an assertion.
 isAssertion :: BliCommand -> Bool

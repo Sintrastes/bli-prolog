@@ -30,20 +30,20 @@ typedSchemaLineP = do
        <|> schemaExternalRelnHSP)
     return (AssertSchema res)
 
-typedSchemaFileP :: Parser TypedSchema
+typedSchemaFileP :: Parser Schema
 typedSchemaFileP = do
   lines <- many (try schemaRelnP <|> try schemaEntityP <|> typeDeclP)
   return lines
 
 -- | A parser for "using" import statements in .bpl and .bsc files.
-usingDeclP :: Parser TypedSchemaEntry
+usingDeclP :: Parser SchemaEntry
 usingDeclP = do
   symb "using"
   mod <- many (oneOf ['a'..'z'] <|> char '_')
   csymb '.'
   return $ Using mod
 
-schemaRelnP :: Parser TypedSchemaEntry
+schemaRelnP :: Parser SchemaEntry
 schemaRelnP = do
   symb "rel"
   id <- identifierP
@@ -54,7 +54,7 @@ schemaRelnP = do
 
 -- | Syntatic sugar for (e.x) rel p: entity, entity, entity.
 --   using the Prolog notation: p/3.
-schemaEntityRelnP :: Parser TypedSchemaEntry
+schemaEntityRelnP :: Parser SchemaEntry
 schemaEntityRelnP = do
   symb "rel"
   id <- identifierP
@@ -64,14 +64,14 @@ schemaEntityRelnP = do
   (csymb '.') <?> "Missing terminating \".\" to relation declaration."
   return $ Pred NotStored id args []
 
-schemaEmptyRelnP :: Parser TypedSchemaEntry
+schemaEmptyRelnP :: Parser SchemaEntry
 schemaEmptyRelnP = do
   symb "rel"
   id <- identifierP
   (csymb '.') <?> "Missing terminating \".\" to relation declaration."
   return $ Pred NotStored id [] []
 
-schemaStoredRelnP :: Parser TypedSchemaEntry
+schemaStoredRelnP :: Parser SchemaEntry
 schemaStoredRelnP = do
   symb "stored"
   symb "rel"
@@ -81,7 +81,7 @@ schemaStoredRelnP = do
   (csymb '.') <?> "Missing terminating \".\" to relation declaration."
   return $ Pred Stored id args []
 
-schemaExternalRelnP :: Parser TypedSchemaEntry
+schemaExternalRelnP :: Parser SchemaEntry
 schemaExternalRelnP = do
   symb "extern"
   symb "rel"
@@ -91,7 +91,7 @@ schemaExternalRelnP = do
   (csymb '.') <?> "Missing terminating \".\" to relation declaration."
   return $ Pred External id args []
 
-schemaExternalRelnHSP :: Parser TypedSchemaEntry
+schemaExternalRelnHSP :: Parser SchemaEntry
 schemaExternalRelnHSP = do
   symb "extern"
   symb "rel"
@@ -104,7 +104,7 @@ schemaExternalRelnHSP = do
   (csymb '.') <?> "Missing terminating \".\" to relation declaration."
   return $ Pred (ExternalHS (c:cs)) id args []
 
-schemaDatatypeDeclP :: Parser TypedSchemaEntry
+schemaDatatypeDeclP :: Parser SchemaEntry
 schemaDatatypeDeclP = do
   symb "datatype"
   typeName <- identifierP
@@ -129,7 +129,7 @@ datatypeConstructorP = do
   csymb '.'
   return (constructorName, types)
 
-schemaEntityP :: Parser TypedSchemaEntry
+schemaEntityP :: Parser SchemaEntry
 schemaEntityP = do
   id <- identifierP
   (csymb ':') <?> "Missing \":\" in entity declaration."
@@ -137,7 +137,7 @@ schemaEntityP = do
   (csymb '.') <?> "Missing terminating \".\" to entity declaration."
   return $ TypeOf id entityType
 
-typeDeclP :: Parser TypedSchemaEntry
+typeDeclP :: Parser SchemaEntry
 typeDeclP = do
   symb "type"
   typeId <- identifierP

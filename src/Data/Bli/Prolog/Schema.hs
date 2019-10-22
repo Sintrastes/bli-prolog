@@ -25,7 +25,7 @@ data IsStored =
 --   we can declare a new type, or, we can declare new entities of 
 --   a given type.
 --
-data TypedSchemaEntry = 
+data SchemaEntry = 
 -- | A declaration that adds a new relation of a given type to the schema.
     Pred IsStored String [String] [Direction]
 -- | A declaration that adds a new type to the schema.
@@ -45,7 +45,7 @@ type TypeDecl   = String
 type EntityDecl = (String, String)
 type RelDecl    = (String, [String])
 type DataTypeDecl = (String, [(String, [String])])
-type TypedSchema = [TypedSchemaEntry]
+type Schema = [SchemaEntry]
 
 -- Note: This might be useful still
 -- | Helper function for converting from the new format for schemas to the old format.
