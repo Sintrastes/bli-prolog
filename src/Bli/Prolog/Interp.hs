@@ -12,6 +12,8 @@ import Data.Maybe
 import Data.Traversable (mapM)
 import Control.Monad.Trans.Class
 import Data.Bli.Prolog.Ast
+import Bli.Prolog.Unification
+import Bli.Prolog.Unification.Terms
 import Bli.Prolog.Interp.Data
 import Bli.Prolog.Unification
 
@@ -86,7 +88,7 @@ solve' :: Program -> Goal -> [SearchTree]
 solve' _ [r] | isReportGoal r = [Sol $ getSolution r]
 solve' prog g@(t1 : ts) = [Node g trees]
     where trees = do c <- prog
-                     let (tc, tsc) = freshen (variables g) c
+                     let (tc, tsc) = freshen (join $ map variables g) c
                      case unify tc t1 of
                        Just u -> do
                          let g' = map (subs u) $ tsc ++ ts
@@ -96,7 +98,7 @@ solve' prog g@(t1 : ts) = [Node g trees]
 
 makeReportGoal goal = [Comp (Identifier "_report") reportVars]
     where reportVars = map (\ v -> Comp (Identifier "=") [Comp (Identifier v) [], Var v]) vars
-          vars = variables goal
+          vars = join $ map variables goal
 
 isReportGoal (Comp (Identifier "_report") _) = True
 isReportGoal _                  = False

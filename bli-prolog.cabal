@@ -59,6 +59,8 @@ library
       Bli.Prolog.Interp
       Bli.Prolog.Interp.Data
       Bli.Prolog.Unification
+      Bli.Prolog.Unification.Types
+      Bli.Prolog.Unification.Terms
       Bli.Prolog.SearchStrategies
       Control.Monad.Bli.Common
       Control.Monad.Bli.Trans
