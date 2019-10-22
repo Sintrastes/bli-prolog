@@ -5,7 +5,6 @@ Todo
   * Implement scoped assertions.
   * For fun: Implement a lazy module system, where modules are only used
     when needed in the file. 
-
   * Integrate implicit predication with REPL.
       * Write a contextual parser for implicit predications.
   * Implement side-effects with asserting types. (first need to configure the entity server).
@@ -29,18 +28,11 @@ Todo
     
 Notes
 -----
-    * Note that for content-addressable entities (i.e. their entity is determined by their content, not their name), we 
-      could use something else, like 'ContentOf('Url("file:/home/nate/pdfs/my.pdf")).
+    * Note that for content-addressable entities (i.e. their entity is determined by their content, not their name), we could use something else, like 'ContentOf('Url("file:/home/nate/pdfs/my.pdf")).
   * In the future, I might allow users to make multiple schema declarations, and assertions on the same line, for brevity.
-      * Related: Fix issue where data can be entered beyond the "." or the "!" in the repl.
   * I think we'll probably want to use an alternative syntax for implicit predication.
     While we could keep the behavior of plain lambda queries, we could also 
     allow for the application of lambda queries (predicates) to terms.
-  * Note: "rel p: 2", or even "rel p arity 2" could by syntatic sugar for
-    "rel p: entity, entity", where "entity" is a catchall type which typechecks with
-    any input. Kind of like "Any" in some OOP languages.
-      * Note: We could also use the prolog rel likes/2. notation as syntatic sugar
-        for rel likes: entity, entity.
   * Note: There are several different strategies that we could use for parsing
     bli prolog files -- i.e. do we want to have a declaration before use
     policy, do we require entity declarations, relation declarations, etc... to be at the

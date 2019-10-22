@@ -88,22 +88,22 @@ is syntatic sugar for
 
 Schema
 ------
-Predicates in bli prolog must adhere to a given *schema*, which is a .bsch (bli schema) file, consiting of rows of the form:
+Predicates in bli prolog must adhere to a given *schema*, which is a .bsc (bli schema) file. This works by declaring a set of *types*, *relations*, and *entities*. To declare a new type in a bli schema file, you can use the syntax:
+
 ~~~
-  [predicate_identifier]: [arity]
+  type [name_of_type].
 ~~~
-For example, in the implicit predication example we looked at above, we could have used a schema containing the lines:
+
+And given such a type, the user can declare new *entities* of a given type by using the syntax:
+
 ~~~
-  name: 2
-  programming_language: 1
+  [entity_identifier]: [type_name].
 ~~~
-As the project evolves, this interface will change. For example, later we discuss schema declarations like:
+
+Finally, the user can declare relations between entities of different types by using the following syntax:
+
 ~~~
-  programming_language: type
-~~~
-Which allow for us to connect our queries to the configured bedelibry server, and make more detailed schema declarations, like
-~~~
-  name: type, string
+  rel [predicate_identifier]: [comma seperated list of types].
 ~~~
 
 Note that nullary predicates can also be declared by using the notation:
@@ -111,10 +111,21 @@ Note that nullary predicates can also be declared by using the notation:
   rel p.
 ~~~
 
+Bedelibry prolog also supports the following prolog inspired notation:
+
+~~~
+  rel p/2.
+~~~
+
+which is simply syntatic sugar for
+~~~
+  rel p: entity, entity.
+~~~
+
 Literals
 --------
 
-Bedelibry Prolog has support for a number of different types of literals. For example, string literals must be surrounded by double quotes and have type `string`. Integer literals are unquoted, and have type `int`.
+Bedelibry Prolog has support for a number of different types of literals. For example, string literals must be surrounded by double quotes and have type `string`. Integer literals are unquoted, and have type `int`. These are all builtin types, and do not need to be declared like in the examples above.
 
 Bedelibry Prolog also supports list literals, which have type `list[TYPE]`. For example, the literal `[1,2,3]` has type `list[int]`.
 
@@ -159,7 +170,7 @@ pre-existing relations, types, and entities. For example:
   person: type.
   nate: person.
   
-  alias me nate
+  alias me nate.
 
   equals(me, nate).
     True.
