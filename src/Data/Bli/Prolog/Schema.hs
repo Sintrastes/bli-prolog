@@ -10,15 +10,6 @@ module Data.Bli.Prolog.Schema where
 import Language.Haskell.TH.Lift
 import Data.Bli.Prolog.Types
 
--- | A schema (curretly) is a list of identifiers,
---   together with their arity. In the future,
---   this will be a more complex datatype.
-type Schema = [SchemaEntry]
-
-prettyShowSchemaEntry (id, n) = id ++ ": " ++ show n ++ "."
-
-type SchemaEntry = (String, Int)
-
 -- | Flag that determines if a relation is stored or not.
 data IsStored = 
    Stored 
@@ -56,10 +47,10 @@ type RelDecl    = (String, [String])
 type DataTypeDecl = (String, [(String, [String])])
 type TypedSchema = [TypedSchemaEntry]
 
-
+-- Note: This might be useful still
 -- | Helper function for converting from the new format for schemas to the old format.
-getArities :: [TypedSchemaEntry] -> [SchemaEntry]
-getArities [] = []
-getArities ((Pred _ x ts _):xs)  = (x, length ts):(getArities xs)
-getArities ((Type x):xs)     = getArities xs
-getArities ((TypeOf _ _):xs) = getArities xs
+-- getArities :: [TypedSchemaEntry] -> [SchemaEntry]
+-- getArities [] = []
+-- getArities ((Pred _ x ts _):xs)  = (x, length ts):(getArities xs)
+-- getArities ((Type x):xs)     = getArities xs
+-- getArities ((TypeOf _ _):xs) = getArities xs
