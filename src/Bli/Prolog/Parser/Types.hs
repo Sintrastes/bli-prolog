@@ -5,77 +5,77 @@ import Data.Bli.Prolog.Types
 import Text.ParserCombinators.Parsec
 import Bli.Prolog.Parser.Common
 
-typeP :: Parser SomeBliPrologType
+typeP :: Parser BliPrologType
 typeP = 
-     try (packType <$> typeVarP)
- <|> try (listTypeP)
- <|> try (funcTypeP)
- <|> try (packType <$> entityTypeP)
- <|> try (packType <$> declaredTypeP)
- <|> try (packType <$> typTypesP)
- <|> try (goalTypeP)
- <|> try (packType <$> ruleTypeP)
- <|> try (packType <$> stringTypeP)
- <|> try (packType <$> datetimeTypeP)
- <|> try (packType <$> dateTypeP)
+     try typeVarP
+ <|> try listTypeP
+ <|> try funcTypeP
+ <|> try entityTypeP
+ <|> try declaredTypeP
+ <|> try typTypesP
+ <|> try goalTypeP
+ <|> try ruleTypeP
+ <|> try stringTypeP
+ <|> try datetimeTypeP
+ <|> try dateTypeP
   
-typeVarP :: Parser (BliPrologType Polymorphic)
+typeVarP :: Parser BliPrologType
 typeVarP = do
   typeVarId <- variableP
   return $ TypeVar typeVarId
 
-listTypeP :: Parser SomeBliPrologType
+listTypeP :: Parser BliPrologType
 listTypeP = do
   symb "list"
   csymb '['
   typ <- typeP
   csymb ']'
-  return $ packType $ ListT $ head $ combineList [typ]
+  return $ ListT $ typ
 
-funcTypeP :: Parser SomeBliPrologType
+funcTypeP :: Parser BliPrologType
 funcTypeP = do
   types <- typeP `sepBy` ((try (symb "<-") <|> symb "->") >> return ())
-  return $ packType $ foldr1 (FuncT RightArr) $ combineList types
+  return $ foldr1 (FuncT RightArr) $ types
 
-entityTypeP :: Parser (BliPrologType Monomorphic)
+entityTypeP :: Parser BliPrologType
 entityTypeP = do
   symb "entity"
   return EntityT
 
-declaredTypeP :: Parser (BliPrologType Monomorphic)
+declaredTypeP :: Parser BliPrologType
 declaredTypeP = do
   id <- identifierP
   return $ DeclaredTypeT id
 
-typTypesP :: Parser (BliPrologType Monomorphic)
+typTypesP :: Parser BliPrologType
 typTypesP = do
   symb "type"
   return TypTypesT
 
-goalTypeP :: Parser SomeBliPrologType
+goalTypeP :: Parser BliPrologType
 goalTypeP = do
   symb "goal"
   csymb '['
   types <- typeP `sepBy1` (csymb ',')
   csymb ']'
-  return $ SomeBliPrologType $ GoalT $ combineList types
+  return $ GoalT types
 
-ruleTypeP :: Parser (BliPrologType Monomorphic)
+ruleTypeP :: Parser BliPrologType
 ruleTypeP = do
   symb "rule"
   return RuleT
 
-stringTypeP :: Parser (BliPrologType Monomorphic)
+stringTypeP :: Parser BliPrologType
 stringTypeP = do
   symb "string"
   return StringLitT
 
-datetimeTypeP :: Parser (BliPrologType Monomorphic)
+datetimeTypeP :: Parser BliPrologType
 datetimeTypeP = do
   symb "datetime"
   return DateTimeLitT
 
-dateTypeP :: Parser (BliPrologType Monomorphic)
+dateTypeP :: Parser BliPrologType
 dateTypeP = do
   symb "date"
   return DateLitT

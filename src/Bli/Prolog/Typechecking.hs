@@ -6,6 +6,7 @@
 module Bli.Prolog.Typechecking where
 
 import Data.Bli.Prolog.Ast
+import Data.Bli.Prolog.Types
 import Bli.Prolog.Interp (expandAliases, expandAliasesTerm)
 import Bli.Prolog.Interp.Data (isPlain)
 import qualified Data.Set as S
