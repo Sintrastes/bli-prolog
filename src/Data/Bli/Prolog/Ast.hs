@@ -25,6 +25,9 @@ data BliPrologType =
  | DeclaredTypeT String
  -- Type of types, "type".
  | TypTypesT
+-- Note: \X. p(X), and p(X), as well as {p(X), q(Y)} are goals.
+-- p is a predicate. If p is a binary predicate, then p(test) is a unary predicate.
+ | GoalT [BliPrologType]
  | PredicateT [BliPrologType]
  -- A type for rules: This allows for an interesting
  -- design choice, where we allow for "first-class rules.",
