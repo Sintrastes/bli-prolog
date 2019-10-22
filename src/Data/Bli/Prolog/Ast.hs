@@ -81,6 +81,7 @@ prettyShowClause (head, body) = (show head) ++ " :-\n  " ++ intercalate ", " (ma
 data BliCommand =
    QueryMode Goal
  | LambdaQuery LambdaGoal
+ | MkAlias String String 
  | AssertMode Goal
  | AssertClause Clause 
  | AssertSchema SchemaEntry deriving(Show, Eq, Lift)
