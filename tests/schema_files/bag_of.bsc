@@ -1,0 +1,11 @@
+
+%
+% _*_ bag_of.bsc _*_
+%
+% Declaration for the builtin "bag_of" relation.
+%
+% Author: Nathan Bedell
+% Email:  nbedell@tulane.edu
+%
+
+rel bag_of: goal[A], list[A].

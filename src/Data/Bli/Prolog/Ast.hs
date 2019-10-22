@@ -17,43 +17,6 @@ data Term = Var Variable
           | Comp Atom Terms
           deriving (Eq, Ord, Read, Lift) 
 
-data BliPrologType = 
-   EntityT 
- -- Function from one BliPrologType to another.
- | FuncT BliPrologType BliPrologType
- -- A user declared type, such as "person".
- | DeclaredTypeT String
- -- Type of types, "type".
- | TypTypesT
--- Note: \X. p(X), and p(X), as well as {p(X), q(Y)} are goals.
--- p is a predicate. If p is a binary predicate, then p(test) is a unary predicate.
- | GoalT [BliPrologType]
- | PredicateT [BliPrologType]
- -- A type for rules: This allows for an interesting
- -- design choice, where we allow for "first-class rules.",
- -- and so predicates are allowed to talk about rules.
- | RuleT 
- | StringLitT
- | IntLitT
- | DateTimeLitT
- -- A polymorphic list datatype
- | ListT BliPrologType
- | DateLitT deriving(Eq, Ord)
-
-instance Show BliPrologType where
-  show EntityT = "entity"
-  show (DeclaredTypeT str) = str
-  show TypTypesT = "type"
-  show (PredicateT []) = "pred"
-  show (PredicateT types) = "pred[" ++ (intercalate ", " (map show types)) ++ "]"
-  show RuleT = "rule"
-  show StringLitT = "string"
-  show IntLitT = "int"
-  show DateTimeLitT = "datetime"
-  show (ListT t) = "list["++ show t ++"]" 
-  show DateLitT = "date"
-
-
 instance Show Term where
   show (Var x) = x
   show (Comp id []) = show id
