@@ -28,8 +28,8 @@ app_tests = testGroup "App"
       Result_AssertionFail_AlreadyAsserted @=? result 
   , testCase "Assert fact twice" $ do
       let command = processBliCommand [bli| rel test. |]
-                 >> processBliCommand [bli|test! |]
-                 >> processBliCommand [bli|test! |]
+                 >> processBliCommand [bli| test! |]
+                 >> processBliCommand [bli| test! |]
       result <- initCmd command
       Result_AssertionFail_AlreadyAsserted @=? result 
   , testCase "Assert rule twice" $ do

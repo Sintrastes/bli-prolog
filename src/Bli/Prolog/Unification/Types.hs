@@ -70,7 +70,7 @@ unifyListTypes _ _   = Nothing
 
 instance Unifiable BliPrologType where
   variables = typeVars
-  subs = subsType
-  unify = unifyTypes  
+  subs      = subsType
+  unify     = unifyTypes  
   
 
