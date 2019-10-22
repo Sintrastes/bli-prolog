@@ -52,6 +52,7 @@ library
       Bli.App.Api
       Bli.App.Bedelibry
       Bli.App.Config
+      Bli.App.Config.Features
       Bli.App.Config.Util
       Bli.App.Config.Version
       Bli.App.Json

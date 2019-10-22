@@ -25,7 +25,7 @@ optionally, bli-prolog may be installed with stack.
 Language Features
 =================
 
-Bedelibry prolog has some features which differentiate it from pure prolog (i.e. prolog without any of its imperative features). We list some of these features below:
+Bedelibry prolog has some features which differentiate it from pure prolog (i.e. prolog without any of its imperative features). Many of these features of the language can be enabled or disabled by editing the list `defaultLanguageOptions` in `Features.hs` before building. We list some of these features below:
 
 Explicit Variable Binding:
 --------------------------
