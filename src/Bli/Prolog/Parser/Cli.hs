@@ -26,9 +26,9 @@ bliCommandTypedP = do
   case result of
      Left x  -> return $ x
      Right x -> case x of 
-         Left y  -> return $ T_AssertClause y
+         Left y  -> return $ AssertClause y
          Right y -> case y of 
-            Left  z -> return $ T_AssertMode z
+            Left  z -> return $ AssertMode z
             Right z -> case z of
-                Left w  -> return $ T_QueryMode w
-                Right w -> return $ T_LambdaQuery w
+                Left w  -> return $ QueryMode w
+                Right w -> return $ LambdaQuery w

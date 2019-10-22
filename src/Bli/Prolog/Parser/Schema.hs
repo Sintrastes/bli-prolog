@@ -28,7 +28,7 @@ typedSchemaLineP = do
        <|> try schemaEntityRelnP
        <|> try schemaDatatypeDeclP
        <|> schemaExternalRelnHSP)
-    return (T_AssertSchema res)
+    return (AssertSchema res)
 
 typedSchemaFileP :: Parser TypedSchema
 typedSchemaFileP = do

@@ -71,7 +71,7 @@ processTypecheckedBliCommand command = do
           Just (ProcContainer (_,argTypes,procedure)) -> Just (argTypes, procedure)
           Nothing -> Nothing
   case command of 
-    (T_AssertMode goal') -> do
+    (AssertMode goal') -> do
        -- First, expand all aliases 
        goal <- expandAliases goal'
 
@@ -103,7 +103,7 @@ processTypecheckedBliCommand command = do
            -- was already asserted.
            -- If there were any errors, the assertions fails.
            Left _ -> return $ Result_AssertionFail_AlreadyAsserted
-    (T_AssertClause (term, []) ) -> do
+    (AssertClause (term, []) ) -> do
        let goal = [term]
        results <- checkForTypePredicateAssertion goal
        let ok results = results /= []
@@ -113,9 +113,9 @@ processTypecheckedBliCommand command = do
          let Comp (Identifier typeId) [Comp (Identifier entityId) []] = term
          return $ Result_AssertionSuccess_AddedEntityLocally entityId typeId
        else assertClause term []
-    (T_AssertClause (head,body) ) -> do
+    (AssertClause (head,body) ) -> do
       assertClause head body
-    (T_LambdaQuery (vars, goal)) -> do
+    (LambdaQuery (vars, goal)) -> do
       tree <- makeReportTree goal
       let searchF = searchFunction (search opts) $ depth opts
       return $ Result_QuerySuccess $ 
@@ -123,7 +123,7 @@ processTypecheckedBliCommand command = do
                   $ map (filter (\(x,y) -> x `elem` vars)) 
                   $ map (\(Solution x) -> x) $ searchF tree
     -- Handle procedures
-    (T_QueryMode [Comp (Identifier id) args])
+    (QueryMode [Comp (Identifier id) args])
        | isProc id -> do
          -- liftIO $ putStrLn "This is a procedure."
          -- Special handling for putStrLn as a proof of concept.
@@ -134,7 +134,7 @@ processTypecheckedBliCommand command = do
            liftIO $ putStrLn s
            return $ Result_QuerySuccess []
          else return $ Result_QuerySuccess []
-    (T_QueryMode goal') -> do
+    (QueryMode goal') -> do
        -- First, expand all aliases 
        goal <- expandAliases goal'
        let limiting lst = 
@@ -145,7 +145,7 @@ processTypecheckedBliCommand command = do
        tree <- makeReportTree goal
        let solutions = limiting $ searchF tree
        return $ Result_QuerySuccess solutions
-    (T_AssertSchema schemaEntry) -> do
+    (AssertSchema schemaEntry) -> do
       case schemaEntry of
         Pred _ predName argTypes _ -> do
           -- Add predicate to schema if not already in schema,
@@ -237,14 +237,14 @@ processBliCommand command = do
           -- Check to see if we are trying to assert type predicates,
           -- in which case we do not need to typecheck those terms.
           case command of
-            (T_AssertMode goal) -> do
+            (AssertMode goal) -> do
               typePredicates <- getTypePredicates goal
               case typePredicates == goal of
                 True -> do
                   -- Asserting type predicates -- this is fine.
                   processTypecheckedBliCommand command
                 False -> return $ Result_AssertionFail_EntityNotDeclared x t
-            (T_AssertClause (term,[])) -> do
+            (AssertClause (term,[])) -> do
               let goal = [term]
               typePredicates <- getTypePredicates goal
               case typePredicates == goal of

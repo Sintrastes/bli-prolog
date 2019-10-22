@@ -17,11 +17,11 @@ import Control.Monad.Bli
 --   its commands, and it's declarations.
 groupProgramCmdsDecls :: BliProgram -> (BliProgram, BliProgram)
 groupProgramCmdsDecls xs = go xs ([],[])
-  where go (cmd@(T_AssertMode goal):xs) (cmds, decls) = go xs (cmds, cmd:decls)
-        go (cmd@(T_AssertClause clause):xs) (cmds, decls) = go xs (cmds, cmd:decls)
-        go (cmd@(T_AssertSchema schema):xs) (cmds, decls) = go xs (cmds, cmd:decls)
-        go (cmd@(T_QueryMode goal):xs) (cmds, decls) = go xs (cmd:cmds, decls)
-        go (cmd@(T_LambdaQuery goal):xs) (cmds, decls) = go xs (cmd:cmds, decls)
+  where go (cmd@(AssertMode goal):xs) (cmds, decls) = go xs (cmds, cmd:decls)
+        go (cmd@(AssertClause clause):xs) (cmds, decls) = go xs (cmds, cmd:decls)
+        go (cmd@(AssertSchema schema):xs) (cmds, decls) = go xs (cmds, cmd:decls)
+        go (cmd@(QueryMode goal):xs) (cmds, decls) = go xs (cmd:cmds, decls)
+        go (cmd@(LambdaQuery goal):xs) (cmds, decls) = go xs (cmd:cmds, decls)
         go [] (cmds, decls) = (cmds, decls)
 
 -- | Helper function to load all the declarations

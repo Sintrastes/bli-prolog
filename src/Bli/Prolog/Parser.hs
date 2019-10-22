@@ -38,7 +38,7 @@ bliPrologSchemaP = do
   lines' <- many $ try typedSchemaLineP `eitherP` clauseP
   let lines = map (\line -> case line of
                               Left sEntry  -> sEntry
-                              Right clause -> T_AssertClause clause) lines'
+                              Right clause -> AssertClause clause) lines'
   return lines
 
 -- | Parser for a bli prolog program.
@@ -55,8 +55,8 @@ bliPrologProgramP = do
     return lines)
   let slines = map (\line -> case line of
                               Left sEntry  -> sEntry
-                              Right clause -> T_AssertClause clause) slines'
-  let plines = map T_QueryMode plines'
+                              Right clause -> AssertClause clause) slines'
+  let plines = map QueryMode plines'
   
   return $ slines ++ plines
 

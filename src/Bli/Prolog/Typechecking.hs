@@ -50,19 +50,19 @@ collectProgramVars = nub . join . map collectClauseVars
  
 -- | Helper function. Checks to see which identifiers are used in a bli prolog command.
 collectTypedBliCommandAtoms :: BliCommand -> [(Atom,Int)]
-collectTypedBliCommandAtoms (T_QueryMode goal)       = nub . join . (map collectTermAtoms) $ goal
-collectTypedBliCommandAtoms (T_AssertMode goal)      = nub . join . (map collectTermAtoms) $ goal
-collectTypedBliCommandAtoms (T_AssertClause clause)  = collectClauseAtoms clause
-collectTypedBliCommandAtoms (T_LambdaQuery (_,goal)) = nub . join . (map collectTermAtoms) $ goal
-collectTypedBliCommandAtoms (T_AssertSchema _) = []
+collectTypedBliCommandAtoms (QueryMode goal)       = nub . join . (map collectTermAtoms) $ goal
+collectTypedBliCommandAtoms (AssertMode goal)      = nub . join . (map collectTermAtoms) $ goal
+collectTypedBliCommandAtoms (AssertClause clause)  = collectClauseAtoms clause
+collectTypedBliCommandAtoms (LambdaQuery (_,goal)) = nub . join . (map collectTermAtoms) $ goal
+collectTypedBliCommandAtoms (AssertSchema _) = []
 
 -- | Helper function. Checks to see which variables are used in a bli prolog command.
 collectTypedBliCommandVars :: BliCommand -> [Variable]
-collectTypedBliCommandVars (T_QueryMode goal)       = nub . join . (map collectTermVars) $ goal
-collectTypedBliCommandVars (T_AssertMode goal)      = nub . join . (map collectTermVars) $ goal
-collectTypedBliCommandVars (T_AssertClause clause)  = collectClauseVars clause
-collectTypedBliCommandVars (T_LambdaQuery (_,goal)) = nub . join . (map collectTermVars) $ goal
-collectTypedBliCommandVars (T_AssertSchema _) = []
+collectTypedBliCommandVars (QueryMode goal)       = nub . join . (map collectTermVars) $ goal
+collectTypedBliCommandVars (AssertMode goal)      = nub . join . (map collectTermVars) $ goal
+collectTypedBliCommandVars (AssertClause clause)  = collectClauseVars clause
+collectTypedBliCommandVars (LambdaQuery (_,goal)) = nub . join . (map collectTermVars) $ goal
+collectTypedBliCommandVars (AssertSchema _) = []
 
 -- Subtyping relation.
 infixr 9 <:
@@ -252,10 +252,10 @@ typecheckGoal terms = do
   return $ foldr joinErrors (Right Ok) results
 
 typecheckBliCommand :: BliCommand -> Bli (Either [InvalidClause] Ok)
-typecheckBliCommand (T_QueryMode goal') = do
+typecheckBliCommand (QueryMode goal') = do
   goal <- expandAliases goal'
   typecheckGoal goal
-typecheckBliCommand cmd@(T_LambdaQuery (bindingVars, terms')) = do
+typecheckBliCommand cmd@(LambdaQuery (bindingVars, terms')) = do
   terms <- expandAliases terms'
   result <- typecheckGoal terms
   let bodyVars = collectTypedBliCommandVars cmd 
@@ -264,10 +264,10 @@ typecheckBliCommand cmd@(T_LambdaQuery (bindingVars, terms')) = do
         then Right Ok
         else Left $ [BoundVarNotInBody]
   return $ joinErrors lambdaError result
-typecheckBliCommand (T_AssertMode terms') = do
+typecheckBliCommand (AssertMode terms') = do
   terms <- expandAliases terms'
   typecheckGoal terms
-typecheckBliCommand (T_AssertClause (t',ts')) = do
+typecheckBliCommand (AssertClause (t',ts')) = do
   t  <- expandAliasesTerm t'
   ts <- expandAliases ts'
   -- Note: We need to do more type-checking here. All free variables on the 
@@ -285,4 +285,4 @@ typecheckBliCommand (T_AssertClause (t',ts')) = do
   results2 <- typecheckTerm t
   return $ joinErrors results1 results2
 -- Asserting schemas is not covered by typechecking.
-typecheckBliCommand (T_AssertSchema _) = return $ Right Ok
+typecheckBliCommand (AssertSchema _) = return $ Right Ok
