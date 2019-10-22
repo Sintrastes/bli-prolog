@@ -157,7 +157,12 @@ test-suite bli-prolog-test-suite
       Paths_bli_prolog
       Tests.Old.Siblings
       Tests.Parsers
+      Tests.Literals
+      Tests.Procs
+      Tests.Aliases
+      Tests.Typing
       Tests.App
+      Tests.Datatypes
   hs-source-dirs:
       tests
   build-depends:
