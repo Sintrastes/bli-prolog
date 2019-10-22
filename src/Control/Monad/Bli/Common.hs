@@ -7,6 +7,7 @@ import Data.Map (Map)
 import Bli.App.Config
 import Data.Bli.Prolog.Schema
 import Data.Bli.Prolog.Ast
+import Data.Bli.Prolog.Types
 
 -- For dealing with user-defined "proc" types.
 import Data.Dynamic

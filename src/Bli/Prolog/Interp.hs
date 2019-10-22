@@ -13,54 +13,11 @@ import Data.Traversable (mapM)
 import Control.Monad.Trans.Class
 import Data.Bli.Prolog.Ast
 import Bli.Prolog.Interp.Data
+import Bli.Prolog.Unification
 
 ----------------------------------------------------------------------
 -- Interpreter
 ----------------------------------------------------------------------
-
-type Unifier = [(Variable, Term)]
-
-compose :: Unifier -> Unifier -> Unifier
-compose u1 u2 = (map (\(v, t) -> (v, subs u2 t)) u1) ++ u2
-
-occursIn :: Variable -> Term -> Bool
-occursIn v (Var x)     = v == x
-occursIn v (Comp _ ms) = any (occursIn v) ms
-
-subs :: Unifier -> Term -> Term
-subs u t@(Var x)   = maybe t id (lookup x u)
-subs u (Comp n ts) = Comp n (map (subs u) ts)
-
-unify :: Term -> Term -> Maybe Unifier
-unify (Var "_") t                      = return []
-unify t (Var "_")                      = return []
-unify (Var x) (Var y) | x == y         = return []
-unify (Var x) t | not(x `occursIn` t)  = return [(x, t)]
-unify t v@(Var _)                      = unify v t
-unify (Comp m ms) (Comp n ns) | m == n = unifyList ms ns
-unify _ _                              = Nothing
-
-unifyList (t : ts) (r : rs) =
-    do u1 <- unify t r
-       u2 <- unifyList (map (subs u1) ts) (map (subs u1) rs)
-       return $ u1 `compose` u2
-unifyList [] [] = Just []
-unifyList _ _   = Nothing
-
-variables :: Terms -> [Variable]
-variables ts = nub $ varsList ts
-    where vars (Var "_") = []
-          vars (Var x) = [x]
-          vars (Comp _ ts) = varsList ts
-          varsList ts = [ v | t <- ts, v <- vars t]
-
-freshen bound (tc, tb) = (subs sub tc, map (subs sub) tb)
-    where vars = variables(tc : tb)
-          sub = [ (v, Var $ nextVar 0 v) | v <- vars, v `elem` bound]
-          nextVar i v = let v' = "_" ++ show i ++ "_" ++ v in
-                        if v' `elem` bound then nextVar (i+1) v
-                        else v'
-
 
 -- | Helper function to get just the parts of the goal that
 --   consist of *type predicates* -- i.e. predicates of the form

@@ -58,6 +58,7 @@ library
       Bli.App.Colors
       Bli.Prolog.Interp
       Bli.Prolog.Interp.Data
+      Bli.Prolog.Unification
       Bli.Prolog.SearchStrategies
       Control.Monad.Bli.Common
       Control.Monad.Bli.Trans
@@ -112,6 +113,9 @@ library
     , text
   extensions:
       TypeApplications
+      GADTs
+      NoMonomorphismRestriction
+      ExistentialQuantification
       FlexibleInstances
       DeriveDataTypeable
       DeriveLift

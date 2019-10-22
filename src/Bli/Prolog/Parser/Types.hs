@@ -1,37 +1,41 @@
 
 module Bli.Prolog.Parser.Types where
 
-typeP :: Parser (BliPrologType a)
+import Data.Bli.Prolog.Types
+import Text.ParserCombinators.Parsec
+import Bli.Prolog.Parser.Common
+
+typeP :: Parser SomeBliPrologType
 typeP = 
-     try typeVarP 
- <|> try listTypeP
- <|> try funcTypeP
- <|> try entityTypeP
- <|> try declaredTypeP
- <|> try typTypesP
- <|> try goalTypeP
- <|> try ruleTypeP
- <|> try stringTypeP
- <|> try datetimeTypeP
- <|> try dateTypeP
+     try (packType <$> typeVarP)
+ <|> try (listTypeP)
+ <|> try (funcTypeP)
+ <|> try (packType <$> entityTypeP)
+ <|> try (packType <$> declaredTypeP)
+ <|> try (packType <$> typTypesP)
+ <|> try (goalTypeP)
+ <|> try (packType <$> ruleTypeP)
+ <|> try (packType <$> stringTypeP)
+ <|> try (packType <$> datetimeTypeP)
+ <|> try (packType <$> dateTypeP)
   
 typeVarP :: Parser (BliPrologType Polymorphic)
 typeVarP = do
   typeVarId <- variableP
   return $ TypeVar typeVarId
 
-listTypeP :: Parser (BliPrologType a)
+listTypeP :: Parser SomeBliPrologType
 listTypeP = do
   symb "list"
   csymb '['
-  types <- typeP `sepBy1` (csymb ',')
+  typ <- typeP
   csymb ']'
-  return
+  return $ packType $ ListT $ head $ combineList [typ]
 
-funcTypeP :: Parser (BliPrologType a)
+funcTypeP :: Parser SomeBliPrologType
 funcTypeP = do
-  types <- typeP `sepBy` (try symb "<-" <|> symb "->") 
-  return $ foldr' (FuncT RightArr) types
+  types <- typeP `sepBy` ((try (symb "<-") <|> symb "->") >> return ())
+  return $ packType $ foldr1 (FuncT RightArr) $ combineList types
 
 entityTypeP :: Parser (BliPrologType Monomorphic)
 entityTypeP = do
@@ -48,15 +52,15 @@ typTypesP = do
   symb "type"
   return TypTypesT
 
-goalTypeP :: Parser (BliPrologType a)
+goalTypeP :: Parser SomeBliPrologType
 goalTypeP = do
   symb "goal"
   csymb '['
   types <- typeP `sepBy1` (csymb ',')
   csymb ']'
-  return
+  return $ SomeBliPrologType $ GoalT $ combineList types
 
-ruleTypeP :: Parser (BliPrologType a)
+ruleTypeP :: Parser (BliPrologType Monomorphic)
 ruleTypeP = do
   symb "rule"
   return RuleT
@@ -64,14 +68,14 @@ ruleTypeP = do
 stringTypeP :: Parser (BliPrologType Monomorphic)
 stringTypeP = do
   symb "string"
-  return StringT
+  return StringLitT
 
 datetimeTypeP :: Parser (BliPrologType Monomorphic)
 datetimeTypeP = do
   symb "datetime"
-  return DateTimeT
+  return DateTimeLitT
 
-dateP :: Parser (BliPrologType Monomorphic)
-dataP = do
+dateTypeP :: Parser (BliPrologType Monomorphic)
+dateTypeP = do
   symb "date"
-  return DateP
+  return DateLitT
