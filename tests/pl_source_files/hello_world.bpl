@@ -3,6 +3,8 @@
 % _*_ hello_world.bpl _*_
 %
 
-rel putStrLn: string.
+using system_io.
 
-?- { putStrLn("Hello, world!"). }
+?- { 
+  putStrLn("Hello, world!"). 
+}
