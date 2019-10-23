@@ -82,6 +82,7 @@ library
     , scientific
     , split
     , Cabal
+    , cereal
     , containers
     , unordered-containers
     , parsec
@@ -118,6 +119,7 @@ library
   extensions:
       TypeApplications
       GADTs
+      DeriveGeneric
       StandaloneDeriving
       NoMonomorphismRestriction
       ExistentialQuantification

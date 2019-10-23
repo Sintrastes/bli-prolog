@@ -10,7 +10,7 @@ import Bli.Prolog.Parser.Common
 import Control.Monad (replicateM)
 import Text.ParserCombinators.Parsec
 
-dayP :: Parser TimeInterval
+dayP :: Parser InternalTime
 dayP = do
   _ <- char '\''
   year' <- read <$> replicateM 4 digit :: Parser Integer
@@ -18,23 +18,23 @@ dayP = do
   month' <- read <$> replicateM 2 digit :: Parser Int
   _ <- char '-'
   day' <- read <$> replicateM 2 digit :: Parser Int
-  return $ day year' month' day'
+  return $ InternalDay year' month' day'
 
-monthP :: Parser TimeInterval
+monthP :: Parser InternalTime
 monthP = do
   _ <- char '\''
   year' <- read <$> replicateM 4 digit :: Parser Integer
   _ <- char '-'
   month' <- read <$> replicateM 2 digit :: Parser Int
-  return $ month year' month'
+  return $ InternalMonth year' month'
 
-yearP :: Parser TimeInterval
+yearP :: Parser InternalTime
 yearP = do
   _ <- char '\''
   year' <- read <$> replicateM 4 digit :: Parser Integer
-  return $ year year'
+  return $ InternalYear year'
 
-timePeriodP :: Parser TimePeriod
+timePeriodP :: Parser TimePeriodInternal
 timePeriodP = do
   periods <- sepBy1 (try dayP <|> try monthP <|> yearP) (symb "\\/")
-  return $ Union periods
+  return $ InternalUnion periods

@@ -5,6 +5,7 @@
 
 module Bli.Prolog where
 
+import Data.Bli.Prolog.Schema
 import Data.Bli.Prolog.Ast
 import Bli.App
 import Bli.Util
@@ -23,6 +24,15 @@ groupProgramCmdsDecls xs = go xs ([],[])
         go (cmd@(QueryMode goal):xs) (cmds, decls) = go xs (cmd:cmds, decls)
         go (cmd@(LambdaQuery goal):xs) (cmds, decls) = go xs (cmd:cmds, decls)
         go [] (cmds, decls) = (cmds, decls)
+
+-- | Helper function to reorder a BliProgram into its logical order
+--   for the purposes of sequentially typechecking.
+reorderProg :: BliProgram -> BliProgram
+reorderProg prog = do
+  let (types, relations, entities, clauses, goals) = groupSchemaClausesBpl prog
+  (map (AssertSchema . Type) types) ++ (map (AssertSchema . uncurry TypeOf) entities)
+        ++ (map (AssertSchema . (\(x,y) -> Pred NotStored x y []) ) relations) ++ (map AssertClause clauses)
+        ++ (map QueryMode goals)
 
 -- | Helper function to load all the declarations
 --   in a prolog schema into the running Bli context. 

@@ -11,11 +11,15 @@ import Language.Haskell.TH.Lift
 import Data.List (intercalate)
 import Data.Bli.Prolog.Schema
 import Data.TimePeriods
+import Data.Serialize
+import GHC.Generics
 
 -- | An internal representation of prolog terms.
 data Term = Var Variable
           | Comp Atom Terms
-          deriving (Eq, Ord, Read, Lift) 
+          deriving (Eq, Ord, Read, Lift, Generic)
+
+instance Serialize Term 
 
 instance Show Term where
   show (Var x) = x
@@ -34,7 +38,9 @@ data Atom =
   | StringLiteral String
   | Rule Term Terms
   | Goal Terms
-  | TimeperiodLiteral TimePeriod deriving(Eq, Ord, Read, Lift)
+  | TimeperiodLiteral TimePeriodInternal deriving(Eq, Ord, Read, Lift, Generic)
+
+instance Serialize Atom
 
 instance Show Atom where
   show (Identifier x) = x
