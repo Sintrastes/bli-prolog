@@ -10,6 +10,8 @@ module Data.Bli.Prolog.Schema where
 import Language.Haskell.TH.Lift
 import Data.Bli.Prolog.Types
 import Bli.App.Config.Features
+import Data.Serialize
+import GHC.Generics
 
 -- | Flag that determines if a relation is stored or not.
 data IsStored = 
@@ -19,7 +21,9 @@ data IsStored =
  | External
 -- Function found in the given haskell module
  | ExternalHS String
- | NotStored deriving(Eq, Show, Lift)
+ | NotStored deriving(Eq, Show, Lift, Generic)
+
+instance Serialize IsStored
 
 -- | For our typed schema entry, we can either declare that a predicate
 --   with a given identity can take arguments of the supplied types,
@@ -39,7 +43,9 @@ data SchemaEntry =
 -- | Declaration of a new datatype with a given name,
 --   and a collection of constructors, which consist of a name, and
 --   a list of argument types for those constructors.
-  | DataType String [(String, [String])] deriving(Eq, Show, Lift)
+  | DataType String [(String, [String])] deriving(Eq, Show, Lift, Generic)
+
+instance Serialize SchemaEntry
 
 -- Note: We should probably refactor these all into newtypes, incase we
 -- want to make use of smart construtors later.

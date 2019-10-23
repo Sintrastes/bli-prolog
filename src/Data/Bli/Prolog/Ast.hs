@@ -94,7 +94,9 @@ data BliCommand =
  | MkAlias String String 
  | AssertMode Goal
  | AssertClause Clause 
- | AssertSchema SchemaEntry deriving(Show, Eq, Lift)
+ | AssertSchema SchemaEntry deriving(Show, Eq, Lift, Generic)
+
+instance Serialize BliCommand
 
 -- | Helper function to check if a BliCommand is an assertion.
 isAssertion :: BliCommand -> Bool

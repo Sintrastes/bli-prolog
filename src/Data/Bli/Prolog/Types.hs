@@ -4,10 +4,14 @@ module Data.Bli.Prolog.Types where
 import Language.Haskell.TH.Lift
 import Data.List
 import Control.Monad
+import Data.Serialize
+import GHC.Generics
 
 -- | Experimental, for lambek calculus support.
 data Direction = LeftArr 
-               | RightArr deriving(Eq, Show, Ord, Lift)
+               | RightArr deriving(Eq, Show, Ord, Lift, Generic)
+
+instance Serialize Direction
 
 data BliPrologType where
    TypeVar :: String -> BliPrologType
@@ -43,8 +47,11 @@ typeVars (GoalT ts) = join $ map typeVars ts
 typeVars (FuncT _ x y) = typeVars x ++ typeVars y
 typeVars _ = []
 
-deriving instance Eq  BliPrologType
-deriving instance Ord BliPrologType
+deriving instance Eq      BliPrologType
+deriving instance Ord     BliPrologType
+deriving instance Generic BliPrologType
+
+instance Serialize BliPrologType
 
 instance Show BliPrologType where
   show EntityT = "entity"

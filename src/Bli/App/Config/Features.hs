@@ -2,6 +2,8 @@
 module Bli.App.Config.Features where
 
 import Language.Haskell.TH.Lift
+import GHC.Generics
+import Data.Serialize
 
 -- | The default language options that bedelibry prolog
 --   uses (without language pragmas, or specifications
@@ -149,7 +151,10 @@ data LanguageOption =
    | LambekTypes
 -- | The following features are marked as experimental, and
 --   should only be enabled with caution
-  deriving(Eq, Show, Lift, Read)
+  deriving(Eq, Show, Lift, Read, Generic)
+
+instance Serialize LanguageOption
+
 experimentalFeatures =
   [
     ExternalHsRelations
