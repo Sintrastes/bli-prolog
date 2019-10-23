@@ -28,6 +28,8 @@ Todo
     
 Notes
 -----
+    * Note: Once we implement better Haskell interop (in the direction of using Bli Prolog in Haskell),
+      it might be fun to implement some small part of the Bli Prolog runtime in Bli Prolog -- for instance, subtypes could be implemented using higher-order predicates in bedelibry-prolog.
     * Note that for content-addressable entities (i.e. their entity is determined by their content, not their name), we could use something else, like 'ContentOf('Url("file:/home/nate/pdfs/my.pdf")).
   * In the future, I might allow users to make multiple schema declarations, and assertions on the same line, for brevity.
   * I think we'll probably want to use an alternative syntax for implicit predication.
@@ -42,3 +44,13 @@ Notes
         that allow for different parsing strategies (which might be more efficent
         for larger files).
   * It might be fun to add fuzzy string matching support.
+  * Note: It would be fun to do something with unicode operators ♢ and ☐. For instance, we could
+    allow these as predicates.
+       * However, we can also use ♢ to encode important facts about subtyping relations.
+         For instance, ♢(person <: animal) "It is possible that person is a subtype of animal."
+         encodes the ambiguity that although *strictly speaking*, people are animals,
+         usually people use *person* in the strict sense.
+       * Idea: We can refer to a proposition/type by:
+           modal_proposition :: ♢(person <: animal).
+         And then later we can declare exactly in what contexts 
+         the possible worlds semantics of this proposition may be resolved.
