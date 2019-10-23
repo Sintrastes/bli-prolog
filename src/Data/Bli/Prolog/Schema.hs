@@ -9,6 +9,7 @@ module Data.Bli.Prolog.Schema where
 
 import Language.Haskell.TH.Lift
 import Data.Bli.Prolog.Types
+import Bli.App.Config.Features
 
 -- | Flag that determines if a relation is stored or not.
 data IsStored = 
@@ -34,6 +35,7 @@ data SchemaEntry =
   | TypeOf String String
 -- | An import statement for Bli Prolog.
   | Using String 
+  | Feature LanguageOption
 -- | Declaration of a new datatype with a given name,
 --   and a collection of constructors, which consist of a name, and
 --   a list of argument types for those constructors.

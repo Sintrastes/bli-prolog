@@ -1,6 +1,8 @@
 
 module Bli.App.Config.Features where
 
+import Language.Haskell.TH.Lift
+
 -- | The default language options that bedelibry prolog
 --   uses (without language pragmas, or specifications
 --   to use other language features in the config file.
@@ -147,6 +149,7 @@ data LanguageOption =
    | LambekTypes
 -- | The following features are marked as experimental, and
 --   should only be enabled with caution
+  deriving(Eq, Show, Lift)
 experimentalFeatures =
   [
     ExternalHsRelations
