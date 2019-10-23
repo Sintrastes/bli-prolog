@@ -6,5 +6,5 @@
 using system_io.
 
 ?- { 
-  putStrLn("Hello, world!"). 
+  print_ln("Hello, world!"). 
 }
