@@ -13,4 +13,6 @@ RUN cabal update
 WORKDIR /root
 RUN git clone https://github.com/Sintrastes/bli-prolog
 WORKDIR /root/bli-prolog
-RUN cabal install
+RUN cabal sandbox init
+RUN cabal install --only-dependencies --enable-shared
+RUN cabal install --with-ghc=ghc-8.4.4
