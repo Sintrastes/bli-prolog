@@ -11,6 +11,7 @@ import Text.ParserCombinators.Parsec
 import Control.Monad.Combinators (eitherP)
 import Data.Bli.Prolog.Ast
 import Data.Bli.Prolog.Schema
+import Bli.App.Config.Features
 
 parseTypedSchemaFile = parseFromFile typedSchemaFileP 
 parseTypedSchema = parse typedSchemaFileP ""
@@ -32,8 +33,19 @@ typedSchemaLineP = do
 
 typedSchemaFileP :: Parser Schema
 typedSchemaFileP = do
+  features <- try featureDeclP
   lines <- many (try schemaRelnP <|> try schemaEntityP <|> typeDeclP)
-  return lines
+  return (features++lines)
+
+-- | Parser for language feature declarations.
+featureDeclP :: Parser [SchemaEntry]
+featureDeclP = do
+  symb "/*"
+  symb "LANGUAGE"
+  featureName <- variableP `sepBy1` (csymb ',')
+  symb "*/"
+  return $ map Feature $ (map read featureName :: [LanguageOption])
+  
 
 -- | A parser for "using" import statements in .bpl and .bsc files.
 usingDeclP :: Parser SchemaEntry

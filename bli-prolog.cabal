@@ -55,6 +55,7 @@ library
       Bli.App.Config.Features
       Bli.App.Config.Util
       Bli.App.Config.Version
+      Bli.App.Config.Executables
       Bli.App.Json
       Bli.App.Colors
       Bli.Prolog.Interp

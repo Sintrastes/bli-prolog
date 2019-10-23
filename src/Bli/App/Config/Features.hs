@@ -149,7 +149,7 @@ data LanguageOption =
    | LambekTypes
 -- | The following features are marked as experimental, and
 --   should only be enabled with caution
-  deriving(Eq, Show, Lift)
+  deriving(Eq, Show, Lift, Read)
 experimentalFeatures =
   [
     ExternalHsRelations
