@@ -45,6 +45,7 @@ library
       Bli.Prolog.Parser.Types
       Bli.Prolog.Parser.Cli
       Bli.Prolog.Compiler
+      Bli.Prolog.Compiler.Bytecode
       Bli.Prolog.Compiler.TH
       Bli.App
       Bli.App.Server
