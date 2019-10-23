@@ -25,6 +25,7 @@ import Bli.Prolog.Parser.Cli
 import Bli.Prolog.Parser.Schema
 import Bli.Prolog.Parser
 import Bli.Prolog.Interp
+import Bli.Prolog.Interp.Data
 import Data.List
 import Data.Alias (toKVList)
 import Control.Empty
@@ -88,6 +89,7 @@ processBliCommandRepl command = do
     Result_QueryFail_TypeError _ -> do
       printResponse $ (red colorOpts "Failure.")++" Query unsuccesful."
       printResponse $ "    Type error."
+    Result_QuerySuccess [ProcReturn] -> return ()
     Result_QuerySuccess solutions -> do
       case solutions of
         [] -> do

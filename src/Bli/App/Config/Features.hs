@@ -13,7 +13,7 @@ defaultLanguageOptions =
    , StoredRelations
    , Procedures
    , ExternalProcedures
-   , Currying
+   , PartialApplication
    , UnicodeSyntax
    ]
 

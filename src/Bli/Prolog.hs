@@ -45,7 +45,7 @@ runtimeCfg = AppConfig {options = startOptions (fromJust $(getVersionFromCabal))
 --   and executes all of the commands in the program.
 executeProgram :: BliProgram -> IO ()
 executeProgram prog = initBli runtimeCfg $ do
-  let (commands, declarations) = groupProgramCmdsDecls prog
+  let (commands, declarations) = groupProgramCmdsDecls (reverse prog)
   result <- loadDecs declarations
   case result of 
     False -> error "Failed loading declarations." 

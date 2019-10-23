@@ -7,7 +7,7 @@ import Control.Monad
 
 -- | Experimental, for lambek calculus support.
 data Direction = LeftArr 
-               | RightArr deriving(Eq, Show, Lift)
+               | RightArr deriving(Eq, Show, Ord, Lift)
 
 data BliPrologType where
    TypeVar :: String -> BliPrologType
@@ -43,8 +43,8 @@ typeVars (GoalT ts) = join $ map typeVars ts
 typeVars (FuncT _ x y) = typeVars x ++ typeVars y
 typeVars _ = []
 
-instance Eq  BliPrologType where
-instance Ord BliPrologType where
+deriving instance Eq  BliPrologType
+deriving instance Ord BliPrologType
 
 instance Show BliPrologType where
   show EntityT = "entity"

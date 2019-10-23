@@ -132,7 +132,7 @@ processTypecheckedBliCommand command = do
          then do
            let (Comp (StringLiteral s) []) = head args
            liftIO $ putStrLn s
-           return $ Result_QuerySuccess []
+           return $ Result_QuerySuccess [ProcReturn]
          else return $ Result_QuerySuccess []
     (QueryMode goal') -> do
        -- First, expand all aliases 

@@ -3,5 +3,12 @@
 
 type person.
 nate: person.
+test: person.
 
-?- { person(X). }
+rel putStrLn: string.
+
+?- { 
+  putStrLn("Hello, world!").
+  putStrLn("I am going to make a query!").
+  person(X). 
+}

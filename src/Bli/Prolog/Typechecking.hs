@@ -14,6 +14,7 @@ import Data.List((\\), nub, intercalate)
 import Data.Char
 import Control.Monad (join)
 import Data.Bli.Prolog.Schema
+import Control.Monad.IO.Class
 import Control.Monad.Bli
 import qualified Data.BliSet as BliSet
 
@@ -101,7 +102,7 @@ subset xs ys = all (\x -> x `elem` ys) xs
 getAritiesTerm val schema = (val, map snd $ filter (\(x,y) -> x == val) schema)
 
 -- | Unit type, representing valid input.
-data Ok = Ok
+data Ok = Ok deriving(Show)
 
 -- Note: It is important to make a distinction here
 -- between atoms and strings, because atoms

@@ -8,8 +8,10 @@ import Text.PrettyPrint ((<>),(<+>))
 import qualified Data.Char as C
 
 -- | Datatype representing the solution to a prolog query.
-newtype Solution = Solution [(Variable, Term)]
-                 deriving (Eq, Read)
+data Solution = 
+   Solution [(Variable, Term)]
+ | ProcReturn
+  deriving (Eq, Read)
 
 
 -- | Helper function for showing solutions.
