@@ -306,6 +306,68 @@ of how this might work in the future, if implemented.
     True.
 ~~~
 
+Metainterpreters
+----------------
+
+The features of bedelibry prolog makes it easy and intuitive to make meta-interpreters for bedelibry prolog. The most basic metainterpreter is the built-in `interp`, which can be thought of as:
+
+~~~
+proc interp.
+~~~
+
+`interp` prompts the user to make a query, and displays the result the same way
+they would be displayed in the blipl repl. In other words, `interp` gives the user
+first-class access to the `?- ` query prompt.
+
+More advanced than this is `minterp`, which is a procedure which
+takes a higher-order predicate as input. For example in the example above,
+`according_to(nate)` is a higher-order predicate. `minterp` is declared as follows:
+
+~~~
+proc minterp: pred -> pred.
+~~~
+
+To see how this works, look at the following example:
+
+~~~
+
+using interpreters.
+using first_class_rules.
+
+?- {
+  minterp(according_to(nate)).
+}
+
+%
+% (output)
+%
+% ?- cool(haskell).
+%   > True.
+%
+~~~
+
+More advanced meta-interpreters can also be constructed with generics:
+
+~~~
+proc minterp_with_result: pred -> pred, string -> Res.
+proc abstract_minterp: pred -> pred, Req -> Res.
+~~~
+
+These functions allow us to construct metainterpreters that do more than simply read from
+user input and print queries to the screen. We can also have more general input and return
+types.
+
+Note: To have a truly advanced metainterpreter that is able to have
+      meaningful interactions with the user, we need to also allow
+      for statefulness. 
+      
+      Rather than using something like the state monad, we should have a
+      more user-friendly approach, while still keeping the state declared in the type.
+      
+      This should work something more like inheriting from the App class in Scala bringing
+      in `args` into scope. Except rather than using traditional OOP, we use an approach
+      amenable to our logical/functional paradigm.
+
 Structural subtyping
 --------------------
 
