@@ -8,9 +8,10 @@ WARNING: The following readme is not meant to be documentation for bedelibry pro
 Checklist to 1.0
 ----------------
 
-- [] Implement full Haskell interop.
-- [] Implement language feature enabling/disabling.
-- [] Write a simple REST API.
+- [ ] Implement higher-order predicates.
+- [ ] Implement full Haskell interop.
+- [ ] Implement language feature enabling/disabling.
+- [ ] Write a simple REST API.
 
 How to install
 ==============
