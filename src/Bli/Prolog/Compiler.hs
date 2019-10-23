@@ -94,7 +94,7 @@ compileStatic filePath outFilePath = do
       cabalResult <- join $ waitForProcess <$> runCommand (
          "cd /tmp && \\\n"++
          "sed -i 's|<FILEPATH>|"++currentDir++"/"++filePath++"|g' Main.hs && \\\n"++
-         "cabal configure > /dev/null 2>&1 && \\\n"++
+         "cabal configure --enable-shared -O2 > /dev/null 2>&1 && \\\n"++
          "cabal build > /dev/null 2>&1 ")
   -- I haven't been able to get this to work yet
   -- defaultMainWithHooksNoReadArgs emptyUserHooks pkgDescr ["build"]
