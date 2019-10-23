@@ -9,16 +9,46 @@
 
 module Bli.Prolog.Compiler where
 
+import Prelude hiding (writeFile)
+import Bli.Prolog.Compiler.Bytecode
 import Data.Bli.Prolog.Ast
 import Distribution.Simple
 import Distribution.Verbosity
 import Distribution.PackageDescription.Parsec
 import Control.Monad
 import System.Cmd
+import Data.ByteString (writeFile)
 import System.Process
 import System.Directory
 import System.Exit
 import Data.List.Split
+import Bli.Prolog.Modules
+
+compileBytecode :: String -> String -> IO ()
+compileBytecode filePath outFilePath = do
+  putStrLn "Compiling file to bytecode..."
+  currentDir <- getCurrentDirectory
+  maybeProgram <- getBliProgramFromFile filePath
+  let inputFileWithoutExtension = 
+        head $ splitOn "." $ last $ splitOn "/" filePath
+  let sourceDest = 
+        case outFilePath of
+          "" -> currentDir ++ "/" ++ inputFileWithoutExtension ++ ".bc"
+          otherwise ->
+            case head outFilePath of
+              -- This is an absolute path
+              '/' -> outFilePath 
+              -- This is a relative path
+              '.' -> currentDir ++ (tail outFilePath)
+              -- If the path does not start with a '/', assume this is a relative path.
+              otherwise -> currentDir ++ "/" ++ outFilePath
+  case maybeProgram of
+    Just program -> do
+      let bytecode = toBytecode program
+      writeFile sourceDest bytecode
+      putStrLn "Done compiling."
+    Nothing -> do
+      error "Error compiling file to bytecode."
 
 -- | Compiles the given BliProgram into an executable 
 --   at the specified filepath. Dynamically links
