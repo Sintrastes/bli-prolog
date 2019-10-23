@@ -8,6 +8,7 @@ WARNING: The following readme is not meant to be documentation for bedelibry pro
 Checklist to 1.0
 ----------------
 
+- [ ] Implement type-checking of files.
 - [ ] Implement higher-order predicates.
 - [ ] Implement full Haskell interop.
 - [ ] Implement language feature enabling/disabling.

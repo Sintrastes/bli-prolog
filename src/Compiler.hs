@@ -38,10 +38,12 @@ printHelpScreen = putStrLn $ foldr1 (\x -> \y -> x ++ "\n" ++ y) $
    "                                     [output_file].",
    "",
    "Flags:",
-   "  --help      Displays this help screen.",
-   "  --dyn       Compiles the file, dynamically linknig any dependent modules.",
-   "  --bytecode  Compiles to Bedelibry Prolog bytecode instead of linking into",
-   "              a static executable."
+   "  --help            Displays this help screen.",
+   "  --dyn             Compiles the file, dynamically linknig any dependent modules.",
+   "  --bytecode        Compiles to Bedelibry Prolog bytecode instead of linking into",
+   "                    a static executable.",
+   "  --no-typecheck    Skips the typechecking step.",
+   "  --only-typecheck  Only typecheck the given file, skipping the compilation step."
   ]
  where Just version = $(getVersionFromCabal)
        name         = $(getCompilerNameFromCabal) 
