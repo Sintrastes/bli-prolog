@@ -26,6 +26,28 @@ groupSchemaClauses commands = go commands ([], [], [], [])
        --       other modules
        go ((AssertSchema (Using modName)):xs) (types, relations, entities, clauses) = undefined
 
+-- | Version of group schema clauses which includes goals at the end of the file.
+groupSchemaClausesBpl :: BliProgram -> ([TypeDecl], [RelDecl], [EntityDecl], [Clause], [Goal])
+groupSchemaClausesBpl commands = go commands ([], [], [], [], []) 
+ where go [] xs = xs
+       go ((AssertClause c):xs) (types,relations,entities,clauses, goals)
+           = go xs (types, relations, entities, c:clauses, goals)
+       go ((QueryMode goal):xs) (types,relations, entities, clauses, goals)
+          = go xs (types, relations, entities, clauses, goal:goals)
+       go ((LambdaQuery (_,goal)):xs) (types,relations,entities,clauses,goals)
+          = go xs (types, relations, entities, clauses, goal:goals)
+       go ((AssertSchema (Type t)):xs) (types,relations,entities,clauses,goals)
+           = go xs (t:types, relations, entities, clauses, goals)
+       go ((AssertSchema (TypeOf t ty)):xs) (types,relations,entities,clauses,goals)
+           = go xs (types, relations, (t,ty):entities, clauses,goals)
+       go ((AssertSchema (Pred isStored name argTypes dirs)):xs) (types,relations,entities,clauses,goals)
+           = go xs (types, (name, argTypes):relations, entities, clauses,goals)
+       -- Note: This will need to be changed to use the
+       --       Bli monad, since processing this further requires looking up 
+       --       other modules
+       go ((AssertSchema (Using modName)):xs) (types, relations, entities, clauses, goals) = undefined
+
+
 -- | Get all of the relevant data from a bli prolog file, and group it into the relevant lists.
 --   where the final component of the return type is a list of modules which have to be
 --   imported

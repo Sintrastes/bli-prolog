@@ -18,7 +18,7 @@ rel posetal_closure: pred, pred.
 rel equiv_closure: pred, pred.
 
 reflexive_closure(P)(X,X).
-reflexive_closure(P)(X) :- P(X)
+reflexive_closure(P)(X) :- P(X).
 
 symmetric_closure(P)(Y,X)
   :- P(X,Y).
@@ -35,12 +35,12 @@ transitive_closure(P)(X)
 % Note: The application operator syntax
 % is very useful here. This would be pretty ugly
 % without it.
-equiv_closure(P, 
-   reflexive_closure 
- $ transitive_closure 
- $ symmetric_closure(P)
-).
-
-posetal_closure(P, 
-   reflexive_closure $ transitive_closure(P)
-).
+%equiv_closure(P, 
+%   reflexive_closure 
+% $ transitive_closure 
+% $ symmetric_closure(P)
+%).
+%
+%posetal_closure(P, 
+%   reflexive_closure $ transitive_closure(P)
+%).
