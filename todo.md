@@ -1,6 +1,12 @@
 
 Todo
 ====
+  * Refactor compiler code.
+  * Refactor RelDecl, EntityDecl, etc... to be newtypes, and
+        make them the arguments to the constructors of other datatypes.
+  * Make the compiler check that a file in fact contains
+    exectuable code before attempting to compile a .bpl file. (i.e. check to
+    see if it is infact a schema or not).
   * Make our rel syntax just syntatic sugar for our more general functional syntax.
   * Implement scoped assertions.
   * For fun: Implement a lazy module system, where modules are only used
