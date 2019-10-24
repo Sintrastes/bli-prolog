@@ -27,3 +27,6 @@ Bli Prolog in some way:
       as a solution to dependency injection.
     * Case classes, and the whole object-oriented design of Scala as being something like a 
       more flexible version of algebraic data types.
+ * [Kitten](https://kittenlang.org/intro/):
+   * I'd like to implement something similar to Kitten's system of *permissions*, which are, in turn, similar to
+     Java's [checked exceptions](https://en.wikibooks.org/wiki/Java_Programming/Checked_Exceptions).
