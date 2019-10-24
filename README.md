@@ -49,6 +49,16 @@ using system_io.
 }
 ~~~
 
+~~~
+  rel ☐: pred.
+  rel ◇: pred.
+
+  ☐(☐(P)) :- ☐(P).
+  ☐(◇(P)) :- P.
+  ◇(P)    :- ☐(P).
+  ☐(◇(P)) :- ◇(P).
+~~~
+
 Explicit Variable Binding:
 --------------------------
 
