@@ -320,6 +320,7 @@ loadBliCommand (AssertSchema (Pred _ predName argTypes _)) = do
 -- | typechecks an entire Bli Prolog program strictly -- i.e.
 --   following a policy that definitions must precede their
 --   definitions.
+--   Note: This does not currently deal with module imports.
 typecheckBliProgram :: BliProgram -> Bli (Either [InvalidClause] Ok)
 typecheckBliProgram prog = do
   results <- mapM (\cmd -> do 

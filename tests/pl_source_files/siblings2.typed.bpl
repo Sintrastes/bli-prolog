@@ -19,6 +19,7 @@ homer:  person.
 jay:    person.
 abe:    person.
 abbie:  person.
+herb:   person.
 
 mother_child(marge, bart).
 mother_child(marge, lisa).

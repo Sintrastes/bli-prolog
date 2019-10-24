@@ -157,6 +157,7 @@ executable blic
   build-depends:
       base <5
     , cmdargs
+    , directory
     , readline
     , split
     , bli-prolog
