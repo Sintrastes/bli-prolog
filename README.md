@@ -36,6 +36,19 @@ Language Features
 
 Bedelibry prolog has some features which differentiate it from pure prolog (i.e. prolog without any of its imperative features). Many of these features of the language can be enabled or disabled by editing the list `defaultLanguageOptions` in `Features.hs` before building. We list some of these features below:
 
+Unicode support
+---------------
+
+~~~
+using system_io.
+
+?- {
+  print_ln("Hello, world!").
+  print_ln("Witaj świecie!").
+  print_ln("こんにちは世界!").
+}
+~~~
+
 Explicit Variable Binding:
 --------------------------
 
