@@ -475,6 +475,32 @@ datatyes. However, unlike in other languages, inheritance in Bedelibry Prolog is
     constructor 'Unknown.
 ~~~
 
+Variables
+---------
+
+In a sequential computation, the result of queries can be bound to *scoped variables*, which are similar to standard Bli Prolog variables, but prefixed with a `?`. These works similarly to variables in other programming languages, except they work non-deterministically, similar to how varibles work in "do notaton" when using the [list monad](https://en.wikibooks.org/wiki/Haskell/Understanding_monads/List) in Haskell (or similar to list comprehensions in Haskell and other languages). For instance:
+
+~~~
+
+using system_io.
+
+type person.
+
+person nate.
+person michael.
+
+?- {
+  person(?X).
+  print_ln(?X).
+}
+
+% Expected output:
+%  
+% > nate
+% > michael
+%
+~~~
+
 Command line interface
 =========
 
