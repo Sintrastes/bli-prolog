@@ -16,6 +16,7 @@ import Control.Monad (join)
 import Data.Bli.Prolog.Schema
 import Control.Monad.IO.Class
 import Control.Monad.Bli
+import Data.BliSet (tryInsert)
 import qualified Data.BliSet as BliSet
 
 -- | Helper function. Checks to see which identifiers are used in a pure prolog term.
@@ -287,3 +288,42 @@ typecheckBliCommand (AssertClause (t',ts')) = do
   return $ joinErrors results1 results2
 -- Asserting schemas is not covered by typechecking.
 typecheckBliCommand (AssertSchema _) = return $ Right Ok
+
+-- | Helper function. Runs through a BliCommand, loading assertions and
+--   schema declarations, but not processing queries. Does not validate.
+--   Used to load a file for the purposes of typechecking.
+loadBliCommand :: BliCommand -> Bli ()
+loadBliCommand (QueryMode goal) = return ()
+loadBliCommand (LambdaQuery (boundVars, goal)) = return ()
+loadBliCommand (MkAlias x y) = do 
+  newAlias x y
+  return ()
+loadBliCommand (AssertMode goal) = do
+  newFacts $ map (\term -> (term, [])) goal
+  return ()
+loadBliCommand (AssertClause clause) = do
+  newFacts [clause]
+  return ()
+loadBliCommand (AssertSchema (TypeOf termId typeId)) = do
+  newEntity termId typeId
+  return ()
+loadBliCommand (AssertSchema (Type typeName)) = do
+  newType typeName
+  return ()
+loadBliCommand (AssertSchema (DataType typeName constrs)) = do
+  newDataType (typeName, constrs)
+  return ()
+loadBliCommand (AssertSchema (Pred _ predName argTypes _)) = do
+  newRelation predName argTypes
+  return ()
+ 
+-- | typechecks an entire Bli Prolog program strictly -- i.e.
+--   following a policy that definitions must precede their
+--   definitions.
+typecheckBliProgram :: BliProgram -> Bli (Either [InvalidClause] Ok)
+typecheckBliProgram prog = do
+  results <- mapM (\cmd -> do 
+      result <- typecheckBliCommand cmd
+      loadBliCommand cmd
+      return result) prog
+  return $ foldr joinErrors (Right Ok) results
