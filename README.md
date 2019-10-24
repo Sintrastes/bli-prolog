@@ -397,16 +397,16 @@ with the following, which is valid Bli Prolog:
 ~~~prolog
   % Ok.
   datatype my_type_1 where
-    constructor 'A
-    constructor 'B
-    constructor 'C
+    constructor 'A.
+    constructor 'B.
+    constructor 'C.
 
   % All good!
   datatype my_type_2 where
-    constructor 'A
-    constructor 'B
-    constructor 'C
-    constructor 'D
+    constructor 'A.
+    constructor 'B.
+    constructor 'C.
+    constructor 'D.
 ~~~
 
 If enabled, Bli Prolog will automatically deduce from the above that my_type_1 is a subtype of my_type_2, which we write `my_type_1 <: my_type_2`, which means that in any context (for instance, a relation) in which we expect a term of type `my_type_2`, we can also supply a term of type `my_type_1`.
@@ -430,6 +430,27 @@ Structural subtyping can also be enabled for entity types. For instance:
 ~~~
 
 Note: This feature is similar to typeclasses in Haskell, and what are sometimes called traits or interfaces in other languages.
+
+Inheritance
+-----------
+
+Bedelibry Prolog also supports a version of inheritance which works for both structural types, and for
+datatyes. However, unlike in other languages, inheritance in Bedelibry Prolog is simply syntatic sugar
+
+~~~
+  datatype bool where
+    constructor 'True.
+    constructor 'False.
+  
+  datatype Ł3 extends bool with
+    constructor 'Unknown.
+
+  % The above is simply syntatic sugar for:
+  datatype Ł3 where
+    constructor 'True.
+    constructor 'False.
+    constructor 'Unknown.
+~~~
 
 Command line interface
 =========

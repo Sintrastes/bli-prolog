@@ -55,7 +55,7 @@ parens p = between (csymb '(') (csymb ')') p
 
 identifierP :: Parser String
 identifierP =
-        (do c <- lower
+        (do c <- lower <|> char '☐' <|> char '◇'
             cs <- many (alphaNum <|> char '_')
             case (c:cs) of
               "rel"  -> fail "\"rel\" is a reserved keyword, and may not be used as an identifer."
