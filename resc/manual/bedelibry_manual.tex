@@ -4,6 +4,50 @@
 \usepackage[paperwidth=6in, paperheight=9in]{geometry}
 \usepackage{epigraph}
 \usepackage{graphics}
+\usepackage{listings}
+\usepackage{xcolor}
+\usepackage{fancyvrb}
+
+% Japanese language support
+\usepackage{xeCJK}
+\setCJKmainfont{IPAMincho}
+\setCJKsansfont{IPAGothic}
+\setCJKmonofont{IPAGothic}
+
+\definecolor{predColor}{RGB}{36, 64, 242}
+\definecolor{varColor}{RGB}{255, 155, 79}
+\definecolor{reservedColor}{RGB}{161, 24, 158}
+\definecolor{entityColor}{RGB}{122, 124, 133}
+\definecolor{arityColor}{RGB}{122, 124, 133}
+\definecolor{trueColor}{RGB}{7, 130, 23}
+\definecolor{falseColor}{RGB}{255, 28, 28}
+\definecolor{noSolutionColor}{RGB}{255, 198, 28}
+\definecolor{typeColor}{RGB}{134, 27, 245}
+\definecolor{constrColor}{RGB}{122, 124, 133}
+\definecolor{stringColor}{RGB}{122, 124, 133}
+\definecolor{commentColor}{RGB}{77, 77, 77}
+\definecolor{moduleColor}{RGB}{36, 64, 242}
+
+\definecolor{codegreen}{rgb}{0,0.6,0}
+\definecolor{codegray}{rgb}{0.5,0.5,0.5}
+\definecolor{codeblue}{rgb}{0,0.15,0.82}
+\definecolor{backcolour}{rgb}{1,1,1}
+
+\lstdefinestyle{mystyle}{
+    backgroundcolor=\color{backcolour},   
+    commentstyle=\color{codegray},
+    keywordstyle=\color{codeblue},
+    numberstyle=\tiny\color{codegray},
+    stringstyle=\color{codegreen},
+    basicstyle=\ttfamily\footnotesize,
+    breakatwhitespace=false,         
+    breaklines=true,                 
+    captionpos=b,                    
+    keepspaces=true,                 
+    numbersep=5pt,                  
+    showspaces=false,                
+    showstringspaces=false,
+}
 
 \usepackage{etoolbox}
 \makeatletter
@@ -33,6 +77,14 @@
 {\par % end the paragraph
 	\vspace{\stretch{3}} % space at bottom is three times that at the top
 	\clearpage           % finish off the page
+}
+
+\lstdefinelanguage{BliProlog}{
+    morekeywords={rel, proc, constructor, datatype, type},
+    sensitive=true, % keywords are case-sensitive
+    morecomment=[l]{%}, % l is for line comment
+    morecomment=[s]{/*}{*/}, % s is for start and end delimiter
+    morestring=[b]" % defines that strings are enclosed in double quotes
 }
 
 \begin{document}
@@ -174,9 +226,9 @@ Bedelibry Prolog is first and foremost a logic programming language. This means 
 
 If you have ever taken a course in formal logic, predicates in Bedelibry Prolog behave similarly to normal \textit{propositions} in classical logic. A predicate is some \textit{fact} that can either hold (in which case we say the predicate is \textit{true}), or not hold (in which case we say it is \textit{false}). To declare predicates in Bedelibry prolog (which always start with a lowercase letter), we use the syntax
 
-\begin{verbatim}
-  rel p.
-\end{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+  \textcolor{reservedColor}{rel} \textcolor{predColor}{p}.
+\end{Verbatim}
 
 This is a declaration that p is a \textit{relation} (which is the same thing as a predicate, except it can have an arbitrary number of arguments) with no arguments -- i.e. a \textit{proposition}. If a declaration like the above has been made in a Bedelibry Prolog file that has been loaded into the REPL with no other facts declared about p, then typing the query \begin{verbatim} p. \end{verbatim} into the command prompt at the REPL will yield:
 
@@ -200,31 +252,242 @@ The default argument of predicates and relations in Bedelibry Prolog is \begin{v
   x: entity.
 \end{verbatim}
 
-If we have a \textit{predicate} or relations
+And relations taking 1 or more argument of type entity can be declared using the Prolog-inspired syntax:
 
-\begin{verbatim}
-  rel p/1.
-  p(x).
-\end{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+  \textcolor{reservedColor}{rel} \textcolor{predColor}{p}/\textcolor{arityColor}{1}.
+  \textcolor{reservedColor}{rel} \textcolor{predColor}{q}/\textcolor{arityColor}{2}.
+\end{Verbatim}
+
+So now, p(x), and q(x,x) are both valid Bedelibry Prolog terms under this schema.
 
 \section{Facts and rules}
 
+In Bedelibry Prolog, facts can be declared in a schema file with the same syntax with which we make queries at the REPL. For instance, if we have a schema file with the line
 
+\begin{Verbatim}[commandchars=\\\{\}]
+  \textcolor{predColor}{p}(\textcolor{entityColor}{x}).
+\end{Verbatim}
+
+\noindent then the query \textit{?- p(x).} at the REPL will yield \textit{True.} \medskip
+
+\noindent Rules may also be defined in Bedelibry Prolog schemas. These have the following syntax:
+
+\begin{Verbatim}[commandchars=\\\{\}]
+  \textcolor{predColor}{a} :- \textcolor{predColor}{b}, \textcolor{predColor}{c}.
+\end{Verbatim}
+
+\noindent which roughly translates to ``a if b and c''. \medskip
+
+\noindent To see how this works, consider the following example:
+
+\begin{Verbatim}[commandchars=\\\{\}]
+  \textcolor{reservedColor}{rel} \textcolor{predColor}{a}.
+  \textcolor{reservedColor}{rel} \textcolor{predColor}{b}.
+  \textcolor{reservedColor}{rel} \textcolor{predColor}{c}.
+
+  \textcolor{predColor}{b}. \textcolor{predColor}{c}.
+  \textcolor{predColor}{a} :- \textcolor{predColor}{b}, \textcolor{predColor}{c}.
+
+  ?- \textcolor{predColor}{a}.
+  > \textcolor{trueColor}{True}.
+\end{Verbatim}
+
+\noindent More interestingly, we can use \textit{variables} in rules, which in Bedelibry Prolog always start with a capital letter.
+
+\begin{Verbatim}[commandchars=\\\{\}]
+  \textcolor{reservedColor}{rel} \textcolor{predColor}{man}/\textcolor{arityColor}{1}.
+  \textcolor{reservedColor}{rel} \textcolor{predColor}{mortal}/\textcolor{arityColor}{1}.
+  
+  \textcolor{predColor}{man}(\textcolor{entityColor}{socrates}).
+
+  \textcolor{predColor}{mortal}(\textcolor{varColor}{X}) :- \textcolor{predColor}{man}(\textcolor{varColor}{X}).
+  \end{Verbatim}
+
+\noindent Free variables in Bedelibry Prolog are implicitly universally quantified, so the above rule reads as ``all men are mortal.'' And from the schema above, Bedelibry Prolog can deduce:
+
+\begin{verbatim}
+  mortal(socrates).
+  > True
+\end{verbatim}
 
 \section{Types}
 
-In the last two sections we learned about the basic type system in Bedelibry, and how to declare facts and rules.
+In the last two sections we learned about the basic type system in Bedelibry, and how to declare facts and rules. At this point, our system is essentially the same as vanilla Prolog -- except that there is a distinct seperation between \textit{predicates} and their arguments, which we must declare explicitly before use. However, we can use our typesystem for much more than this. For instance, in our ``all men are mortal'' example, instead of using the predicate \textit{man}, we can use a type for the same thing instead, which we declare with the syntax
+
+\begin{verbatim}
+  type man.
+\end{verbatim}
+
+We can then specify a more specific type for our predicate \textit{mortal}
+
+\begin{Verbatim}[commandchars=\\\{\}]
+  rel mortal: man.
+\end{Verbatim}
+
+which says that the predicate \textit{mortal} can only be meaningfully applied to terms of type \textit{man}. Thus, the following will not typecheck:
+
+\begin{Verbatim}[commandchars=\\\{\}]
+  type man.
+  type chair.
+  rel mortal: man.
+  socrates: man.
+  my_chair: chair.
+
+  % The predicate "mortal" doesn't make sense for chairs.
+  mortal(my_chair).
+\end{Verbatim}
+
+In addition, with the declaration that \textit{man} is a type, Bedelibry Prolog automatically generates a predicate (called a \textit{type predicate})
+
+\begin{Verbatim}[commandchars=\\\{\}]
+  \textcolor{reservedColor}{rel} \textcolor{predColor}{man}/\textcolor{arityColor}{1}.
+\end{Verbatim}
+
+which only returns True on predicates of type \textit{man}. Thus, we can write our rule for "all men are mortal" the same as before, but with the additional gaurntee now that the predicate \textit{mortal} is now only used in meaningful situations.
+
+\subsection{Open and closed types/relations}
+
+I mentioned earlier that in Bedelibry Prolog we make an \textit{open world assumption} on our predicates. This has two (related) effects:
+
+\begin{enumerate}
+  \item Rules and facts regarding an open relation may be defined in modules outside of where the relation was declared.
+  \item We do not have the final say on the falsehood of queries involving an open relation.
+\end{enumerate}
+
+\noindent However, Bedelibry Prolog gives the option of marking relations as \textit{closed}, using the syntax:
+
+\begin{Verbatim}[commandchars=\\\{\}]
+  \textcolor{reservedColor}{closed rel} \textcolor{predColor}{p}.
+\end{Verbatim}
+
+\noindent This (correspondingly) has the effect that:
+
+\begin{enumerate}
+  \item Rules and facts regarding a closed relation may \textbf{not} be defined in modules outside of where the relation was defined.
+  \item We \textbf{do} have the final say on the falsehood of queries involving a closed relation.
+\end{enumerate}
+
+\noindent Thus, we have:
+
+\begin{Verbatim}[commandchars=\\\{\}]
+  \textcolor{reservedColor}{closed rel} \textcolor{predColor}{p}.
+  ?- \textcolor{predColor}{p}.
+    > \textcolor{falseColor}{False}.
+\end{Verbatim}
+
+\noindent A similar semantics works in Bedelibry Prolog for \textit{closed types}. Entities of a closed type can only be declared in the same module the type was declared in, and the type predicate corresponding to a closed type is a closed relation.
 
 \section{Assertions}
 \epigraph{And is there also not the case where we play, and we make up the rules as we go along? And even where we alter them -- as we go along.}{Wittgenstein}
+
+Although having a schema may be suitable for many purposes, Bedelibry Prolog also supports the ability to dynamically assert new predicates, rules, types, and entities. This can be done in the REPL by terminating a Bedelibry Prolog term with a \textit{!} instead of the usual \textit{.} .
+
+\begin{verbatim}
+  ?- p.
+    > No solutions.
+  ?- p!
+  ?- p.
+    > True.
+\end{verbatim}
 
 \section{Metainterpreters}
 
 \epigraph{But what does a game look like that is everywhere bounded by rules? whose rules never let a doubt creep in, but stop up all the gaps where it might? -- Can't we imagine a rule regulating the application of a rule; and a doubt which it removes -- and so on?}{Wittgenstein}
 
+
+
 \chapter{Functional Programming}
 
+Functional programming and logic programming are both \textit{declarative} programming language paradigms. In contrast to \textit{imperative} programming langauges, where program are written by telling the computer \textit{how} to preform a certain computation, in declarative languages, we describe \textit{what} a computation is supposed to do, and leave the details of exactly \textit{how} such computations are executed to the compiler/interpreter. This allows us to write code at a higher-level of abstraction, requiring on average less code to accomplish the same task as if we were programming in an imperative language, however, has the disadvantage that it is harder to reason about preformance and efficency issues (note, however, that this does not mean that declarative languages can not be efficent!).
+
+As anyone who has taken a course in discrete mathematics (or an introduction to mathematical logic) could tell you -- a function is a specail case of a relation, and thus, the functional and logical paradigms are very closely related. Language designers have taken advantage of this relationship to develop hybrid logical/functional languages such as \textit{Curry} and \textit{Mercury}, and Bedelibry Prolog also supports this mixture of paradigms.
+
+Any relation in Bedelibry Prolog can be declared using the following ``functional'' (or ``equational'') syntax, which just serves to emphasize that we are thinking about a relation in a functional way: 
+
+\begin{Verbatim}[commandchars=\\\{\}]
+ \textcolor{commentColor}{% Functional syntax}
+   \textcolor{predColor}{f}(\textcolor{entityColor}{x},\textcolor{entityColor}{y},\textcolor{entityColor}{z}) = \textcolor{entityColor}{w}.
+ \textcolor{commentColor}{% The equivalent expression using the standard relational syntax.}
+   \textcolor{predColor}{f}(\textcolor{entityColor}{x},\textcolor{entityColor}{y},\textcolor{entityColor}{z},\textcolor{entityColor}{w}).
+\end{Verbatim}
+
+\section{Algebraic data types}
+
+While not all functional programming languages support it, a popular feature of statically typed functional programming languages is that of \textit{algebraic data types}, or ADTs. Algebraic data types work by supplying a finite number of different constuctors or \textit{variants} of that datatype. For instance, one of the simplest algebraic data types which can be defined in Bedelibry Prolog is \textit{bool}:
+
+\begin{Verbatim}[commandchars=\\\{\}]
+  \textcolor{reservedColor}{datatype} \textcolor{typeColor}{bool} where
+    \textcolor{reservedColor}{constructor} \textcolor{constrColor}{'True}.
+    \textcolor{reservedColor}{constructor} \textcolor{constrColor}{'False}.
+\end{Verbatim}
+
+\noindent This says that the type of booleans \textit{bool} consists of two constructors, \textit{'True} and \textit{'False}. So far, this feature can be seen as being similar to \textit{enums} in other programming languages. However, algebraic data types are more general, because their constructors can also have \textit{arguments}. For example, consider the following algebraic datatype, which might be used in a game with different types of \textit{agents}:
+
+\begin{Verbatim}[commandchars=\\\{\}]
+  \textcolor{reservedColor}{datatype} \textcolor{typeColor}{agent} where
+    \textcolor{reservedColor}{constructor} \textcolor{constrColor}{'Person}: \textcolor{typeColor}{string}.
+    \textcolor{reservedColor}{constructor} \textcolor{constrColor}{'Cat}.
+    \textcolor{reservedColor}{constructor} \textcolor{constrColor}{'Dog}.
+\end{Verbatim}
+
+\noindent This says that an agent is either a \textit{'Person}, with an argument of type \textit{string} (presumably, a name), for example \textit{'Person("Larry")'}, a \textit{'Dog}, or a \textit{'Cat}.
+
+Algebraic data types can also be recursive, giving us the ability to describe datastructures such as lists and trees:
+
+\begin{Verbatim}[commandchars=\\\{\}]
+  \textcolor{reservedColor}{datatype} \textcolor{typeColor}{intlist} where
+    \textcolor{reservedColor}{constructor} \textcolor{constrColor}{'Nil}.
+    \textcolor{reservedColor}{constructor} \textcolor{constrColor}{'Cons}: \textcolor{typeColor}{int}, \textcolor{typeColor}{intlist}.
+\end{Verbatim}
+
+\section{Aside: Datatypes v.s. Entities in Bedelibry}
+
+
+
+\section{Structural types}
+
+\section{Parametric Polymorphism}
+
+\begin{Verbatim}[commandchars=\\\{\}]
+  \textcolor{reservedColor}{datatype} \textcolor{typeColor}{list}[\textcolor{varColor}{A}] \textcolor{reservedColor}{where}
+    \textcolor{reservedColor}{constructor} \textcolor{constrColor}{'Nil}.
+    \textcolor{reservedColor}{constructor} \textcolor{constrColor}{'Cons}: \textcolor{typeColor}{int}, \textcolor{typeColor}{list}[\textcolor{varColor}{A}].
+\end{Verbatim}
+
 \chapter{Imperative and Object-Oriented Programming}
+
+Thus far in our tutorial, we have only seen how to write Bedelibry Prolog files containing schema declarations, facts, and rules, and how to make queries in the Bedelibry Prolog REPL using this loaded data. In this chapter, we will discuss the imperative programming features of Bedelibry Prolog, and exlain how to use the Bedelibry Prolog compiler \textit{blic} to make standalone exectuables from \textit{.bpl} files. As per tradition, we'll start with "Hello, world!". Create a file named \textit{hello\textunderscore world.bpl} with the following contents:
+
+\begin{Verbatim}[commandchars=\\\{\}]
+\textcolor{reservedColor}{using} \textcolor{moduleColor}{system_io}.
+
+?- \{
+  print_ln(\textcolor{stringColor}{"Hello, world!"}).
+  print_ln(\textcolor{stringColor}{"Witaj świecie!"}).
+  print_ln(\textcolor{stringColor}{"こんにちは世界!"}).
+\}
+\end{Verbatim}
+
+Running \textit{bplc hello\textunderscore world.bpl} will produce an executable in the same directory as the .bpl source file named \textit{hello\textunderscore world}. However, there are some syntatic features of Bedelibry Prolog which we now need to discuss to understand how this program works.
+
+\textit{print\textunderscore ln} is a \textit{procedure} imported from the module \textit{system\textunderscore io} which prints it's argument to the screen. It is declared with the type declaration:
+
+\begin{verbatim}
+  proc print_ln: string.
+\end{verbatim}
+
+\textit{string} here is the type of string literals, such as \textit{"Hello, world!"}, \textit{"Witaj świecie!"}, and \textit{"こんにちは世界!"} (Bedelibry Prolog supports unicode out of the box!). 
+
+Procedures in Bedelibry Prolog files must be put inside an \textit{execution environment}, which starts with a \textit{?-}, and is sourrounded by curly brackets. Commands run in an execution environment (which may be procedures or queries) behave similarly to those entered in at the REPL. 
+
+\section{Imperative programming in Haskell}
+
+\section{Bedelibry Prolog's Permission system}
+
+\section{Inheritance in Bedelibry}
+
+
 
 \chapter{Bedelibry}
 
@@ -240,11 +503,33 @@ But how many kinds of sentence are there? Say assertion, qeustion, and command? 
 
 \epigraph{And do we know any more ourselves? Is it just that we can't tell others exactly what a game is? -- But this is not ignorance. We dont know the boundaries because none have been drawn.}{Philosophical Investigations, remark 69.}
 
+Much like in real life (i.e. in natural languages), terms in Bedelibry Prolog can be ambiguous. One of the basic ways in which this happens is because terms in Bedelibry prolog can be declared to be of two different types.
+
+\begin{verbatim}
+  type programming_language.
+  type animal.
+
+  python: programming_language.
+  python <: animal.
+\end{verbatim}
+
+\noindent Usually context is sufficent to disambiguate the type of a Bedelibry Prolog term, but if this is not the case, then 
+
+\subsection{Fuzzy concepts}
+
 \epigraph{And likewise the kinds of number, for example, form a family. Why do we call something a "number"? Well, perhaps because it has a -- direct -- affinity with several things that have hitherto been called "number", and this can be said to give it an inndirect affinity with other things that we also call "numbers". And we extend our concept of number as in spinning a thread we twist fibre on fibre. And the strength of the thread resides not in the fact that some one fibre runs through its whole length, but in the overlapping of many fibres.}{Philosophical Investigation, remark 67.}
 
 \subsection{Sense disambiguation}
 
 \epigraph{Consider this example: if one says "Moses did not exist", this may mean various things... 79}{Philosophical Investigation, remark 67.}
+
+\subsection{Lambek Types}
+
+\epigraph{I reject the contention that an important theoretical difference exists between formal and natural languages.}{Richard Montague}
+
+\subsection{Case study: Research notes}
+
+
 
 \subsection{Case study: Random quotation generator}
 
