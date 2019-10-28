@@ -68,6 +68,9 @@ identifierP =
 intLiteralP :: Parser Atom
 intLiteralP = IntLiteral <$> read <$> many1 digit
 
+floatLiteralP :: Parser Atom
+floatLiteralP = FloatLiteral <$> read <$> many1 (digit <|> char '.')
+
 constructorP :: Parser String
 constructorP = do
   c1 <- char '\''

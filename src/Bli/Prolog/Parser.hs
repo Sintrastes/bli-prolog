@@ -206,6 +206,7 @@ atomP = do
   res <- (Identifier <$> identifierP) 
     -- <|> try symbolicP
        <|> try quotedP
+       <|> try floatLiteralP
        <|> try intLiteralP
        <|> try dataConstructorP
        <|> try dataConstructorEmptyP

@@ -32,6 +32,7 @@ data BliPrologType where
    RuleT :: BliPrologType
    StringLitT :: BliPrologType
    IntLitT :: BliPrologType
+   FloatLitT :: BliPrologType
    DateTimeLitT :: BliPrologType
  -- A polymorphic list datatype
    ListT :: BliPrologType -> BliPrologType
@@ -64,6 +65,7 @@ instance Show BliPrologType where
   show RuleT = "rule"
   show StringLitT = "string"
   show IntLitT = "int"
+  show FloatLitT = "float"
   show DateTimeLitT = "datetime"
   show (ListT t) = "list["++ show t ++"]" 
   show DateLitT = "date"

@@ -34,6 +34,7 @@ data Atom =
   | DataLit String Atoms
   | AppTerm String Atoms
   | IntLiteral Int
+  | FloatLiteral Double
   | ListLiteral [Atom]
   | StringLiteral String
   | Rule Term Terms
@@ -49,6 +50,7 @@ instance Show Atom where
   show (Predicate x ts) = x ++ "(" ++ intercalate ", " (map show ts) ++ ")"
   show (AppTerm x ts) = x ++ "(" ++ intercalate ", " (map show ts) ++ ")"
   show (IntLiteral n) = show n
+  show (FloatLiteral n) = show n
   show (ListLiteral xs) = show xs
   show (StringLiteral str) = "\"" ++ str ++ "\""
   show (Rule t ts) = "{" ++ show t ++ " :- " ++ intercalate ", " (map show ts) ++ "}"

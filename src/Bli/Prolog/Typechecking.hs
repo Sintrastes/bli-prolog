@@ -114,6 +114,7 @@ data Ok = Ok deriving(Show)
 typeOfAtom :: Atom -> Bli (Maybe BliPrologType)
 typeOfAtom (StringLiteral string) = return $ Just $ StringLitT
 typeOfAtom (IntLiteral x) = return $ Just $ IntLitT
+typeOfAtom (FloatLiteral x) = return $ Just $ FloatLitT
 typeOfAtom (DataLit name args) = do
   -- lookup user-defined datatypes in scope,
   -- and see if our DataLit matches any of the types
