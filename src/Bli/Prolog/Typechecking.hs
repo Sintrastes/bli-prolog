@@ -71,6 +71,7 @@ infixr 9 <:
 (<:) :: BliPrologType -> BliPrologType -> Bli Bool
 (<:) _ TypTypesT = return $ True
 (<:) (DeclaredTypeT x) EntityT = return $ True
+(<:) IntLitT FloatLitT = return $ True
 -- (<:) (DeclaredTypeT x) (DeclaredTypeT y) = do
   -- check for either datatype structural subtyping,
   -- and/or entity structural subtyping if it is enabled.
@@ -216,6 +217,7 @@ typecheckTerm (Comp (Identifier p) xs) = do
                                        "string"  -> StringLitT
                                        "period"  -> DateTimeLitT
                                        "int"     -> IntLitT
+                                       "float"   -> FloatLitT
                                        "entity"  -> EntityT
                                        "rule"    -> RuleT
                                        otherwise -> DeclaredTypeT x)

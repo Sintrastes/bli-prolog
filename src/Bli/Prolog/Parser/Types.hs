@@ -11,11 +11,13 @@ typeP =
  <|> try listTypeP
  <|> try funcTypeP
  <|> try entityTypeP
+ <|> try stringTypeP
+ <|> try intTypeP
+ <|> try floatTypeP
  <|> try declaredTypeP
  <|> try typTypesP
  <|> try goalTypeP
  <|> try ruleTypeP
- <|> try stringTypeP
  <|> try datetimeTypeP
  <|> try dateTypeP
   
@@ -42,6 +44,8 @@ entityTypeP = do
   symb "entity"
   return EntityT
 
+
+
 declaredTypeP :: Parser BliPrologType
 declaredTypeP = do
   id <- identifierP
@@ -64,6 +68,16 @@ ruleTypeP :: Parser BliPrologType
 ruleTypeP = do
   symb "rule"
   return RuleT
+
+intTypeP :: Parser BliPrologType
+intTypeP = do
+  symb "int"
+  return IntLitT
+
+floatTypeP :: Parser BliPrologType
+floatTypeP = do
+  symb "float"
+  return FloatLitT
 
 stringTypeP :: Parser BliPrologType
 stringTypeP = do
