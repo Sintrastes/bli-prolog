@@ -55,7 +55,7 @@ parens p = between (csymb '(') (csymb ')') p
 
 -- Operators, which wil be parsed as infix operators by the parser.
 operatorP :: Parser String
-operatorP = many (oneOf "#$&*+-./:<=≌>?@\\⊦⊨⊞⋆∗∘∙⋅⊟⊠∧∨×⊙⊘^~⊗⊕∩∖∪⨝∈≺≻≼≽⊏⊐⊑⊒⊓⊔←→⟵⟶⟷↼⇀↽⇁⇸")
+operatorP = many (oneOf "#¿¡$&*+-./:<=≌>?@\\⊦⊨⊞⋆∗∘∙⋅⊟⊠∧∨×⊙⊘^~⊗⊕∩∖∪⨝∈≺≻≼≽⊏⊐⊑⊒⊓⊔←→⟵⟶⟷↼⇀↽⇁⇸")
 
 -- Identifiers, which will be parsed as either terms or predicates.
 identifierP :: Parser String
@@ -71,6 +71,11 @@ identifierP =
                        <|> char '↑' <|> char '↓'
                        <|> char '↿' <|> char '↾'
                        <|> char '⇃' <|> char '⇂'
+                       <|> char '※' <|> char '±'
+                       <|> char '∓' <|> char '‽'
+                       <|> char '⸮'
+                       <|> char '⁂' <|> char '♭'
+                       <|> char '♮' <|> char '♯'
             cs <- many (alphaNum <|> char '_')
             case (c:cs) of
               "rel"  -> fail "\"rel\" is a reserved keyword, and may not be used as an identifer."

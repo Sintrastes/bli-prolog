@@ -193,6 +193,14 @@ termsP = sepBy1 termP (csymb ',')
 termsP' :: Parser Terms
 termsP' = sepBy1 termP' (csymb ',')
 
+-- Parse an application of a binary infix operator to two terms.
+infixTermP :: Parser Atom
+infixTermP = do
+  atom1 <- atomP
+  op    <- operatorP
+  atom2 <- atomP
+  return $ AppTerm op [atom1, atom2] 
+
 appTermP :: Parser Atom
 appTermP = do id <- identifierP
               char '('
