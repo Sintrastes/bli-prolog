@@ -282,6 +282,7 @@ initialTypes =
         tryInsert "type" >>=
         tryInsert "entity" >>=
         tryInsert "proc" >>=
+        tryInsert "pred" >>=
         tryInsert "period" >>=
         tryInsert "rule"
   in result

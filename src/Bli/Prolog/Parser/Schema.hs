@@ -122,7 +122,7 @@ schemaDatatypeDeclP = do
   symb "datatype"
   typeName <- identifierP
   symb "where"
-  constructors <- many (try datatypeConstructorP <|> datatypeConstructorEmptyP)
+  constructors <- many (try datatypeConstructorEmptyP <|> datatypeConstructorP)
   return $ DataType typeName constructors
 
 

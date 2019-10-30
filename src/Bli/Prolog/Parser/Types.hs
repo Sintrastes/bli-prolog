@@ -15,12 +15,12 @@ typeP =
  <|> try stringTypeP
  <|> try intTypeP
  <|> try floatTypeP
- <|> try declaredTypeP
  <|> try typTypesP
  <|> try goalTypeP
  <|> try ruleTypeP
  <|> try datetimeTypeP
  <|> try dateTypeP
+ <|> declaredTypeP
   
 typeVarP :: Parser BliPrologType
 typeVarP = do
@@ -44,8 +44,6 @@ entityTypeP :: Parser BliPrologType
 entityTypeP = do
   symb "entity"
   return EntityT
-
-
 
 declaredTypeP :: Parser BliPrologType
 declaredTypeP = do

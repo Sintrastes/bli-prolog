@@ -58,7 +58,7 @@ atomP = do
 
 -- | Parser for a prolog term which is not a rule.
 termP' :: Parser Term
-termP' =  (variableP >>= return . Var)
+termP' =  try (variableP >>= return . Var)
     <|> try literalP
     <|> (listP     <?> "list term")
 
@@ -66,9 +66,9 @@ termP' =  (variableP >>= return . Var)
 termP :: Parser Term
 termP = do
    many space 
-   (variableP >>= return . Var)
---    <|> ( (\x -> Comp x []) <$> infixTermP)
+   try (variableP >>= return . Var)
       <|> try ruleP
+      <|> try ( (\x -> Comp x []) <$> infixTermP)
       <|> try (literalP)
       <|> ((listP) <?> "list term")
 
@@ -76,7 +76,7 @@ termP = do
 -- A top level term -- each of the alternatives must consume all of their
 -- input to be valid.
 topLevelTermP :: Parser Term
-topLevelTermP = (variableP >>= return . Var)
+topLevelTermP = try (variableP >>= return . Var)
     <|> try (terminated literalP)
     <|> try ((terminated listP) <?> "list term")
     <|> ruleP

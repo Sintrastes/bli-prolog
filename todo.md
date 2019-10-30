@@ -1,6 +1,11 @@
 
 Todo
 ====
+  * Fix the issue in parsing data declarations where constructors with
+    arguments have to be declared after constructors without arguments.
+  * Implement typechecking of predicates.
+  * Implement a system for parsing infix operators with different infix declarations.
+  * Improve the module system by adding "module X." and "module X exporting ... . declarations at the top of files, and make it so that a file only parses if is a properly declared module, or if it contains some executable code at the bottom of the file.
   * Refactor compiler code.
   * Refactor RelDecl, EntityDecl, etc... to be newtypes, and
         make them the arguments to the constructors of other datatypes.

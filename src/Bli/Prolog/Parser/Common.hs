@@ -5,6 +5,7 @@
 
 module Bli.Prolog.Parser.Common where
 
+import Data.Char
 import Text.ParserCombinators.Parsec
 import Data.Bli.Prolog.Ast
 import Bli.Prolog.Parser.DateTime
@@ -20,7 +21,15 @@ cons (Comp h []) (Comp (ListLiteral ts) []) = Comp (ListLiteral (h:ts)) []
 
 -- Operators, which wil be parsed as infix operators by the parser.
 operatorP :: Parser String
-operatorP = many (oneOf "#¿¡$&*+-./:<=≌>?@\\⊦⊨⊞⋆∗∘∙⋅⊟⊠∧∨×⊙⊘^~⊗⊕∩∖∪⨝∈≺≻≼≽⊏⊐⊑⊒⊓⊔←→⟵⟶⟷↼⇀↽⇁⇸")
+operatorP = try (symb "is" >> return "is") 
+  <|> try (do csymb '`'
+              id <- identifierP
+              csymb '`'
+              return id)
+  -- Note: We probably shouldn't allow e.x. : and . by themselves,
+  -- as this could mess with parsing -- but we could allow them to be used
+  -- in certain contexts. But for now, we won't use them at all.
+  <|> many (oneOf "#¿¡$&*+-/;<=≌>?@\\⊦⊨⊞⋆∗∘∙⋅⊟⊠∧∨×⊙⊘^~⊗⊕∩∖∪⨝∈≺≻≼≽⊏⊐⊑⊒⊓⊔←→⟵⟶⟷↼⇀↽⇁⇸")
 
 -- Identifiers, which will be parsed as either terms or predicates.
 identifierP :: Parser String
@@ -52,6 +61,7 @@ identifierP =
 
 intLiteralP :: Parser Atom
 intLiteralP = IntLiteral <$> read <$> many1 digit
+
 floatLiteralP :: Parser Atom
 floatLiteralP = do 
   integralPart <- many1 digit
@@ -70,6 +80,8 @@ constructorP = do
 variableP :: Parser String
 variableP = (do c <- upper <|> char '_'
                 cs <- many (alphaNum <|> char '_')
-                return (c:cs)) <?> "variable"
+                if isAscii c 
+                then return (c:cs)
+                else fail "Variables many not use unicode.") <?> "variable"
 
 
