@@ -18,6 +18,7 @@ import Data.List.Split
 import Bli.App.Colors
 import Bli.App.Config
 import Bli.App.Config.Data
+import Bli.App.Config.Features
 import Bli.Prolog.Typechecking
 import Data.Bli.Prolog.Ast
 import Data.Bli.Prolog.Schema
@@ -229,7 +230,7 @@ repl = do
                setFacts empty
                repl
              ListSchema ->
-               if (entities  == empty
+               if  (entities  == empty
                  && relations == empty
                  && types     == empty)
                then do 
@@ -271,15 +272,16 @@ repl = do
                  mapM_ printResponse $ map prettyShowClause facts
                  repl
              ListAliases -> do
-               if aliases == empty
-               then do 
-                 printResponse $ yellow colorOpts "No aliases in store."
-                 repl
-               else do 
-                 -- Note: To make this work, I probably need a "to list" function
-                 -- for aliases, so that I can get this to print properly.
-                 mapM_ printResponse $ map (\(id1, id2) -> "alias " ++ id1 ++ " " ++ id2 ++ ".")  $ toKVList aliases
-                 repl
+               ifEnabledThenElse Aliases
+                 (do if aliases == empty
+                     then do 
+                       printResponse $ yellow colorOpts "No aliases in store."
+                     else do 
+                       -- Note: To make this work, I probably need a "to list" function
+                       -- for aliases, so that I can get this to print properly.
+                       mapM_ printResponse $ map (\(id1, id2) -> "alias " ++ id1 ++ " " ++ id2 ++ ".")  $ toKVList aliases)
+                 (printResponse "Aliases have not been enabled.")
+               repl
              LoadFile filePath -> do
                 maybeFileContents <- do
                   -- Handle file read exceptions.

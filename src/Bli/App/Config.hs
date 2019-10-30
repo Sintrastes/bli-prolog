@@ -312,6 +312,7 @@ server (AppConfig options _ _) = server' options
 port (AppConfig options _ _) = port' options
 burl (AppConfig options _ _) = burl' options
 
+
 -- Functions to get langauge options from the AppConfig
 
 -- | Checks to see whether an extension is enabled or not.
@@ -337,6 +338,12 @@ ifEnabled' extension x = do
   case result of 
     True  -> x
     False -> return $ Result_ExtensionNotEnabled extension 
+
+ifEnabledThenElse extension x y = do
+  result <- extensionEnabled extension
+  case result of 
+    True  -> x
+    False -> y
   
 -- | Starting options for the bli-prolog exectuable.
 startOptions version =

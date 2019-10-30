@@ -16,6 +16,8 @@ import Bli.Prolog.Unification
 import Bli.Prolog.Unification.Terms
 import Bli.Prolog.Interp.Data
 import Bli.Prolog.Unification
+import Bli.App.Config.Features
+import Bli.App.Config
 
 ----------------------------------------------------------------------
 -- Interpreter
@@ -61,7 +63,9 @@ solve :: Goal -> Bli [SearchTree]
 solve goal' = do
   prog <- toList <$> getFacts
   aliases <- getAliases
-  goal <- expandAliases goal'
+  goal <- ifEnabledThenElse Aliases 
+            (expandAliases goal')
+            (return goal')
   typePredicates <- getTypePredicates goal
   case () of
    _ | typePredicates /= [] -> do

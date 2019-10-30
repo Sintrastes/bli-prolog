@@ -9,7 +9,7 @@
 
 module Bli.App.Api where
 
-import Bli.Prolog.Typechecking
+import Bli.Prolog.Typechecking.Data
 import Bli.Prolog.Interp.Data
 import Bli.App.Config.Features
 

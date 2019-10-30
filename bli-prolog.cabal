@@ -39,6 +39,7 @@ library
       Bli.Prolog.Modules
       Bli.Prolog.TH
       Bli.Prolog.Typechecking
+      Bli.Prolog.Typechecking.Data
       Bli.Prolog.Parser
       Bli.Prolog.Parser.DateTime
       Bli.Prolog.Parser.Infix

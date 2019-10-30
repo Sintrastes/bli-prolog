@@ -162,3 +162,4 @@ experimentalFeatures =
   , AdvancedPartialApplication
   , LambekTypes
   ]
+

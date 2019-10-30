@@ -3,8 +3,12 @@
 --   bli prolog.
 --
 
-module Bli.Prolog.Typechecking where
+module Bli.Prolog.Typechecking (
+    module Bli.Prolog.Typechecking.Data
+  , module Bli.Prolog.Typechecking
+ ) where
 
+import Bli.Prolog.Typechecking.Data
 import Bli.Util
 import Data.Bli.Prolog.Ast
 import Data.Bli.Prolog.Types
@@ -102,9 +106,6 @@ nonMatchingArities atomsWithValidArities atoms =
 subset xs ys = all (\x -> x `elem` ys) xs
 getAritiesTerm val schema = (val, map snd $ filter (\(x,y) -> x == val) schema)
 
--- | Unit type, representing valid input.
-data Ok = Ok deriving(Show)
-
 -- Note: It is important to make a distinction here
 -- between atoms and strings, because atoms
 -- have already been parsed, and hence, all of the
@@ -180,29 +181,6 @@ typeOfAtom (Identifier string)
                 -- Again, this is a hack, and not even correct for all cases.
                 Just (_, argTypes) -> Just $ PredicateT $ map DeclaredTypeT argTypes
                 Nothing -> Nothing
-
--- | Data type representing all of the possible errors
---   that can occur from validating the input to a bli prolog
---   command. 
-data InvalidClause =
-     -- | Error to return when a lambda query contains a bound variable which does not
-     --   appear in the body.
-     BoundVarNotInBody 
-     -- | Error to return when a query (or an assertion) of any kind contains
-     --   identifiers which do not exist in any of the imported schemas.
-   | AtomsNotInSchema [String]
--- ... Identifier X is being used as an Nary predicate, but is declared to
---     be a term of type Y in the schema.
-   | NotAPredicate (String, Int, String)
--- ... Encountered type errors:                                                                         
---         In predicate X, argument n is not of type Y, but rather of type W.
-   | TypeError (String, Int, String, String)
--- | type X has not been declared in the schema.
-   | TypeNotDeclared String
-   | EntityNotDeclared String String
--- The term ... has not been declared as a relation of type ...
-   | RelationNotDeclared String [String]
-   | AlreadyAsserted deriving(Eq, Show)
 
 -- | Helper function for error accumulation.  
 collectErrors :: [Either InvalidClause Ok] -> Either [InvalidClause] Ok

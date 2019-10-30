@@ -7,6 +7,7 @@ module Bli.App where
 
 import Data.Bli.Prolog.Ast
 import Data.Bli.Prolog.Schema
+import Bli.App.Config.Features
 import Bli.Prolog.Parser
 import Bli.Prolog.Interp
 import Bli.Prolog.Interp.Data
@@ -39,15 +40,19 @@ import Control.Monad.IO.Class
 
 
 assertClause head' body' = do
--- First, expand all aliases 
-      clauses <- getFacts
-      head <- expandAliasesTerm head'
-      body <- expandAliases body'
-      let clause = (head, body)
-      case tryInsert clause clauses of
-             Left _ -> return $ Result_AssertionFail_AlreadyAsserted 
-             Right result -> do setFacts result
-                                return $ Result_AssertionSuccess
+-- First, expand all aliases       
+    clauses <- getFacts
+    head <- ifEnabledThenElse Aliases 
+              (expandAliasesTerm head') 
+              (return head')
+    body <- ifEnabledThenElse Aliases 
+              (expandAliases body') 
+              (return body')
+    let clause = (head, body) 
+    case tryInsert clause clauses of
+        Left _ -> return $ Result_AssertionFail_AlreadyAsserted 
+        Right result -> do setFacts result
+                           return $ Result_AssertionSuccess
 
 processTypecheckedBliCommand :: BliCommand -> Bli BliResult
 processTypecheckedBliCommand command = do
@@ -73,7 +78,9 @@ processTypecheckedBliCommand command = do
   case command of 
     (Assert goal') -> do
        -- First, expand all aliases 
-       goal <- expandAliases goal'
+       goal <- ifEnabledThenElse Aliases 
+                 (expandAliases goal')
+                 (return goal')
 
        results <- checkForTypePredicateAssertion goal
 
@@ -136,7 +143,9 @@ processTypecheckedBliCommand command = do
          else return $ Result_QuerySuccess []
     (Query (_,goal')) -> do
        -- First, expand all aliases (if aliases have been enabled)
-       goal <- expandAliases goal'
+       goal <- ifEnabledThenElse Aliases 
+                 (expandAliases goal')
+                 (return goal')
        let limiting lst = 
             case limit opts of
               Nothing -> lst
