@@ -37,5 +37,6 @@ type Bli a = Generic.Bli
     AliasDatastructure 
     a
 
+
 initBli :: AppConfig -> Bli a -> a
 initBli config x = runIdentity $ Generic.initBli config x

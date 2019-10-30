@@ -25,6 +25,19 @@ import Data.List.Split
 import Bli.Prolog.Modules
 import Control.Monad.Bli
 import Control.Monad.IO.Class
+import Bli.App.Config
+import Bli.App.Config.Features
+import Bli.App.Config.Data
+import Bli.Prolog.Compiler.TH
+import Bli.App.Config.Version
+
+fromJust (Just x) = x
+
+compilerOpts = AppConfig {
+    options = startOptions (fromJust $(getVersionFromCabal))
+  , version = (fromJust $(getVersionFromCabal))
+  , languageOptions = defaultLanguageOptions
+}
 
 compileBytecode :: String -> String -> Bli ()
 compileBytecode filePath outFilePath = do

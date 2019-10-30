@@ -15,12 +15,6 @@ import Data.List
 
 fromJust (Just x) = x
 
-compilerOpts = AppConfig {
-    options = startOptions (fromJust $(getVersionFromCabal))
-  , version = (fromJust $(getVersionFromCabal))
-  , languageOptions = defaultLanguageOptions
-}
-
 -- The main entrypoint for our compiler
 main = do
   args       <- getArgs

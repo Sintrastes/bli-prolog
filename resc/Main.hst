@@ -3,11 +3,13 @@
 
 module Main where
 
-import Bli.Prolog.Compiler.TH
-import Bli.Prolog
+import Bli.Prolog.Compiler.TH (getBliProgramFromFile')
+import Bli.Prolog.Compiler (compilerOpts)
+import Bli.Prolog (executeProgram)
+import Control.Monad.Bli (initBli)
 
 main :: IO ()
 main = do
-  let Just program = $(getBliProgramFromFile' "<FILEPATH>")
+  let program = $(getBliProgramFromFile' compilerOpts "<FILEPATH>")
   executeProgram program
   return ()
