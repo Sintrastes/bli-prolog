@@ -18,15 +18,19 @@ import Data.Bli.Prolog.Schema
 import Control.Monad (join)
 
 -- | Loads a plain prolog file @filename@, and parses it into a list of clauses.
+clausesFromFile :: String -> IO (Either ParseError [Clause])
 clausesFromFile filename = parseFromFile prologProgramP filename
 
 -- | Parses a plain prolog file directly from a string into a list of clauses.
+clausesFromString :: String -> Either ParseError [Clause]
 clausesFromString context = parse prologProgramP "" context
 
 -- | Loads a bli file, and parses it.
+parseTypedBliFile :: String -> IO (Either ParseError BliProgram)
 parseTypedBliFile = parseFromFile bliPrologProgramP 
 
--- | Parses a bli file directly from its stirng representation
+-- | Parses a bli file directly from its string representation
+parseTypedBli :: String -> Either ParseError BliProgram
 parseTypedBli = parse bliPrologProgramP ""
 
 -- | Parser for a pure prolog program. 
