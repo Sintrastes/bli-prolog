@@ -8,6 +8,9 @@ module Bli.Util where
 import Data.Bli.Prolog.Ast
 import Data.Bli.Prolog.Schema
 
+termHead (Var x) = Identifier x
+termHead (Comp x _) = x
+
 -- | Get all of the relevant data from a schema file and group it
 --   into the appropriate lists
 groupSchemaClauses :: BliProgram -> ([TypeDecl], [RelDecl], [EntityDecl], [Clause])

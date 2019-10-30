@@ -5,6 +5,7 @@
 
 module Bli.Prolog.Typechecking where
 
+import Bli.Util
 import Data.Bli.Prolog.Ast
 import Data.Bli.Prolog.Types
 import Bli.Prolog.Interp (expandAliases, expandAliasesTerm)
@@ -113,6 +114,7 @@ data Ok = Ok deriving(Show)
 
 -- | Helper function to return the type of an atom which has already been parsed.
 typeOfAtom :: Atom -> Bli (Maybe BliPrologType)
+typeOfAtom (AtomVar x) = return $ Just $ AnyT
 typeOfAtom (StringLiteral string) = return $ Just $ StringLitT
 typeOfAtom (IntLiteral x) = return $ Just $ IntLitT
 typeOfAtom (FloatLiteral x) = return $ Just $ FloatLitT
@@ -124,9 +126,22 @@ typeOfAtom (DataLit name args) = do
   case maybeConstrType of
     Nothing -> return $ Nothing
     Just constrType -> return $ Just $ DeclaredTypeT constrType
-typeOfAtom (AppTerm _ _) = do 
-  -- 
-  undefined
+typeOfAtom (AppTerm p xs) = do 
+  -- Check to see p is a predicate, and all of its arguments are 
+  -- of the correct type.
+  relations <- getRelations
+  entities  <- getEntities
+  types     <- getTypes
+  let relLookup = BliSet.lookup (\(a,b) -> p == a) relations
+  case relLookup of
+    Just (_, expectedTypes) -> do
+      -- This is also wrong
+      intermediateResults <- checkThatArgumentsMatchExpectedTypes p (map (\x -> Comp x []) xs) (map DeclaredTypeT expectedTypes)
+      case collectErrors intermediateResults of
+        Left _  -> return $ Nothing
+        -- Note: This is wrong.
+        Right _ -> return $ Just $ PredicateT $ map DeclaredTypeT expectedTypes
+    Nothing -> return $ Nothing
 typeOfAtom (ListLiteral xs) = do
   -- Take the join of the types of all of the xs.
   undefined
@@ -144,12 +159,15 @@ typeOfAtom (Goal goal) = do
 typeOfAtom (TimeperiodLiteral _) = return $ Just $ DateTimeLitT
 typeOfAtom (Identifier string) 
   -- A variable has no type.
+  -- Note: I don't think this check is needed now that we can represent variables in atoms
+  -- more directly
   | isUpper (head string)            = return $ Nothing
   | otherwise = do
       -- Check to see if the literal has a user-declared
       -- type
-      types    <- getTypes
-      entities <- getEntities
+      types     <- getTypes
+      entities  <- getEntities
+      relations <- getRelations
       let entityLookup = BliSet.lookup (\(a,b) -> string==a) entities
       return $ case entityLookup of
         Just (_,typeOfX) -> Just $ DeclaredTypeT typeOfX 
@@ -158,7 +176,13 @@ typeOfAtom (Identifier string)
           let typeLookup = BliSet.lookup (==string) types
           case typeLookup of
             Just _ -> Just $ TypTypesT
-            Nothing -> Nothing
+            Nothing -> do 
+              -- Check to see the literal is a predicate
+              let relnLookup = BliSet.lookup (\(a,b) -> string==a) relations
+              case relnLookup of
+                -- Again, this is a hack, and not even correct for all cases.
+                Just (_, argTypes) -> Just $ PredicateT $ map DeclaredTypeT argTypes
+                Nothing -> Nothing
 
 -- | Data type representing all of the possible errors
 --   that can occur from validating the input to a bli prolog
@@ -198,6 +222,26 @@ joinErrors (Left xs) (Right Ok)  = Left xs
 joinErrors (Right Ok) (Left xs)  = Left xs
 joinErrors (Right Ok) (Right Ok) = Right Ok
 
+-- checkThatArgumentsMatchExpectedTypes ::
+checkThatArgumentsMatchExpectedTypes p xs expectedTypes = 
+  mapM (\(expectedType, x, n) -> do
+             typeOfX <- typeOfAtom x
+             if typeOfX == Just expectedType
+             then return $ Right Ok
+             -- The formatting here isn't the most ideal.
+             else case typeOfX of
+                    Nothing -> case x of
+                      -- Variables do not need type-checking in this case.
+                        Identifier str | isUpper (head str) -> return $ Right Ok
+                        _ -> return $ Left $ EntityNotDeclared (show x) (show expectedType)
+                    Just typeOfX -> do
+                      subTypeOfExpected <- typeOfX <: expectedType
+                      if subTypeOfExpected
+                      then return $ Right Ok
+                      else return $ Left $ TypeError (p, n, show expectedType, show typeOfX))
+ (zip3 expectedTypes (map termHead xs) [1..length xs])
+   
+
 typecheckTerm :: Term -> Bli (Either [InvalidClause] Ok)
 typecheckTerm (Var x) = return $ Right Ok
 typecheckTerm (Comp (Identifier p) xs) = do
@@ -222,30 +266,9 @@ typecheckTerm (Comp (Identifier p) xs) = do
                                        "rule"    -> RuleT
                                        otherwise -> DeclaredTypeT x)
                               expectedTypes'
-      -- Helper function
-      let termHead (Var x) = Identifier x
-          termHead (Comp x _) = x
       -- Typecheck each of the individual arguments 
       -- of the predicate.
-      intermediateResults <- mapM 
-            (\(expectedType, x, n) -> do
-             typeOfX <- typeOfAtom x
-             if typeOfX == Just expectedType
-             then return $ Right Ok
-             -- The formatting here isn't the most ideal.
-             else case typeOfX of
-                    Nothing -> case x of
-                      -- Variables do not need type-checking in this case.
-                        Identifier str | isUpper (head str) -> return $ Right Ok
-                        _ -> return $ Left $ EntityNotDeclared (show x) (show expectedType)
-                    Just typeOfX -> do
-                      subTypeOfExpected <- typeOfX <: expectedType
-                      if subTypeOfExpected
-                      then return $ Right Ok
-                      else return $ Left $ TypeError (p, n, show expectedType, show typeOfX))
-               (zip3 expectedTypes (map termHead xs) [1..length xs])
-      -- Return all of the errors that were encountered, or none
-      -- if no errors were encountered.
+      intermediateResults <- checkThatArgumentsMatchExpectedTypes p xs expectedTypes
       return $ collectErrors intermediateResults
 typecheckTerm (Comp x xs) = do
   typeOfX <- typeOfAtom x

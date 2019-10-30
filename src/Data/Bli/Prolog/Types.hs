@@ -15,6 +15,8 @@ instance Serialize Direction
 
 data BliPrologType where
    TypeVar :: String -> BliPrologType
+ -- Catchall type
+   AnyT :: BliPrologType
    EntityT :: BliPrologType
  -- Function from one BliPrologType to another.
    FuncT :: Direction -> BliPrologType -> BliPrologType -> BliPrologType
@@ -57,6 +59,7 @@ instance Serialize BliPrologType
 instance Show BliPrologType where
   show EntityT = "entity"
   show (DeclaredTypeT str) = str
+  show AnyT = "any"
   show TypTypesT = "type"
   show (PredicateT []) = "pred"
   show (PredicateT types) = "pred[" ++ (intercalate ", " (map show types)) ++ "]"
@@ -69,3 +72,6 @@ instance Show BliPrologType where
   show DateTimeLitT = "datetime"
   show (ListT t) = "list["++ show t ++"]" 
   show DateLitT = "date"
+
+-- Note: The default derivation here may not be what I want.
+-- deriving instance Read BliPrologType

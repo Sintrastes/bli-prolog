@@ -32,17 +32,18 @@ clauseP = do t <- termP
              csymb '.'
              return $ (t, body)
 
--- | Parser for a bedelibry prolog identifier.
+-- | Parser for a bedelibry prolog atom.
 atomP :: Parser Atom
 atomP = do
-  res <- (Identifier <$> identifierP) 
-       <|> try (AtomVar <$> variableP)
+  res <- try (AtomVar <$> variableP)
        <|> try quotedP
        <|> try floatLiteralP
        <|> try intLiteralP
        <|> try dataConstructorP
        <|> try dataConstructorEmptyP
-       <|> TimeperiodLiteral <$> timePeriodP
+       <|> try (TimeperiodLiteral <$> timePeriodP)
+       <|> try appTermP
+       <|> (Identifier <$> identifierP) 
   return res
   --justAtom <- try ((symb ":-") >> return False) <|> return True
   --case justAtom of
