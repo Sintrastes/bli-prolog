@@ -36,6 +36,8 @@ import Control.Empty
 import System.Console.CmdArgs as CA hiding (program)
 import System.Console.Readline
 import Control.Monad.IO.Class
+import Data.BliParser
+import Control.Monad.Bli.Pure (liftFromPure)
 
 -- | Helper function to get the file extension of a filepath.
 fileExtension :: String -> String
@@ -160,7 +162,7 @@ processCliInput input = do
   let colorOpts = not $ nocolor opts
 
   -- Parse and handle the command
-  let parserOutput = parseBliCommandTyped input
+  parserOutput <- liftFromPure $ parseBliCommandTyped input
   case parserOutput of
     Left err -> do printResponse $ ((red colorOpts "Error")++" parsing query string:")
                    printResponse $ foldr1 (\x -> \y -> x ++ "\n" ++ y) $
@@ -297,14 +299,16 @@ repl = do
                   Just fileContents -> do
                     case fileExtension filePath of
                        PlainPlExtension   -> do
-                          case clausesFromString fileContents of
+                          parseResult <- liftFromPure $ clausesFromString fileContents
+                          case parseResult of
                               Left e -> printResponse "There has been a parse error."
                               Right clauses -> do
                                    printResponse "Need to implement the logic for adding clauses here."
                                   -- modifyProgram (\x -> x ++ clauses)
                        BliPlExtension  -> do
                           -- Currently this will only parse the typed version
-                          case parseTypedBli fileContents of
+                          parseResult <- liftFromPure $ parseTypedBli fileContents
+                          case parseResult of
                               Left e -> printResponse "There has been a parse error."
                               Right lines -> do
                                   -- Note: We still need to do typechecking of the file here!
@@ -315,7 +319,8 @@ repl = do
                                   newRelations relations
                                   return ()
                        SchemaFileExtension -> do
-                          case parseTypedSchema fileContents of
+                          parseResult <- liftFromPure $ parseTypedSchema fileContents
+                          case parseResult of
                               Left e -> printResponse "There has been a parse error."
                               Right entries -> do
                                     printResponse $ show entries
@@ -360,8 +365,8 @@ repl = do
                      printResponse $ "Or a pre-existing alias of a primary ID."
                      repl
              GetTypeOf input -> do
-               let maybeAtom = parse atomP "" input
-               case maybeAtom of
+               parseResult <- liftFromPure $ parseBli atomP input
+               case parseResult of
                  Left e -> do 
                    printResponse $ show e
                    repl

@@ -1,6 +1,7 @@
 
 module Control.Monad.Bli.Pure (
     module ReExport,
+    initBli,
     Bli
   ) where
 
@@ -17,9 +18,10 @@ import Control.Applicative
 import Control.Monad.State.Lazy
 import Bli.App.Config.Data (AppConfig)
 import Control.Monad.Bli.Common
-import Control.Monad.Bli.Pure.Generic as ReExport hiding (Bli)
+import Control.Monad.Bli.Pure.Generic as ReExport hiding (Bli, initBli)
 import qualified Control.Monad.Bli.Pure.Generic as Generic
 import qualified Control.Monad.Bli as Bli
+import Control.Monad.Identity
 
 -- | A monad for wrapping computations done (and run) in bli prolog.
 type Bli a = Generic.Bli 
@@ -34,3 +36,6 @@ type Bli a = Generic.Bli
  -- | The datastructure to use for storing aliases
     AliasDatastructure 
     a
+
+initBli :: AppConfig -> Bli a -> a
+initBli config x = runIdentity $ Generic.initBli config x

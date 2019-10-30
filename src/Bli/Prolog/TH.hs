@@ -17,11 +17,19 @@ import Bli.Prolog.Parser
 import Bli.Prolog.Parser.Terms
 import Bli.Prolog.Parser.Cli
 import Bli.Prolog.Parser.Schema
+import Bli.App.Config (AppConfig)
 import Text.ParserCombinators.Parsec
 import Language.Haskell.TH
 import Language.Haskell.TH.Quote
+import Bli.Prolog (runtimeCfg) -- ^ This probably won't cause dependency issues, but there might be a better place to put this.
+import Control.Monad.Bli.Pure
+import Data.BliParser hiding (bli)
 
 -- Note: These need to take in some sort of language configuration now.
+
+-- | The default options to use for our quasiquoters.
+defaultOpts :: AppConfig
+defaultOpts = runtimeCfg
 
 goal :: QuasiQuoter
 goal = QuasiQuoter {
@@ -34,7 +42,7 @@ goal = QuasiQuoter {
             things ++ " are not handled by the regex quasiquoter."
         parserTH :: String -> Q Exp
         parserTH s =
-          case parse goalP "" s of
+          case initBli defaultOpts (parseBli goalP s) of
             Left  err    -> fail (show err)
             Right x      -> [e| x |]
 
@@ -49,10 +57,9 @@ program = QuasiQuoter {
             things ++ " are not handled by the regex quasiquoter."
         parserTH :: String -> Q Exp
         parserTH s =
-          case parse prologProgramP "" s of
+          case initBli defaultOpts (parseBli prologProgramP s) of
             Left  err    -> fail (show err)
             Right x      -> [e| x |]
-
 
 bli :: QuasiQuoter
 bli = QuasiQuoter {
@@ -65,7 +72,7 @@ bli = QuasiQuoter {
             things ++ " are not handled by the regex quasiquoter."
         parserTH :: String -> Q Exp
         parserTH s =
-          case parse bliCommandTypedP "" s of
+          case initBli defaultOpts (parseBli bliCommandTypedP s) of
             Left  err    -> fail (show err)
             Right x      -> [e| x |]
 

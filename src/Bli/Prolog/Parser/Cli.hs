@@ -9,6 +9,8 @@ import Text.Parsec.Combinator
 import Text.Parsec.Char
 import Text.Parsec 
 import Control.Monad.Combinators (eitherP)
+import Control.Monad.Bli.Pure
+import Bli.App.Api
 import Data.Bli.Prolog.Ast
 import Bli.Prolog.Typechecking (collectGoalVars)
 import Bli.Prolog.Parser.Common
@@ -23,9 +25,9 @@ import Data.BliParser
 -- in the cli, so this import don't be needed.
 import Bli.Prolog.Parser.Schema
 
--- Note: Needs to be fixed
 -- | Parse a typed bedelibry prolog command from a string.
--- parseBliCommandTyped string = parse bliCommandTypedP "" string
+parseBliCommandTyped :: String -> Bli (Either [BliResult] BliCommand)
+parseBliCommandTyped string = parseBli bliCommandTypedP string
 
 -- | Parser for a bedelibry command.
 bliCommandTypedP :: BliParser BliCommand

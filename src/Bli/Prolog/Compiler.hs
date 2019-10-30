@@ -23,11 +23,13 @@ import System.Directory
 import System.Exit
 import Data.List.Split
 import Bli.Prolog.Modules
+import Control.Monad.Bli
+import Control.Monad.IO.Class
 
-compileBytecode :: String -> String -> IO ()
+compileBytecode :: String -> String -> Bli ()
 compileBytecode filePath outFilePath = do
-  putStrLn "Compiling file to bytecode..."
-  currentDir <- getCurrentDirectory
+  liftIO $ putStrLn "Compiling file to bytecode..."
+  currentDir <- liftIO $ getCurrentDirectory
   maybeProgram <- getBliProgramFromFile filePath
   let inputFileWithoutExtension = 
         head $ splitOn "." $ last $ splitOn "/" filePath
@@ -45,24 +47,24 @@ compileBytecode filePath outFilePath = do
   case maybeProgram of
     Just program -> do
       let bytecode = toBytecode program
-      writeFile sourceDest bytecode
-      putStrLn "Done compiling."
+      liftIO $ writeFile sourceDest bytecode
+      liftIO $ putStrLn "Done compiling."
     Nothing -> do
       error "Error compiling file to bytecode."
 
 -- | Compiles the given BliProgram into an executable 
 --   at the specified filepath. Dynamically links
 --   any imported modules in the program.
-compileDyn :: BliProgram -> String -> IO ()
+compileDyn :: BliProgram -> String -> Bli ()
 compileDyn = undefined
 
 -- | Compiles the given BliProgram into an executable 
 --   at the specified filepath. Staticly links
 --   any imported modules in the program.
-compileStatic :: String -> String -> IO ()
+compileStatic :: String -> String -> Bli ()
 compileStatic filePath outFilePath = do
-  homeDir <- getHomeDirectory
-  currentDir <- getCurrentDirectory
+  homeDir <- liftIO $ getHomeDirectory
+  currentDir <- liftIO $ getCurrentDirectory
   -- cabal file to use for building our executable
   let buildFilePath = homeDir ++ "/code/bli-prolog/resc/"
   let cabalFileName = "build.cabal"
@@ -83,15 +85,15 @@ compileStatic filePath outFilePath = do
   let outFile = last $ splitOn "/" sourceDest
   
   -- Copy everything we need to tmp
-  putStrLn "Compiling..."
-  copyingResult <- join $ waitForProcess <$> runCommand ( 
+  liftIO $ putStrLn "Compiling..."
+  copyingResult <- liftIO $ join $ waitForProcess <$> runCommand ( 
                      "cp " ++ buildFilePath ++ cabalFileName ++ " /tmp && \\\n" ++
                      "cp " ++ buildFilePath ++ mainTemplate ++ " /tmp/Main.hs")
   case copyingResult of
     ExitFailure code -> do
-      putStrLn $ "There was an error copying files to /tmp. Exit code " ++ show code
+      liftIO $ putStrLn $ "There was an error copying files to /tmp. Exit code " ++ show code
     ExitSuccess -> do
-      cabalResult <- join $ waitForProcess <$> runCommand (
+      cabalResult <- liftIO $ join $ waitForProcess <$> runCommand (
          "cd /tmp && \\\n"++
          "sed -i 's|<FILEPATH>|"++currentDir++"/"++filePath++"|g' Main.hs && \\\n"++
          "cabal configure --enable-shared -O2 > /dev/null 2>&1 && \\\n"++
@@ -100,15 +102,15 @@ compileStatic filePath outFilePath = do
   -- defaultMainWithHooksNoReadArgs emptyUserHooks pkgDescr ["build"]
   -- Make a smaller executable.
       case cabalResult of
-        ExitFailure code -> putStrLn $ "There was an error compiling. Exit code: " ++ show code
+        ExitFailure code -> liftIO $ putStrLn $ "There was an error compiling. Exit code: " ++ show code
         ExitSuccess -> do 
-           putStrLn "Done compiling."
-           join $ waitForProcess <$> runCommand (
+           liftIO $ putStrLn "Done compiling."
+           liftIO $ join $ waitForProcess <$> runCommand (
               "strip /tmp/dist/build/build/build && \n" ++
               "cp " ++ "/tmp/dist/build/build/build " ++ sourceDest)
            -- Cleanup
-           putStrLn "Cleaning up build files..."
-           join $ waitForProcess <$> runCommand ( 
+           liftIO $ putStrLn "Cleaning up build files..."
+           liftIO $ join $ waitForProcess <$> runCommand ( 
              "rm -rf /tmp/dist && \n" ++
              "rm /tmp/Main.hs && \n" ++
              "rm -rf /tmp/build.cabal && \n" ++

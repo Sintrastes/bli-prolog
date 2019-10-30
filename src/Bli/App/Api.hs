@@ -70,7 +70,7 @@ data BliResult =
 --   Note: This should probably be of type [BliResult] -> [BliResult],
 --   as not all types of BliResults can be combined
 joinResults :: [BliResult] -> [BliResult]
-joinResults = undefined
+joinResults = id
 
 --data BliResult =
 --   SyntaxError String

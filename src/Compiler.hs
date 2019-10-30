@@ -33,11 +33,11 @@ main = do
               printInvalidArgumentError
             1 -> do
               let arg1 = args' !! 0
-              compileBytecode arg1 ""
+              initBli compilerOpts (compileBytecode arg1 "")
             2 -> do
               let arg1 = args' !! 0
               let arg2 = args' !! 1
-              compileBytecode arg1 arg2
+              initBli compilerOpts (compileBytecode arg1 arg2)
       | "--dyn" `elem` args -> do
           let args' = filter (\x -> not $ isPrefixOf "--" x) args
           error "Dynamic compilation has not been implemented."
@@ -49,11 +49,11 @@ main = do
               printInvalidArgumentError
             1 -> do
               let arg1 = args' !! 0
-              compileStatic arg1 ""
+              initBli compilerOpts (compileStatic arg1 "")
             2 -> do
               let arg1 = args' !! 0
               let arg2 = args' !! 1
-              compileStatic arg1 arg2
+              initBli compilerOpts (compileStatic arg1 arg2)
       | "--only-typecheck" `elem` args -> do
           let args' = filter (\x -> not $ isPrefixOf "--" x) args
           let arg = args' !! 0
@@ -62,7 +62,7 @@ main = do
                   '/' -> arg
                   '.' -> currentDir ++ "/" ++ tail arg
                   otherwise -> currentDir ++ "/" ++ arg
-          maybeProgram <- getBliProgramFromFile filePath
+          maybeProgram <- initBli compilerOpts (getBliProgramFromFile filePath)
           case maybeProgram of
             Nothing -> putStrLn "Error loading program."
             Just prog -> do
@@ -87,7 +87,7 @@ main = do
                           '/' -> arg1
                           '.' -> currentDir ++ "/" ++ tail arg1
                           otherwise -> currentDir ++ "/" ++ arg1
-                  maybeProgram <- getBliProgramFromFile filePath
+                  maybeProgram <- initBli compilerOpts (getBliProgramFromFile filePath)
                   case maybeProgram of
                     Nothing -> putStrLn "Error loading program."
                     Just prog -> do
@@ -98,7 +98,7 @@ main = do
                           mapM_ (\x -> putStrLn $ "  * "++show x) errors
                         Right Ok  -> do
                           putStrLn "Done typechecking."
-                          compileStatic arg1 ""
+                          initBli compilerOpts (compileStatic arg1 "")
             2 -> do
               let arg1 = args !! 0
               let arg2 = args !! 1
@@ -107,7 +107,7 @@ main = do
                       '/' -> arg1
                       '.' -> currentDir ++ "/" ++ tail arg1
                       otherwise -> currentDir ++ "/" ++ arg1
-              maybeProgram <- getBliProgramFromFile filePath
+              maybeProgram <- initBli compilerOpts (getBliProgramFromFile filePath)
               case maybeProgram of
                 Nothing -> putStrLn "Error loading program."
                 Just prog -> do
@@ -118,7 +118,7 @@ main = do
                       mapM_ (\x -> putStrLn $ "  * "++show x) errors
                     Right Ok -> do
                       putStrLn "Done typechecking."
-                      compileStatic arg1 arg2
+                      initBli compilerOpts (compileStatic arg1 arg2)
   
 printHelpScreen = putStrLn $ foldr1 (\x -> \y -> x ++ "\n" ++ y) $
   ["bli-prolog compiler v"++version++", (C) Nathan Bedell 2019.",

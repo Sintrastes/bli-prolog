@@ -8,7 +8,7 @@ import Control.Monad.Trans.Class (lift)
 -- import Control.Monad.Bli.Trans.Generic
 import Control.Applicative
 import Control.Monad.Bli.Common
-import Control.Monad.Bli
+import Control.Monad.Bli.Pure
 import Control.Monad (join)
 import Control.Monad.Trans.State
 import Bli.App.Api
@@ -22,7 +22,7 @@ import Control.Monad.Trans.Compose (mapComposeT)
 
 type GenericBliParser t1 t2 t3 t4 alias m a = ParsecT String () (StateT (BliStore t1 t2 t3 t4 alias) m) a
 
-type BliParser a = GenericBliParser FactContainer RelationContainer EntityContainer TypeContainer AliasDatastructure IO a
+type BliParser a = GenericBliParser FactContainer RelationContainer EntityContainer TypeContainer AliasDatastructure Identity a
 
 bli = lift
 

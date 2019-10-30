@@ -19,6 +19,8 @@ import Bli.Prolog.Typechecking (collectGoalVars)
 import Data.Bli.Prolog.Ast
 import Data.Bli.Prolog.Schema
 import Control.Monad (join)
+import Control.Monad.Bli.Pure
+import Bli.App.Api
 
 -- Note: The lines below are depreciated, and need to be updated.
 
@@ -27,16 +29,15 @@ import Control.Monad (join)
 -- clausesFromFile filename = parseFromFile prologProgramP filename
 
 -- | Parses a plain prolog file directly from a string into a list of clauses.
--- clausesFromString :: String -> Either ParseError [Clause]
--- clausesFromString context = parse prologProgramP "" context
+clausesFromString :: String -> Bli (Either [BliResult] [Clause])
+clausesFromString context = parseBli prologProgramP context
 
--- | Loads a bli file, and parses it.
--- parseTypedBliFile :: String -> IO (Either ParseError BliProgram)
--- parseTypedBliFile = parseFromFile bliPrologProgramP 
+parseBliPrologProgram :: String -> Bli (Either [BliResult] BliProgram)
+parseBliPrologProgram = parseBli bliPrologProgramP 
 
 -- | Parses a bli file directly from its string representation
 -- parseTypedBli :: String -> Either ParseError BliProgram
--- parseTypedBli = parse bliPrologProgramP ""
+parseTypedBli = parseBli bliPrologProgramP
 
 -- | Parser for a pure prolog program. 
 prologProgramP :: BliParser [(Term, Terms)]

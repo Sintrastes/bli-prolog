@@ -12,6 +12,7 @@ import Text.Parsec.Char
 import Text.Parsec 
 import Control.Monad
 import Control.Monad.Bli
+import Control.Monad.Bli.Pure (liftFromPure)
 import Bli.App.Config (getBliModuleData)
 import Data.Yaml
 import Bli.Util (groupClauses)
@@ -31,7 +32,7 @@ loadBliProgramFromFile filePath = do
   case maybeModuleData of
     Nothing -> error "Error parsing module file."
     Just modData -> do 
-      maybeProg <- liftIO $ getBliProgramFromFile filePath
+      maybeProg <- getBliProgramFromFile filePath
       case maybeProg of
         Nothing -> error "Error loading file"
         Just prog -> do 
@@ -67,7 +68,7 @@ loadBliProgramFromFile filePath = do
                           case maybeModPath of
                             Nothing -> error "Module has not been declared."
                             Just (_,modPath) -> do
-                              maybeLoadedMod <- liftIO $ getBliProgramFromFile modPath
+                              maybeLoadedMod <- getBliProgramFromFile modPath
                               case maybeLoadedMod of
                                 Nothing -> error "Error loading module."
                                 Just loadedMod -> do
@@ -78,9 +79,10 @@ loadBliProgramFromFile filePath = do
 --   Returns a boolean flag to indicate success/failure.
 -- 
 --   Note: Again, I may want to put this somewhere else later.
-getBliProgramFromFile :: String -> IO (Maybe BliProgram)
+getBliProgramFromFile :: String -> Bli (Maybe BliProgram)
 getBliProgramFromFile filePath = do
   fileContents <- liftIO $ readFile filePath
-  case parse bliPrologProgramP "" fileContents of
+  parseResult <- liftFromPure $ parseBliPrologProgram fileContents
+  case parseResult of
     Left e -> error $ show e -- return $ Nothing
     Right program -> return $ Just program

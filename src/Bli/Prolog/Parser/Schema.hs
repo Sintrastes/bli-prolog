@@ -19,7 +19,7 @@ import Data.BliParser
 
 -- Depreciated:
 -- parseTypedSchemaFile = parseFromFile typedSchemaFileP 
--- parseTypedSchema = parse typedSchemaFileP ""
+parseTypedSchema = parseBli typedSchemaFileP
 
 typedSchemaLineP :: BliParser BliCommand
 typedSchemaLineP = do
