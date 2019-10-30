@@ -65,10 +65,12 @@ type Atoms = [Atom]
 type Variable = String
 
 type Terms = [Term]
+
 -- | A goal is just a list of terms.
 type Goal = [Term]
 
--- | A goal bound within a lambda abstraction.
+-- | A lambda goal is just a list of terms, and a list of free variables that occur in the goal, which may or may not 
+--   be explicitly bound by a lambda abstraction.
 type LambdaGoal = ([Variable],[Term])
 
 -- | A prolog clause, representing a rule. i.e. [HEAD] :- [BODY].
@@ -86,17 +88,11 @@ prettyShowClause (head, body) = (show head) ++ " :-\n  " ++ intercalate ", " (ma
 --   Is sometimes interpreted in the source code as a degenerate clause, i.e.
 --   
 --     person(nate) :- .
-
--- | Version of BliCommand, using our typed schemas.
 data BliCommand =
--- Note: Going forward, I want to merge these
--- into a single case. A goal is just the same as
--- a lambda query which binds all free variables
--- contained in the query.
-   QueryMode Goal
- | LambdaQuery LambdaGoal
+   Query LambdaGoal
+-- | LambdaQuery LambdaGoal
  | MkAlias String String 
- | AssertMode Goal
+ | Assert Goal
  | AssertClause Clause 
  | AssertSchema SchemaEntry deriving(Show, Eq, Lift, Generic)
 
@@ -104,13 +100,14 @@ instance Serialize BliCommand
 
 -- | Helper function to check if a BliCommand is an assertion.
 isAssertion :: BliCommand -> Bool
-isAssertion (QueryMode _) = False
-isAssertion (LambdaQuery _) = False
+isAssertion (Query _) = False
+isAssertion (MkAlias _ _) = False
 isAssertion _ = True
 
 -- | Helper function to check if a BliCommand is a query.
 isQuery :: BliCommand -> Bool
-isQuery = not . isAssertion
+isQuery (Query _) = True
+isQuery _ = False 
 
 type Program = Clauses
 type Clauses = [Clause]

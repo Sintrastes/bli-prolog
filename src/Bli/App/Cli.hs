@@ -146,6 +146,7 @@ processBliCommandRepl command = do
 
 -- | Helper function to process bli-prolog commands in a running application.
 processCliInput :: String -> Bli ()
+-- The REPL should not produce any output for empty input.
 processCliInput "" = return () 
 processCliInput input = do
   -- Get schema, clauses, and options from context.

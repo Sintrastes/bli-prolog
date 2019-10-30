@@ -12,6 +12,7 @@ import Bli.Prolog.Parser.Util
 import Bli.Prolog.Parser.Terms
 import Bli.Prolog.Parser.Schema
 import Bli.Prolog.Parser.DateTime
+import Bli.Prolog.Typechecking (collectGoalVars)
 import Data.Bli.Prolog.Ast
 import Data.Bli.Prolog.Schema
 import Control.Monad (join)
@@ -58,7 +59,7 @@ bliPrologProgramP = do
   let slines = map (\line -> case line of
                               Left sEntry  -> sEntry
                               Right clause -> AssertClause clause) slines'
-  let plines = map QueryMode plines'
+  let plines = map Query $ map (\x -> (collectGoalVars x,x)) plines'
   
   return $ slines ++ plines
 

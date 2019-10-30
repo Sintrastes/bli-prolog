@@ -13,16 +13,16 @@ import Bli.App.Config
 import Bli.App.Config.Version
 import Bli.App.Cli
 import Control.Monad.Bli
+import Bli.Prolog.Typechecking (collectGoalVars)
 
 -- | Helper function which splits a BliProgram into 
 --   its commands, and it's declarations.
 groupProgramCmdsDecls :: BliProgram -> (BliProgram, BliProgram)
 groupProgramCmdsDecls xs = go xs ([],[])
-  where go (cmd@(AssertMode goal):xs) (cmds, decls) = go xs (cmds, cmd:decls)
+  where go (cmd@(Assert goal):xs) (cmds, decls) = go xs (cmds, cmd:decls)
         go (cmd@(AssertClause clause):xs) (cmds, decls) = go xs (cmds, cmd:decls)
         go (cmd@(AssertSchema schema):xs) (cmds, decls) = go xs (cmds, cmd:decls)
-        go (cmd@(QueryMode goal):xs) (cmds, decls) = go xs (cmd:cmds, decls)
-        go (cmd@(LambdaQuery goal):xs) (cmds, decls) = go xs (cmd:cmds, decls)
+        go (cmd@(Query goal):xs) (cmds, decls) = go xs (cmd:cmds, decls)
         go [] (cmds, decls) = (cmds, decls)
 
 -- | Helper function to reorder a BliProgram into its logical order
@@ -32,7 +32,7 @@ reorderProg prog = do
   let (types, relations, entities, clauses, goals) = groupSchemaClausesBpl prog
   (map (AssertSchema . Type) types) ++ (map (AssertSchema . uncurry TypeOf) entities)
         ++ (map (AssertSchema . (\(x,y) -> Pred NotStored x y []) ) relations) ++ (map AssertClause clauses)
-        ++ (map QueryMode goals)
+        ++ (map Query $ map (\goal -> (collectGoalVars goal, goal)) goals)
 
 -- | Helper function to load all the declarations
 --   in a prolog schema into the running Bli context. 

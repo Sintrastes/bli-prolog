@@ -8,6 +8,7 @@ module Bli.Prolog.Parser.Cli where
 import Text.ParserCombinators.Parsec
 import Control.Monad.Combinators (eitherP)
 import Data.Bli.Prolog.Ast
+import Bli.Prolog.Typechecking (collectGoalVars)
 import Bli.Prolog.Parser.Common
 import Bli.Prolog.Parser.Util
 import Bli.Prolog.Parser
@@ -32,7 +33,7 @@ bliCommandTypedP = do
      Right x -> case x of 
          Left y  -> return $ AssertClause y
          Right y -> case y of 
-            Left  z -> return $ AssertMode z
+            Left  z -> return $ Assert z
             Right z -> case z of
-                Left w  -> return $ QueryMode w
-                Right w -> return $ LambdaQuery w
+                Left w  -> return $ Query (collectGoalVars w, w)
+                Right w -> return $ Query w

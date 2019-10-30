@@ -71,7 +71,7 @@ processTypecheckedBliCommand command = do
           Just (ProcContainer (_,argTypes,procedure)) -> Just (argTypes, procedure)
           Nothing -> Nothing
   case command of 
-    (AssertMode goal') -> do
+    (Assert goal') -> do
        -- First, expand all aliases 
        goal <- expandAliases goal'
 
@@ -115,7 +115,7 @@ processTypecheckedBliCommand command = do
        else assertClause term []
     (AssertClause (head,body) ) -> do
       assertClause head body
-    (LambdaQuery (vars, goal)) -> do
+    (Query (vars, goal)) -> do
       tree <- makeReportTree goal
       let searchF = searchFunction (search opts) $ depth opts
       return $ Result_QuerySuccess $ 
@@ -123,7 +123,7 @@ processTypecheckedBliCommand command = do
                   $ map (filter (\(x,y) -> x `elem` vars)) 
                   $ map (\(Solution x) -> x) $ searchF tree
     -- Handle procedures
-    (QueryMode [Comp (Identifier id) args])
+    (Query (_, [Comp (Identifier id) args]))
        | isProc id -> do
          -- liftIO $ putStrLn "This is a procedure."
          -- Special handling for putStrLn as a proof of concept.
@@ -134,8 +134,8 @@ processTypecheckedBliCommand command = do
            liftIO $ putStrLn s
            return $ Result_QuerySuccess [ProcReturn]
          else return $ Result_QuerySuccess []
-    (QueryMode goal') -> do
-       -- First, expand all aliases 
+    (Query (_,goal')) -> do
+       -- First, expand all aliases (if aliases have been enabled)
        goal <- expandAliases goal'
        let limiting lst = 
             case limit opts of
@@ -237,7 +237,7 @@ processBliCommand command = do
           -- Check to see if we are trying to assert type predicates,
           -- in which case we do not need to typecheck those terms.
           case command of
-            (AssertMode goal) -> do
+            (Assert goal) -> do
               typePredicates <- getTypePredicates goal
               case typePredicates == goal of
                 True -> do
