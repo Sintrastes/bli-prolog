@@ -135,12 +135,11 @@ typeOfAtom (AppTerm p xs) = do
   let relLookup = BliSet.lookup (\(a,b) -> p == a) relations
   case relLookup of
     Just (_, expectedTypes) -> do
-      -- This is also wrong
-      intermediateResults <- checkThatArgumentsMatchExpectedTypes p (map (\x -> Comp x []) xs) (map DeclaredTypeT expectedTypes)
+      -- This is wrong
+      intermediateResults <- checkThatArgumentsMatchExpectedTypes p (map (\x -> Comp x []) xs) (map readType expectedTypes)
       case collectErrors intermediateResults of
         Left _  -> return $ Nothing
-        -- Note: This is wrong.
-        Right _ -> return $ Just $ PredicateT $ map DeclaredTypeT expectedTypes
+        Right _ -> return $ Just $ PredicateT $ map readType expectedTypes
     Nothing -> return $ Nothing
 typeOfAtom (ListLiteral xs) = do
   -- Take the join of the types of all of the xs.
@@ -241,6 +240,15 @@ checkThatArgumentsMatchExpectedTypes p xs expectedTypes =
                       else return $ Left $ TypeError (p, n, show expectedType, show typeOfX))
  (zip3 expectedTypes (map termHead xs) [1..length xs])
    
+readType x = 
+  case x of
+    "string"  -> StringLitT
+    "period"  -> DateTimeLitT
+    "int"     -> IntLitT
+    "float"   -> FloatLitT
+    "entity"  -> EntityT
+    "rule"    -> RuleT
+    otherwise -> DeclaredTypeT x
 
 typecheckTerm :: Term -> Bli (Either [InvalidClause] Ok)
 typecheckTerm (Var x) = return $ Right Ok
@@ -257,15 +265,7 @@ typecheckTerm (Comp (Identifier p) xs) = do
                  Nothing -> return $ Left $ [AtomsNotInSchema [p]]
     Just (_, expectedTypes') -> do
       -- Quick fix. The better approach to this is probably re-writing our RelDecls
-      let expectedTypes = map (\x -> case x of
-                                       "string"  -> StringLitT
-                                       "period"  -> DateTimeLitT
-                                       "int"     -> IntLitT
-                                       "float"   -> FloatLitT
-                                       "entity"  -> EntityT
-                                       "rule"    -> RuleT
-                                       otherwise -> DeclaredTypeT x)
-                              expectedTypes'
+      let expectedTypes = map readType expectedTypes'
       -- Typecheck each of the individual arguments 
       -- of the predicate.
       intermediateResults <- checkThatArgumentsMatchExpectedTypes p xs expectedTypes

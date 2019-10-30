@@ -146,6 +146,7 @@ processBliCommandRepl command = do
 
 -- | Helper function to process bli-prolog commands in a running application.
 processCliInput :: String -> Bli ()
+processCliInput "" = return () 
 processCliInput input = do
   -- Get schema, clauses, and options from context.
   types     <- getTypes
