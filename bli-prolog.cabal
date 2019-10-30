@@ -29,6 +29,7 @@ library
   exposed-modules:
       Data.Alias
       Data.BliSet
+      Data.BliParser
       Data.TimePeriods
       Data.Bli.Prolog.Ast
       Data.Bli.Prolog.Types
