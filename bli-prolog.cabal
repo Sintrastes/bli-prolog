@@ -98,6 +98,7 @@ library
     , parser-combinators
     , data-ordlist
     , liquidhaskell-cabal >= 0.2.1
+    , mmorph
     , either
     , pretty
     , process

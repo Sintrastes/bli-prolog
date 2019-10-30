@@ -5,6 +5,7 @@
 
 module Bli.Prolog.Parser where
 
+import Data.BliParser
 import Text.ParserCombinators.Parsec
 import Control.Monad.Combinators (eitherP)
 import Bli.Prolog.Parser.Common
@@ -74,6 +75,16 @@ assertClauseP = do t <- termP
                         (symb ":-" >> termsP)
                    csymb '!'
                    return (t, body)
+
+-- | Bli Parser for the assertion of a prolog clause, using a Bli Parser 
+--   (This is just for testing)
+assertClauseBliP :: BliParser Clause
+assertClauseBliP = 
+  do t <- liftParser termP
+     body <- option []
+        (liftParser (symb ":-") >> liftParser termsP)
+     liftParser $ csymb '!'
+     return (t, body)
 
 -- | Parser for a lambda query.
 lambdaGoalP :: Parser LambdaGoal
