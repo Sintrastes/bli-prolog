@@ -2,21 +2,24 @@
 module Bli.Prolog.Parser.Terms where
 
 import Data.Bli.Prolog.Ast
-import Text.ParserCombinators.Parsec
+import Text.Parsec.Combinator
+import Text.Parsec.Char
+import Text.Parsec 
 import Bli.Prolog.Parser.Util
 import Bli.Prolog.Parser.Common
 import Bli.Prolog.Parser.DateTime
 import Bli.Prolog.Parser.Datatypes
 import Bli.Prolog.Parser.Infix
+import Data.BliParser
 
 -- | Parser for a plain prolog goal.                
-goalP :: Parser Goal
+goalP :: BliParser Goal
 goalP = do ts <- termsP
            csymb '.'
            return ts  
 
 -- | Parser for a plain prolog clause, parsed as a Rule. 
-ruleP :: Parser Term
+ruleP :: BliParser Term
 ruleP = do csymb '{'
            t <- termP'
            symb ":-"
@@ -25,7 +28,7 @@ ruleP = do csymb '{'
            return $ Comp (Rule t body) []
 
 -- | Parser for a plain prolog clause, parsed as a Rule. 
-clauseP :: Parser (Term, Terms)
+clauseP :: BliParser (Term, Terms)
 clauseP = do t <- termP
              body <- option []
                      (symb ":-" >> termsP)
@@ -33,7 +36,7 @@ clauseP = do t <- termP
              return $ (t, body)
 
 -- | Parser for a bedelibry prolog atom.
-atomP :: Parser Atom
+atomP :: BliParser Atom
 atomP = do
   res <- try (AtomVar <$> variableP)
        <|> try quotedP
@@ -58,13 +61,13 @@ atomP = do
 
 
 -- | Parser for a prolog term which is not a rule.
-termP' :: Parser Term
+termP' :: BliParser Term
 termP' =  try (variableP >>= return . Var)
     <|> try literalP
     <|> (listP     <?> "list term")
 
 -- | Parser for a prolog term.
-termP :: Parser Term
+termP :: BliParser Term
 termP = do
    many space 
    try (variableP >>= return . Var)
@@ -76,14 +79,14 @@ termP = do
 
 -- A top level term -- each of the alternatives must consume all of their
 -- input to be valid.
-topLevelTermP :: Parser Term
+topLevelTermP :: BliParser Term
 topLevelTermP = try (variableP >>= return . Var)
     <|> try (terminated literalP)
     <|> try ((terminated listP) <?> "list term")
     <|> ruleP
 
 -- I guess this is syntax for a SNOC list?
-listTermsP :: Parser Term
+listTermsP :: BliParser Term
 listTermsP =
     do heads <- termsP
        tail  <- option emptyListTerm
@@ -91,7 +94,7 @@ listTermsP =
        return (foldr cons tail heads)
 
 -- | Parser that handles lists as prolog terms.
-listP :: Parser Term
+listP :: BliParser Term
 listP = do
   res <- between (csymb '[') (csymb ']')
                  (option emptyListTerm listTermsP)
@@ -99,14 +102,14 @@ listP = do
   return res
 
 -- | Parser for a list of prolog terms.
-termsP :: Parser Terms
+termsP :: BliParser Terms
 termsP = sepBy1 (try ((\x -> Comp x []) <$> infixTermP) <|> termP) (csymb ',')
 
 -- | Parser for a list of prolog terms not containing any rules.
-termsP' :: Parser Terms
+termsP' :: BliParser Terms
 termsP' = sepBy1 termP' (csymb ',')
 
-appTermP :: Parser Atom
+appTermP :: BliParser Atom
 appTermP = do id <- identifierP
               char '('
               atoms <- atomP `sepBy` csymb ','
@@ -114,7 +117,7 @@ appTermP = do id <- identifierP
               return $ AppTerm id atoms  
 
 -- | Parser for a prolog literal. (i.e. not a list term)
-literalP :: Parser Term
+literalP :: BliParser Term
 literalP = 
            try ( do id <- appTermP
                     terms <- parens termsP
@@ -127,7 +130,7 @@ literalP =
        <|> (\x -> Comp x []) <$> atomP
 
 -- | Parser for a prolog literal which is not an atom.
-literalP' :: Parser Term
+literalP' :: BliParser Term
 literalP' = 
            try ( do id <- appTermP
                     terms <- parens termsP
@@ -139,20 +142,20 @@ literalP' =
 
 
 -- | Parser for a plain data constructor, like 'True.
-dataConstructorEmptyP :: Parser Atom
+dataConstructorEmptyP :: BliParser Atom
 dataConstructorEmptyP = do
   id <- constructorP 
   return $ DataLit id []
 
 -- | Parser for a data constructor with arguments, like 'Url.
-dataConstructorP :: Parser Atom
+dataConstructorP :: BliParser Atom
 dataConstructorP = do
   id   <- constructorP
   args <- parens (atomP `sepBy1` csymb ',')
   return $ DataLit id args
 
 -- Parse an application of a binary infix operator to two terms.
-infixTermP :: Parser Atom
+infixTermP :: BliParser Atom
 infixTermP = do
   atom1 <- (AtomVar <$> variableP) <|> (try atomP) <|> infixTermParensP
   many space
@@ -161,7 +164,7 @@ infixTermP = do
   atom2 <- (try infixTermP) <|> (AtomVar <$> variableP) <|> (try atomP) <|> infixTermParensP
   return $ AppTerm op [atom1, atom2] 
 
-infixTermParensP :: Parser Atom
+infixTermParensP :: BliParser Atom
 infixTermParensP = do
   csymb '('
   atom1 <- (AtomVar <$> variableP) <|> (try infixTermParensP) <|> atomP

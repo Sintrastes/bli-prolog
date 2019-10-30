@@ -21,6 +21,8 @@ import Text.ParserCombinators.Parsec
 import Language.Haskell.TH
 import Language.Haskell.TH.Quote
 
+-- Note: These need to take in some sort of language configuration now.
+
 goal :: QuasiQuoter
 goal = QuasiQuoter {
     quoteExp  = parserTH

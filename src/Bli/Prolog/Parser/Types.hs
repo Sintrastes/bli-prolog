@@ -2,11 +2,14 @@
 module Bli.Prolog.Parser.Types where
 
 import Data.Bli.Prolog.Types
-import Text.ParserCombinators.Parsec
+import Text.Parsec.Combinator
+import Text.Parsec.Char
+import Text.Parsec 
 import Bli.Prolog.Parser.Common
 import Bli.Prolog.Parser.Util
+import Data.BliParser
 
-typeP :: Parser BliPrologType
+typeP :: BliParser BliPrologType
 typeP = 
      try typeVarP
  <|> try listTypeP
@@ -22,12 +25,12 @@ typeP =
  <|> try dateTypeP
  <|> declaredTypeP
   
-typeVarP :: Parser BliPrologType
+typeVarP :: BliParser BliPrologType
 typeVarP = do
   typeVarId <- variableP
   return $ TypeVar typeVarId
 
-listTypeP :: Parser BliPrologType
+listTypeP :: BliParser BliPrologType
 listTypeP = do
   symb "list"
   csymb '['
@@ -35,27 +38,27 @@ listTypeP = do
   csymb ']'
   return $ ListT $ typ
 
-funcTypeP :: Parser BliPrologType
+funcTypeP :: BliParser BliPrologType
 funcTypeP = do
   types <- typeP `sepBy` ((try (symb "<-") <|> symb "->") >> return ())
   return $ foldr1 (FuncT RightArr) $ types
 
-entityTypeP :: Parser BliPrologType
+entityTypeP :: BliParser BliPrologType
 entityTypeP = do
   symb "entity"
   return EntityT
 
-declaredTypeP :: Parser BliPrologType
+declaredTypeP :: BliParser BliPrologType
 declaredTypeP = do
   id <- identifierP
   return $ DeclaredTypeT id
 
-typTypesP :: Parser BliPrologType
+typTypesP :: BliParser BliPrologType
 typTypesP = do
   symb "type"
   return TypTypesT
 
-goalTypeP :: Parser BliPrologType
+goalTypeP :: BliParser BliPrologType
 goalTypeP = do
   symb "goal"
   csymb '['
@@ -63,32 +66,32 @@ goalTypeP = do
   csymb ']'
   return $ GoalT types
 
-ruleTypeP :: Parser BliPrologType
+ruleTypeP :: BliParser BliPrologType
 ruleTypeP = do
   symb "rule"
   return RuleT
 
-intTypeP :: Parser BliPrologType
+intTypeP :: BliParser BliPrologType
 intTypeP = do
   symb "int"
   return IntLitT
 
-floatTypeP :: Parser BliPrologType
+floatTypeP :: BliParser BliPrologType
 floatTypeP = do
   symb "float"
   return FloatLitT
 
-stringTypeP :: Parser BliPrologType
+stringTypeP :: BliParser BliPrologType
 stringTypeP = do
   symb "string"
   return StringLitT
 
-datetimeTypeP :: Parser BliPrologType
+datetimeTypeP :: BliParser BliPrologType
 datetimeTypeP = do
   symb "datetime"
   return DateTimeLitT
 
-dateTypeP :: Parser BliPrologType
+dateTypeP :: BliParser BliPrologType
 dateTypeP = do
   symb "date"
   return DateLitT

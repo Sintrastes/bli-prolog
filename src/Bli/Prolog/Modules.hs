@@ -7,7 +7,9 @@ module Bli.Prolog.Modules where
 
 import Data.Bli.Prolog.Ast
 import Bli.Prolog.Parser
-import Text.ParserCombinators.Parsec
+import Text.Parsec.Combinator
+import Text.Parsec.Char
+import Text.Parsec 
 import Control.Monad
 import Control.Monad.Bli
 import Bli.App.Config (getBliModuleData)

@@ -5,20 +5,27 @@
 
 module Bli.Prolog.Parser.Util where
 
-import Text.ParserCombinators.Parsec
+import Text.Parsec.Combinator
+import Text.Parsec.Char
+import Text.Parsec 
+import Data.BliParser
+import Control.Monad
 
 -- | Helper function for a multi-character symbol which can be
 --   surrounded by whitespace.
-symb s = (try(spacesOrComments >> string s) >> spacesOrComments)
+symb :: String -> BliParser ()
+symb s = (try (spacesOrComments >> string s) >> spacesOrComments)
 
 -- | Helper function to generate parsers which
 --   are terminated by eof.
+terminated :: BliParser a -> BliParser a
 terminated parser = do
   result <- parser
   eof
   return result
 
 -- | Parser for comments in a prolog file
+commentP :: BliParser ()
 commentP = singleLineComment <|> multiLineComment
   where
   singleLineComment = do char '%'
@@ -35,11 +42,13 @@ commentP = singleLineComment <|> multiLineComment
                    <?> "end of multi-line comment maker \"*/\""
       startEnd   = "/*/"
 
-parens :: Parser p -> Parser p
+parens :: BliParser a -> BliParser a
 parens p = between (csymb '(') (csymb ')') p
 
-spacesOrComments = skipMany ((space >> return()) <|> commentP)
+spacesOrComments :: BliParser ()
+spacesOrComments = skipMany ((space >> return ()) <|> commentP)
 
 -- | Helper function for a symbol consisting of a single character
 --   which can be surrounded by whitespace.
+csymb :: Char -> BliParser ()
 csymb c = (try(spacesOrComments >> char c) >> spacesOrComments)

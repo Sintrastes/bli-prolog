@@ -7,17 +7,21 @@
 module Bli.Prolog.Parser.Schema where
 
 import Bli.Prolog.Parser.Common
-import Text.ParserCombinators.Parsec
+import Text.Parsec.Combinator
+import Text.Parsec.Char
+import Text.Parsec
 import Control.Monad.Combinators (eitherP)
 import Data.Bli.Prolog.Ast
 import Data.Bli.Prolog.Schema
 import Bli.App.Config.Features
 import Bli.Prolog.Parser.Util
+import Data.BliParser
 
-parseTypedSchemaFile = parseFromFile typedSchemaFileP 
-parseTypedSchema = parse typedSchemaFileP ""
+-- Depreciated:
+-- parseTypedSchemaFile = parseFromFile typedSchemaFileP 
+-- parseTypedSchema = parse typedSchemaFileP ""
 
-typedSchemaLineP :: Parser BliCommand
+typedSchemaLineP :: BliParser BliCommand
 typedSchemaLineP = do
     many space
     res <- (try schemaRelnP 
@@ -32,14 +36,14 @@ typedSchemaLineP = do
        <|> schemaExternalRelnHSP)
     return (AssertSchema res)
 
-typedSchemaFileP :: Parser Schema
+typedSchemaFileP :: BliParser Schema
 typedSchemaFileP = do
   features <- try featureDeclP
   lines <- many (try schemaRelnP <|> try schemaEntityP <|> typeDeclP)
   return (features++lines)
 
 -- | Parser for language feature declarations.
-featureDeclP :: Parser [SchemaEntry]
+featureDeclP :: BliParser [SchemaEntry]
 featureDeclP = do
   symb "/*"
   symb "LANGUAGE"
@@ -49,14 +53,14 @@ featureDeclP = do
   
 
 -- | A parser for "using" import statements in .bpl and .bsc files.
-usingDeclP :: Parser SchemaEntry
+usingDeclP :: BliParser SchemaEntry
 usingDeclP = do
   symb "using"
   mod <- many (oneOf ['a'..'z'] <|> char '_')
   csymb '.'
   return $ Using mod
 
-schemaRelnP :: Parser SchemaEntry
+schemaRelnP :: BliParser SchemaEntry
 schemaRelnP = do
   symb "rel"
   id <- identifierP
@@ -67,7 +71,7 @@ schemaRelnP = do
 
 -- | Syntatic sugar for (e.x) rel p: entity, entity, entity.
 --   using the Prolog notation: p/3.
-schemaEntityRelnP :: Parser SchemaEntry
+schemaEntityRelnP :: BliParser SchemaEntry
 schemaEntityRelnP = do
   symb "rel"
   id <- identifierP
@@ -77,14 +81,14 @@ schemaEntityRelnP = do
   (csymb '.') <?> "Missing terminating \".\" to relation declaration."
   return $ Pred NotStored id args []
 
-schemaEmptyRelnP :: Parser SchemaEntry
+schemaEmptyRelnP :: BliParser SchemaEntry
 schemaEmptyRelnP = do
   symb "rel"
   id <- identifierP
   (csymb '.') <?> "Missing terminating \".\" to relation declaration."
   return $ Pred NotStored id [] []
 
-schemaStoredRelnP :: Parser SchemaEntry
+schemaStoredRelnP :: BliParser SchemaEntry
 schemaStoredRelnP = do
   symb "stored"
   symb "rel"
@@ -94,7 +98,7 @@ schemaStoredRelnP = do
   (csymb '.') <?> "Missing terminating \".\" to relation declaration."
   return $ Pred Stored id args []
 
-schemaExternalRelnP :: Parser SchemaEntry
+schemaExternalRelnP :: BliParser SchemaEntry
 schemaExternalRelnP = do
   symb "extern"
   symb "rel"
@@ -104,7 +108,7 @@ schemaExternalRelnP = do
   (csymb '.') <?> "Missing terminating \".\" to relation declaration."
   return $ Pred External id args []
 
-schemaExternalRelnHSP :: Parser SchemaEntry
+schemaExternalRelnHSP :: BliParser SchemaEntry
 schemaExternalRelnHSP = do
   symb "extern"
   symb "rel"
@@ -117,7 +121,7 @@ schemaExternalRelnHSP = do
   (csymb '.') <?> "Missing terminating \".\" to relation declaration."
   return $ Pred (ExternalHS (c:cs)) id args []
 
-schemaDatatypeDeclP :: Parser SchemaEntry
+schemaDatatypeDeclP :: BliParser SchemaEntry
 schemaDatatypeDeclP = do
   symb "datatype"
   typeName <- identifierP
@@ -126,14 +130,14 @@ schemaDatatypeDeclP = do
   return $ DataType typeName constructors
 
 
-datatypeConstructorEmptyP :: Parser (String, [String])
+datatypeConstructorEmptyP :: BliParser (String, [String])
 datatypeConstructorEmptyP = do
   symb "constructor"
   constructorName <- constructorP
   csymb '.'
   return (constructorName, [])
 
-datatypeConstructorP :: Parser (String, [String])
+datatypeConstructorP :: BliParser (String, [String])
 datatypeConstructorP = do
   symb "constructor"
   constructorName <- constructorP
@@ -142,7 +146,7 @@ datatypeConstructorP = do
   csymb '.'
   return (constructorName, types)
 
-schemaEntityP :: Parser SchemaEntry
+schemaEntityP :: BliParser SchemaEntry
 schemaEntityP = do
   id <- identifierP
   (csymb ':') <?> "Missing \":\" in entity declaration."
@@ -150,7 +154,7 @@ schemaEntityP = do
   (csymb '.') <?> "Missing terminating \".\" to entity declaration."
   return $ TypeOf id entityType
 
-typeDeclP :: Parser SchemaEntry
+typeDeclP :: BliParser SchemaEntry
 typeDeclP = do
   symb "type"
   typeId <- identifierP

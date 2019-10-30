@@ -135,6 +135,7 @@ library
       StandaloneDeriving
       NoMonomorphismRestriction
       ExistentialQuantification
+      FlexibleContexts
       FlexibleInstances
       DeriveDataTypeable
       DeriveLift

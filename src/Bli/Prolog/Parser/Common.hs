@@ -6,10 +6,13 @@
 module Bli.Prolog.Parser.Common where
 
 import Data.Char
-import Text.ParserCombinators.Parsec
+import Text.Parsec.Combinator
+import Text.Parsec.Char
+import Text.Parsec 
 import Data.Bli.Prolog.Ast
 import Bli.Prolog.Parser.DateTime
 import Bli.Prolog.Parser.Util
+import Data.BliParser
 -- import Bli.Prolog.Parser.Datatypes
 
 emptyListTerm :: Term
@@ -20,7 +23,7 @@ cons :: Term -> Term -> Term
 cons (Comp h []) (Comp (ListLiteral ts) []) = Comp (ListLiteral (h:ts)) [] 
 
 -- Operators, which wil be parsed as infix operators by the parser.
-operatorP :: Parser String
+operatorP :: BliParser String
 operatorP = try (symb "is" >> return "is") 
   <|> try (do csymb '`'
               id <- identifierP
@@ -32,7 +35,7 @@ operatorP = try (symb "is" >> return "is")
   <|> many (oneOf "#¿¡$&*+-/;<=≌>?@\\⊦⊨⊞⋆∗∘∙⋅⊟⊠∧∨×⊙⊘^~⊗⊕∩∖∪⨝∈≺≻≼≽⊏⊐⊑⊒⊓⊔←→⟵⟶⟷↼⇀↽⇁⇸")
 
 -- Identifiers, which will be parsed as either terms or predicates.
-identifierP :: Parser String
+identifierP :: BliParser String
 identifierP =
         (do c <- lower <|> char '☐' <|> char '◇' 
                        <|> char '■' <|> char '◆'
@@ -59,17 +62,17 @@ identifierP =
               -- "entity" -> fail "\"entity\" is a reserved keyword, and may not be used as an identifer."
               otherwise -> return $ (c:cs)) <?> "atom"
 
-intLiteralP :: Parser Atom
+intLiteralP :: BliParser Atom
 intLiteralP = IntLiteral <$> read <$> many1 digit
 
-floatLiteralP :: Parser Atom
+floatLiteralP :: BliParser Atom
 floatLiteralP = do 
   integralPart <- many1 digit
   char '.'
   decimalPart <- many digit
   return $ FloatLiteral $ (read (integralPart ++ "." ++ decimalPart) :: Double)
 
-constructorP :: Parser String
+constructorP :: BliParser String
 constructorP = do
   c1 <- char '\''
   c2 <- upper
@@ -77,7 +80,7 @@ constructorP = do
   return $ (c2:cs)
 
 -- | Parser for a bedelibry prolog variable.
-variableP :: Parser String
+variableP :: BliParser String
 variableP = (do c <- upper <|> char '_'
                 cs <- many (alphaNum <|> char '_')
                 if isAscii c 
