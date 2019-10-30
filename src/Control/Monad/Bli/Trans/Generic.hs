@@ -64,7 +64,7 @@ import Control.Monad.Trans.Class (lift)
 import Data.Bli.Prolog.Ast
 import Data.Bli.Prolog.Types
 import Data.Bli.Prolog.Schema
-import Bli.App.Config
+import Bli.App.Config.Data
 import Data.Alias
 import Data.BliSet
 import Control.Monad.Bli.Common

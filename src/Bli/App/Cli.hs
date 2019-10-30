@@ -16,6 +16,7 @@ import Bli.App.Json
 import Data.List.Split
 import Bli.App.Colors
 import Bli.App.Config
+import Bli.App.Config.Data
 import Bli.Prolog.Typechecking
 import Data.Bli.Prolog.Ast
 import Data.Bli.Prolog.Schema

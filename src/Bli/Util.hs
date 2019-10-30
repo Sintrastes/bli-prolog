@@ -65,3 +65,8 @@ groupClauses commands = go commands ([], [], [], [], [])
            = go xs (types, (name, argTypes):relations, entities, clauses,modules)
        go ((AssertSchema (Using modName)):xs) (types, relations, entities, clauses, modules)
            = go xs (types, relations, entities, clauses, modName:modules)
+
+-- | Helper function to get all enum values
+enumValues :: (Enum a) => [a]
+enumValues = enumFrom (toEnum 0)
+

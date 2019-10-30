@@ -15,7 +15,7 @@ module Control.Monad.Bli.Pure (
 import Data.Bli.Prolog.Ast
 import Control.Applicative
 import Control.Monad.State.Lazy
-import Bli.App.Config (AppConfig)
+import Bli.App.Config.Data (AppConfig)
 import Control.Monad.Bli.Common
 import Control.Monad.Bli.Pure.Generic as ReExport hiding (Bli)
 import qualified Control.Monad.Bli.Pure.Generic as Generic

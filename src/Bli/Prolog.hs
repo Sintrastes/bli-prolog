@@ -10,7 +10,9 @@ import Data.Bli.Prolog.Ast
 import Bli.App
 import Bli.Util
 import Bli.App.Config
+import Bli.App.Config.Data
 import Bli.App.Config.Version
+import Bli.App.Config.Features
 import Bli.App.Cli
 import Control.Monad.Bli
 import Bli.Prolog.Typechecking (collectGoalVars)
@@ -49,7 +51,11 @@ loadDecs prog = do
 fromJust (Just x) = x
 
 -- Configuration to use the the bli prolog runtime.
-runtimeCfg = AppConfig {options = startOptions (fromJust $(getVersionFromCabal)), version = (fromJust $(getVersionFromCabal)) }
+runtimeCfg = AppConfig {
+    options = startOptions (fromJust $(getVersionFromCabal))
+  , version = (fromJust $(getVersionFromCabal))
+  , languageOptions = defaultLanguageOptions
+}
 
 -- | Takes a BliProgram which has already been type-checked, 
 --   and executes all of the commands in the program.

@@ -11,6 +11,7 @@ module Bli.App.Api where
 
 import Bli.Prolog.Typechecking
 import Bli.Prolog.Interp.Data
+import Bli.App.Config.Features
 
 -- | A data type to model the types of 
 --   requests that can be made to the server
@@ -34,6 +35,7 @@ data BliResponse =
 
 data BliResult =
    Result_SyntaxError String
+ | Result_ExtensionNotEnabled LanguageOption
  | Result_QueryFail_BoundVarNotInBody
  | Result_QueryFail_AtomsNotInSchema [String]
 -- ... Encountered type errors:

@@ -14,7 +14,7 @@ module Control.Monad.Bli(
 
 import Data.Bli.Prolog.Ast
 import Data.Bli.Prolog.Schema
-import Bli.App.Config (AppConfig)
+import Bli.App.Config.Data (AppConfig)
 import Control.Monad.Bli.Generic as ReExport hiding (Bli(..))
 import qualified Control.Monad.Bli.Generic as Generic
 import Control.Monad.Bli.Common

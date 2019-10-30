@@ -5,6 +5,7 @@ import Bli.Prolog.Typechecking
 import Bli.Prolog.Compiler
 import Bli.Prolog.Compiler.Bytecode
 import Bli.App.Config
+import Bli.App.Config.Features
 import Control.Monad.Bli
 import Bli.App.Config.Version
 import Bli.App.Config.Executables
@@ -14,7 +15,11 @@ import Data.List
 
 fromJust (Just x) = x
 
-compilerOpts = AppConfig {options = startOptions (fromJust $(getVersionFromCabal)), version = (fromJust $(getVersionFromCabal)) }
+compilerOpts = AppConfig {
+    options = startOptions (fromJust $(getVersionFromCabal))
+  , version = (fromJust $(getVersionFromCabal))
+  , languageOptions = defaultLanguageOptions
+}
 
 -- The main entrypoint for our compiler
 main = do

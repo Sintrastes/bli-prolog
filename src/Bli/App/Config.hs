@@ -1,6 +1,9 @@
 {-# LANGUAGE DeriveGeneric #-}
 
-module Bli.App.Config where
+module Bli.App.Config (
+   module Bli.App.Config,
+   module Bli.App.Config.Data
+ ) where
 
 --
 -- | Configuration  options for the bli-prolog executable.
@@ -8,16 +11,20 @@ module Bli.App.Config where
 
 import System.Console.CmdArgs as CA hiding (program)
 import Bli.Prolog.SearchStrategies
+import Bli.App.Api
 import Bli.App.Config.Util
 import Bli.App.Config.Version
-import Language.Haskell.TH
+import Bli.App.Config.Features
+import Bli.App.Config.Data
+import Bli.Util
+import Language.Haskell.TH hiding (UnicodeSyntax)
 import Language.Haskell.TH.Quote
 import Data.List.Split
 import Data.List
 import Data.Maybe
 import Data.Yaml
+import Control.Monad.Bli
 import Control.Monad.IO.Class
-import Data.Typeable
 import Data.Scientific
 import Control.Monad (join)
 import Bli.App.Colors
@@ -31,40 +38,9 @@ import Data.Aeson (toJSON, parseJSON)
 import qualified Data.Aeson as Aeson
 import GHC.Generics
 
--- | The default search method is breadth first search.
-instance Default Search where
-  def = BFS
-
--- | The command prompt to use for the application.
-command_prompt = "?- "
-
--- | The string to prepend to all responses to terminal commands in the applicaion.
-response_prompt = "  "
-
 -- | Helper function for printing a response prompt in the Bli monad.
 printResponse :: MonadIO m => String -> m ()
 printResponse string = liftIO $ putStrLn $ response_prompt ++ string
-
--- | The path (relative to the user's home directory) of 
---   the bedelibry data directory.
-bedelibryDir = "/.bedelibry"
-
--- | The name of the file to use for the default configuration of
---   Bli Prolog. Relative to the directory of the user's
---   bedelibry data directory.
-configFileName = "/config.yaml"
-
--- | The name of the file to use for the list of modules.
-moduleFileName = "/modules.yaml"
-
--- | Pattern synonyms for our file extension types.
-pattern BliPlExtension = ".bpl"
-pattern PlainPlExtension = ".pl"
-pattern SchemaFileExtension = ".bsc"
-
-data ModuleData = ModuleData { name :: String, file_path :: String } deriving(Generic)
-
-instance FromJSON ModuleData where
 
 -- Note: By default we can allow for cyclic imports,
 -- and just keep a running list of the modules which have
@@ -89,51 +65,7 @@ getBliModuleData = do
           case maybeParsed of
             Just parsed -> return $ Just $ map (\(ModuleData x y) -> (x, y)) parsed
             Nothing -> return $ Nothing
--- | An abstract representation of the commands which
---   can be entered at the bli-prolog REPL.
-data BliReplCommand =
-   Help
- | Exit
- | ExportFile String
- | LoadFile String
- | Alias String String
- | ClearSchema
-   | ClearRelations
-   | ClearEntities
-   | ClearFacts
- | ListSchema
-   | ListRelations
-   | ListTypes
-   | ListEntities
-   | ListFacts
- | ListAliases
- | SetMode String
- | GetTypeOf String
- | ShowPort
- | GetPID String
 
--- | An abstract representation of the different types of commands
---   which can be entered at the bli-prolog REPL.
-data BliReplCommandType =
-   Cmd_Help
- | Cmd_Exit
- | Cmd_ExportFile
- | Cmd_LoadFile
- | Cmd_Alias
- | Cmd_ClearSchema
- | Cmd_ClearRelations
- | Cmd_ClearEntities
- | Cmd_ClearFacts
- | Cmd_ListSchema
- | Cmd_ListRelations
- | Cmd_ListTypes
- | Cmd_ListEntities
- | Cmd_ListFacts
- | Cmd_ListAliases
- | Cmd_SetMode
- | Cmd_ShowPort
- | Cmd_GetTypeOf
- | Cmd_GetPID deriving(Enum, Bounded)
 
 -- | Takes a BliReplCommandType, and returns a list of the strings 
 --   which can be used to invoke that command.
@@ -212,14 +144,6 @@ typeToCommand ty =
      Cmd_ListAliases    -> Just ListAliases
      Cmd_ShowPort       -> Just ShowPort
 
--- | Status result to return from out BliReplCommand parser --
---   If this parser does not fail, then the Repl continues to parse
---   the string as a bli-prolog query or assertion.
-data BliReplParseResult = 
-    DoneParsing BliReplCommand
-  | ParseError String
-  | ContinueParsing
-
 parseBliReplCommand :: String -> BliReplParseResult
 parseBliReplCommand input =
   case lookup True $
@@ -260,10 +184,6 @@ replBanner version colorOpts = foldr1 (\x -> \y -> x ++ "\n" ++ y) $
     ,"               |"
     ,"Welcome to the bli-prolog interpreter v" ++ version ++ "! (C) Nathan Bedell 2019"
     ,"Type "++(blue colorOpts $ bliReplCommandString Cmd_Help)++" for help, or "++(blue colorOpts $ bliReplCommandString Cmd_Exit)++" to quit."]
-
--- | Helper function to get all enum values
-enumValues :: (Enum a) => [a]
-enumValues = enumFrom (toEnum 0)
 
 -- | Help screen to print when :h is called in the REPL
 replHelpScreen :: Bool -> IO String
@@ -331,25 +251,6 @@ replHelpScreen colorOpts = do
          cmdsAndFmtDescs  ++ [""] ++
          footer
 
--- | A datatype for the possible options that can be configured by the user for the
---   bli-prolog executable. 
-data Options =
-  Options { search'        :: Search
-          , program'       :: FilePath
-          , schema'        :: FilePath
-          , goal'          :: String
-          , limit'         :: Maybe Int
-          , depth'         :: Int
-          , verbose'       :: Bool
-          , nocolor'       :: Bool
-          , json'          :: Bool
-          , server'        :: Bool
-          , bedelibryMode' :: String
-          , port'          :: Maybe Int
-          , burl'          :: String
-          }
-  deriving (Show, Data, Typeable)
-
 instance IsRecord AppConfig where
   fromRecord record = do
     search <- join $ ((\(Typ x) -> cast x) <$> Map.lookup "search" record :: Maybe (Maybe Search)) 
@@ -370,7 +271,8 @@ instance IsRecord AppConfig where
     return $ AppConfig (Options search program schema goal limit depth verbose
                                 nocolor json server bedelibryMode port burl)
                         version
-  toRecord (AppConfig options version) = 
+                        defaultLanguageOptions
+  toRecord (AppConfig options version langOptions) = 
       toRecord options #> 
       Map.fromList [("version", Typ version)]
 
@@ -400,29 +302,46 @@ instance IsRecord Options where
                   ,("server", Typ server), ("bedelibryMode", Typ bedelibryMode)
                   ,("port", Typ port), ("burl", Typ burl)]
 
+-- Funcctions to get data from the AppConfig
+search (AppConfig options _ _) = search' options
+program (AppConfig options _ _) = program' options
+schema (AppConfig options _ _) = schema' options
+goal (AppConfig options _ _) = goal' options
+limit (AppConfig options _ _) = limit' options
+depth (AppConfig options _ _) = depth' options
+verbose (AppConfig options _ _) = verbose' options
+nocolor (AppConfig options _ _) = nocolor' options
+json (AppConfig options _ _) = json' options
+server (AppConfig options _ _) = server' options
+port (AppConfig options _ _) = port' options
+burl (AppConfig options _ _) = burl' options
 
--- | Datatype for the application configuration
-data AppConfig = 
-  AppConfig {
-  -- Options configured at the command line 
-    options :: Options,
-  -- Other options
-    version :: String
-  }
+-- Functions to get langauge options from the AppConfig
 
-search (AppConfig options _) = search' options
-program (AppConfig options _) = program' options
-schema (AppConfig options _) = schema' options
-goal (AppConfig options _) = goal' options
-limit (AppConfig options _) = limit' options
-depth (AppConfig options _) = depth' options
-verbose (AppConfig options _) = verbose' options
-nocolor (AppConfig options _) = nocolor' options
-json (AppConfig options _) = json' options
-server (AppConfig options _) = server' options
-port (AppConfig options _) = port' options
-burl (AppConfig options _) = burl' options
+-- | Checks to see whether an extension is enabled or not.
+extensionEnabled extension = do
+  languageOpts <- languageOptions <$> getConfig
+  return $ extension `elem` languageOpts
 
+-- | Helper function to preform an action 
+--   only if an extension is enabled, and
+--   to do nothing otherwise.
+ifEnabled extension x = do
+  result <- extensionEnabled extension
+  case result of
+    True  -> x
+    False -> return () 
+
+-- | Helper function to preform an action only if an
+--   extension is enabled. Returns a BliResult
+--   ExtensionNotEnabled error if the
+--   extension is not enabled.
+ifEnabled' extension x = do
+  result <- extensionEnabled extension
+  case result of 
+    True  -> x
+    False -> return $ Result_ExtensionNotEnabled extension 
+  
 -- | Starting options for the bli-prolog exectuable.
 startOptions version =
   Options { search' = def &= help "Specify wether to use DFS, BFS, or Limited"

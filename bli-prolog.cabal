@@ -57,6 +57,7 @@ library
       Bli.App.Api
       Bli.App.Bedelibry
       Bli.App.Config
+      Bli.App.Config.Data
       Bli.App.Config.Features
       Bli.App.Config.Util
       Bli.App.Config.Version
@@ -96,6 +97,7 @@ library
     , liquidhaskell-cabal >= 0.2.1
     , pretty
     , process
+    , data-default
     , witherable
     , mtl
     , transformers

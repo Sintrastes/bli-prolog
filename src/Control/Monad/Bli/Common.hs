@@ -4,7 +4,7 @@ module Control.Monad.Bli.Common where
 import Data.Alias
 import Data.BliSet
 import Data.Map (Map)
-import Bli.App.Config
+import Bli.App.Config.Data
 import Data.Bli.Prolog.Schema
 import Data.Bli.Prolog.Ast
 import Data.Bli.Prolog.Types

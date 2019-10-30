@@ -151,7 +151,7 @@ data LanguageOption =
    | LambekTypes
 -- | The following features are marked as experimental, and
 --   should only be enabled with caution
-  deriving(Eq, Show, Lift, Read, Generic)
+  deriving(Eq, Show, Lift, Read, Generic, Enum, Bounded)
 
 instance Serialize LanguageOption
 
