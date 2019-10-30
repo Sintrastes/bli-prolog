@@ -66,6 +66,11 @@ data BliResult =
  | Result_AssertionFail_CannotDeclaraDatatypeAsEntity
  | Result_AssertionFail_EntityNotDeclared String String deriving(Show, Eq)
 
+-- | Helper function to combine multiple BliResults into one.
+--   Note: This should probably be of type [BliResult] -> [BliResult],
+--   as not all types of BliResults can be combined
+joinResults :: [BliResult] -> [BliResult]
+joinResults = undefined
 
 --data BliResult =
 --   SyntaxError String

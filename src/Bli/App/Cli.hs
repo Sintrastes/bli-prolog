@@ -57,17 +57,14 @@ fmt n = (show n) ++ "-"
 -- | Helper function to process a bli prolog command at the REPL.
 processBliCommandRepl :: BliCommand -> Bli ()
 processBliCommandRepl command = do
-  -- Get schema, clauses, and options from context.
-  types     <- getTypes
-  relations <- getRelations
-  entities  <- getEntities
-  facts     <- getFacts
+  results <- processBliCommand command
+  mapM_ displayResult results
+
+-- | Displays a single BliResult, formatted for the Command Line Interface.
+displayResult :: BliResult -> Bli ()
+displayResult result = do
   opts      <- getConfig
-  aliases   <- getAliases
   let colorOpts = not $ nocolor opts
-  
-  result <- processBliCommand command
-  -- Handle the result of processing the command.
   case result of
     Result_QueryFail_AtomsNotInSchema atoms -> do
       printResponse $ (red colorOpts "Failure.")++" Query unsuccessful."
@@ -144,6 +141,7 @@ processBliCommandRepl command = do
       printResponse $ (red colorOpts "Failure.")++" Assertion unsuccessful."
       printResponse $ "    Cannot declare a datatype or data constructor as"
       printResponse $ "    an entity."
+
 
 -- | Helper function to process bli-prolog commands in a running application.
 processCliInput :: String -> Bli ()

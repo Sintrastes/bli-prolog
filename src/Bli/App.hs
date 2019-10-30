@@ -193,7 +193,7 @@ checkForTypePredicateAssertion goal = do
          return $ [Result_AssertionSuccess]
        else return []
 
-processBliCommand :: BliCommand -> Bli BliResult
+processBliCommand :: BliCommand -> Bli [BliResult]
 processBliCommand command = do
   opts      <- getConfig
   clauses   <- getFacts
@@ -213,24 +213,24 @@ processBliCommand command = do
     Left (AtomsNotInSchema atoms) -> do
       case isAssertion command of
         True  -> do
-          return $ Result_AssertionFail_AtomsNotInSchema atoms
+          return $ [Result_AssertionFail_AtomsNotInSchema atoms]
         False -> do
-          return $ Result_QueryFail_AtomsNotInSchema atoms
+          return $ [Result_QueryFail_AtomsNotInSchema atoms]
     Left BoundVarNotInBody -> do
       -- This can only occur for lambda queries.
-      return $ Result_QueryFail_BoundVarNotInBody
+      return $ [Result_QueryFail_BoundVarNotInBody]
     Left (NotAPredicate (x,y,z)) -> do
       case isAssertion command of
         True  -> do
-          return $ Result_AssertionFail_NotAPredicate [(x,y,z)] 
+          return $ [Result_AssertionFail_NotAPredicate [(x,y,z)]]
         False -> do
-          return $ Result_QueryFail_NotAPredicate [(x,y,z)]
+          return $ [Result_QueryFail_NotAPredicate [(x,y,z)]]
     Left (TypeError (x,n,y,z)) -> do
       case isAssertion command of
         True  -> do
-          return $ Result_AssertionFail_TypeError [(x,n,y,z)]
+          return $ [Result_AssertionFail_TypeError [(x,n,y,z)]]
         False -> do
-          return $ Result_QueryFail_TypeError [(x,n,y,z)]
+          return $ [Result_QueryFail_TypeError [(x,n,y,z)]]
     Left (EntityNotDeclared x t) -> do
       case isAssertion command of
         True -> do
@@ -242,25 +242,25 @@ processBliCommand command = do
               case typePredicates == goal of
                 True -> do
                   -- Asserting type predicates -- this is fine.
-                  processTypecheckedBliCommand command
-                False -> return $ Result_AssertionFail_EntityNotDeclared x t
+                  (\x -> [x]) <$> processTypecheckedBliCommand command
+                False -> return $ [Result_AssertionFail_EntityNotDeclared x t]
             (AssertClause (term,[])) -> do
               let goal = [term]
               typePredicates <- getTypePredicates goal
               case typePredicates == goal of
                 True -> do
                   -- Asserting type predicates -- this is fine.
-                  processTypecheckedBliCommand command
-                False -> return $ Result_AssertionFail_EntityNotDeclared x t
+                  (\x -> [x]) <$> processTypecheckedBliCommand command
+                False -> return $ [Result_AssertionFail_EntityNotDeclared x t]
             _ -> do
-              return $ Result_AssertionFail_EntityNotDeclared x t
+              return $ [Result_AssertionFail_EntityNotDeclared x t]
         False -> do
-          return $ Result_QueryFail_EntityNotDeclared x t
+          return $ [Result_QueryFail_EntityNotDeclared x t]
     Left (TypeNotDeclared x) -> do
       -- This should only occur for assertions.
-      return $ Result_AssertionFail_TypeNotDeclared x
+      return $ [Result_AssertionFail_TypeNotDeclared x]
     Right Ok -> do
-      processTypecheckedBliCommand command
+      (\x -> [x]) <$> processTypecheckedBliCommand command
 
 -- | Add term to schema if type is already in schema, and term not already in schema.
 addEntityToSchema :: String -> String -> Bli BliResult
