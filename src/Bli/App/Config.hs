@@ -38,10 +38,6 @@ import Data.Aeson (toJSON, parseJSON)
 import qualified Data.Aeson as Aeson
 import GHC.Generics
 
--- | Helper function for printing a response prompt in the Bli monad.
-printResponse :: MonadIO m => String -> m ()
-printResponse string = liftIO $ putStrLn $ response_prompt ++ string
-
 -- Note: By default we can allow for cyclic imports,
 -- and just keep a running list of the modules which have
 -- already been imported, and stop when we try re-importing

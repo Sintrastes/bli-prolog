@@ -11,6 +11,7 @@ import Control.Exception.Base
 import qualified Control.Monad.Bli.Pure as Pure
 import Bli.Util
 import Bli.App
+import Bli.App.Formatting (printResponse)
 import Bli.App.Api
 import Bli.App.Json
 import Data.List.Split
