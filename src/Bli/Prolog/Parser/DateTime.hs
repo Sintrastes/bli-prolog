@@ -6,7 +6,7 @@
 module Bli.Prolog.Parser.DateTime where
 
 import Data.TimePeriods
-import Bli.Prolog.Parser.Common
+import Bli.Prolog.Parser.Util
 import Control.Monad (replicateM)
 import Text.ParserCombinators.Parsec
 

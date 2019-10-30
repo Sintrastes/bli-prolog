@@ -24,6 +24,7 @@ import Text.ParserCombinators.Parsec (parse)
 import Bli.Prolog.Parser.Cli
 import Bli.Prolog.Parser.Schema
 import Bli.Prolog.Parser
+import Bli.Prolog.Parser.Terms
 import Bli.Prolog.Interp
 import Bli.Prolog.Interp.Data
 import Data.List

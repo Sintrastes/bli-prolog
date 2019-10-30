@@ -14,6 +14,7 @@ module Bli.Prolog.TH (
 import Data.Bli.Prolog.Ast
 import Bli.Prolog.Parser.Common
 import Bli.Prolog.Parser
+import Bli.Prolog.Parser.Terms
 import Bli.Prolog.Parser.Cli
 import Bli.Prolog.Parser.Schema
 import Text.ParserCombinators.Parsec

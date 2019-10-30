@@ -4,6 +4,7 @@ module Bli.Prolog.Parser.Types where
 import Data.Bli.Prolog.Types
 import Text.ParserCombinators.Parsec
 import Bli.Prolog.Parser.Common
+import Bli.Prolog.Parser.Util
 
 typeP :: Parser BliPrologType
 typeP = 

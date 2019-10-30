@@ -29,7 +29,8 @@ instance Show Term where
 -- | Used for identifiers for entities and prolog relations/predicates.
 --   Must begin with a lowercase letter.
 data Atom =
-    Identifier String
+    AtomVar Variable
+  | Identifier String
   | Predicate String Terms
   | DataLit String Atoms
   | AppTerm String Atoms
@@ -44,6 +45,7 @@ data Atom =
 instance Serialize Atom
 
 instance Show Atom where
+  show (AtomVar x) = x
   show (Identifier x) = x
   show (DataLit x []) = "'" ++ x
   show (DataLit x xs) = "'" ++ x ++ "(" ++ intercalate ", " (map show xs) ++ ")"

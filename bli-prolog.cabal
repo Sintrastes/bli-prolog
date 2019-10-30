@@ -40,8 +40,12 @@ library
       Bli.Prolog.Typechecking
       Bli.Prolog.Parser
       Bli.Prolog.Parser.DateTime
+      Bli.Prolog.Parser.Infix
+      Bli.Prolog.Parser.Datatypes
+      Bli.Prolog.Parser.Util
       Bli.Prolog.Parser.Common
       Bli.Prolog.Parser.Schema
+      Bli.Prolog.Parser.Terms
       Bli.Prolog.Parser.Types
       Bli.Prolog.Parser.Cli
       Bli.Prolog.Compiler

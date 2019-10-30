@@ -12,6 +12,7 @@ import Control.Monad.Combinators (eitherP)
 import Data.Bli.Prolog.Ast
 import Data.Bli.Prolog.Schema
 import Bli.App.Config.Features
+import Bli.Prolog.Parser.Util
 
 parseTypedSchemaFile = parseFromFile typedSchemaFileP 
 parseTypedSchema = parse typedSchemaFileP ""

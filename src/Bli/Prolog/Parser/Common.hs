@@ -7,41 +7,9 @@ module Bli.Prolog.Parser.Common where
 
 import Text.ParserCombinators.Parsec
 import Data.Bli.Prolog.Ast
-
--- | Helper function to generate parsers which
---   are terminated by eof.
-terminated parser = do
-  result <- parser
-  eof
-  return result
-
--- | Parser for comments in a prolog file
-commentP = singleLineComment <|> multiLineComment
-  where
-  singleLineComment = do char '%'
-                         manyTill anyChar (try newline)
-                         return ()
-
-  multiLineComment = do try (string "/*")
-                        inCommentMulti
-    where
-      inCommentMulti = (try (string "*/")            >> return ())
-                   <|> (multiLineComment             >> inCommentMulti)
-                   <|> (skipMany1 (noneOf startEnd)  >> inCommentMulti)
-                   <|> (oneOf startEnd               >> inCommentMulti)
-                   <?> "end of multi-line comment maker \"*/\""
-      startEnd   = "/*/"
-
-
-spacesOrComments = skipMany ((space >> return()) <|> commentP)
-
--- | Helper function for a symbol consisting of a single character
---   which can be surrounded by whitespace.
-csymb c = (try(spacesOrComments >> char c) >> spacesOrComments)
-
--- | Helper function for a multi-character symbol which can be
---   surrounded by whitespace.
-symb s = (try(spacesOrComments >> string s) >> spacesOrComments)
+import Bli.Prolog.Parser.DateTime
+import Bli.Prolog.Parser.Util
+-- import Bli.Prolog.Parser.Datatypes
 
 emptyListTerm :: Term
 emptyListTerm = Comp (ListLiteral []) []
@@ -49,9 +17,6 @@ emptyListTerm = Comp (ListLiteral []) []
 -- Todo: Make this explicitly a partial function and do error handling.
 cons :: Term -> Term -> Term
 cons (Comp h []) (Comp (ListLiteral ts) []) = Comp (ListLiteral (h:ts)) [] 
-
-parens :: Parser p -> Parser p
-parens p = between (csymb '(') (csymb ')') p
 
 -- Operators, which wil be parsed as infix operators by the parser.
 operatorP :: Parser String
@@ -106,3 +71,5 @@ variableP :: Parser String
 variableP = (do c <- upper <|> char '_'
                 cs <- many (alphaNum <|> char '_')
                 return (c:cs)) <?> "variable"
+
+
