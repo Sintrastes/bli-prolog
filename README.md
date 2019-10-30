@@ -11,7 +11,7 @@ Checklist to 1.0
 - [x] Implement type-checking of files.
 - [ ] Implement higher-order predicates.
 - [ ] Implement full Haskell interop.
-- [ ] Implement language feature enabling/disabling.
+- [x] Implement language feature enabling/disabling.
 - [ ] Write a simple REST API.
 
 How to install
