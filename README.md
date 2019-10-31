@@ -170,6 +170,14 @@ where, if `UnicodeSyntax` is enabled, we can also notate this
   p: entity → entity → pred.
 ~~~
 
+Relations (or, as we will see later, procedures) can be declared with a special syntax where we mark certain arguments as *inputs* by prefixing them with a `+`, and other arguments as outputs by prefixing them with a `-`. For example, the following declares a relation which takes an *entity* as input in it's first argument, and returns an entity as output in its second argument. 
+
+~~~
+  rel f: +entity, -entity.
+~~~
+
+For relations, this is primarialy for purposes of documentation (as semantically there is no difference), but in the case of procedures, we will see that this makes an important distinction.
+
 Literals
 --------
 
