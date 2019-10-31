@@ -76,6 +76,9 @@ termP = do
    many space 
    try (variableP >>= return . Var)
       <|> try ruleP
+      -- I don't think this is right -- the infix 
+      -- term here is parsed as an atom, not an honest
+      -- to goodness term.
       <|> try ( (\x -> Comp x []) <$> infixTermP)
       <|> try (literalP)
       <|> try (ifEnabledP EquationalSyntax $ equationalTermP)
@@ -130,14 +133,17 @@ appTermP = do id <- identifierP
 --   very meaningful, we should try to refactor this out.
 literalP :: BliParser Term
 literalP = -- Each one of these can be a seperate parser.
+           -- higherOrderTermP
            try ( do id <- appTermP
                     terms <- parens termsP
                     many space
                     return $ Comp id terms )
+           -- simpleTermP
        <|> try (do id <- atomP
                    terms <- parens termsP
                    many space
                    return $ Comp id terms )
+           -- atomicTermP
        <|> (\x -> Comp x []) <$> atomP
 
 -- Note: I don't think this is needed anymore.

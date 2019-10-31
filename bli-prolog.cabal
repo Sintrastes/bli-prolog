@@ -201,3 +201,27 @@ test-suite bli-prolog-test-suite
   extensions:
       TemplateHaskell, QuasiQuotes
   default-language: Haskell2010
+
+test-suite bli-prolog-parser-test-suite
+  type: exitcode-stdio-1.0
+  main-is: ParserTests.hs
+  other-modules:
+      Paths_bli_prolog
+      Tests.Old.Siblings
+      Tests.Parsers
+      Tests.Literals
+      Tests.Procs
+      Tests.Aliases
+      Tests.Typing
+      Tests.App
+      Tests.Datatypes
+  hs-source-dirs:
+      tests
+  build-depends:
+      base <5
+    , bli-prolog
+    , tasty
+    , tasty-hunit
+  extensions:
+      TemplateHaskell, QuasiQuotes
+  default-language: Haskell2010
