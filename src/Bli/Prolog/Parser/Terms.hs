@@ -11,12 +11,22 @@ import Bli.Prolog.Parser.DateTime
 import Bli.Prolog.Parser.Datatypes
 import Bli.Prolog.Parser.Infix
 import Data.BliParser
+import Bli.App.Config
+import Bli.App.Config.Features
 
 -- | Parser for a plain prolog goal.                
 goalP :: BliParser Goal
 goalP = do ts <- termsP
            csymb '.'
            return ts  
+
+-- | Parser for a term that uses equational syntax
+equationalTermP :: BliParser Term
+equationalTermP = do (Comp t args) <- termP
+                     csymb '='
+                     y <- termP
+                     csymb '.'
+                     return $ Comp t (args ++ [y])
 
 -- | Parser for a plain prolog clause, parsed as a Rule. 
 ruleP :: BliParser Term
@@ -71,6 +81,7 @@ termP :: BliParser Term
 termP = do
    many space 
    try (variableP >>= return . Var)
+      <|> try (ifEnabledP EquationalSyntax $ equationalTermP)
       <|> try ruleP
       <|> try ( (\x -> Comp x []) <$> infixTermP)
       <|> try (literalP)
