@@ -158,6 +158,18 @@ which is simply syntatic sugar for
   rel p: entity, entity.
 ~~~
 
+In addition, this "rel" notation is simply syntatic sugar for the "functional" notation
+
+~~~
+  p: entity -> entity -> pred.
+~~~
+
+where, if `UnicodeSyntax` is enabled, we can also notate this
+
+~~~
+  p: entity → entity → pred.
+~~~
+
 Literals
 --------
 
