@@ -13,7 +13,7 @@ defaultLanguageOptions =
      TypePredicates
    , Aliases
    , DatatypeOverloading
-   , EquationalSyntax
+   -- , EquationalSyntax
    , StoredRelations
    , Procedures
    , ExternalProcedures
