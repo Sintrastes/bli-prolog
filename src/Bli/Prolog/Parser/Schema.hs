@@ -93,9 +93,9 @@ schemaStoredRelnP = do
   symb "stored"
   symb "rel"
   id <- identifierP
-  (csymb ':') <?> "Missing \":\" in relation definition."
+  (csymb ':') <|> fail "Missing \":\" in relation definition."
   args <- identifierP `sepBy1` (csymb ',')
-  (csymb '.') <?> "Missing terminating \".\" to relation declaration."
+  (csymb '.') <|> fail "Missing terminating \".\" to relation declaration."
   return $ Pred Stored id args []
 
 schemaExternalRelnP :: BliParser SchemaEntry
@@ -103,9 +103,9 @@ schemaExternalRelnP = do
   symb "extern"
   symb "rel"
   id <- identifierP
-  (csymb ':') <?> "Missing \":\" in relation definition."
+  (csymb ':') <|> fail "Missing \":\" in relation definition."
   args <- identifierP `sepBy1` (csymb ',')
-  (csymb '.') <?> "Missing terminating \".\" to relation declaration."
+  (csymb '.') <|> fail "Missing terminating \".\" to relation declaration."
   return $ Pred External id args []
 
 schemaExternalRelnHSP :: BliParser SchemaEntry
@@ -113,12 +113,12 @@ schemaExternalRelnHSP = do
   symb "extern"
   symb "rel"
   id <- identifierP
-  (csymb ':') <?> "Missing \":\" in relation definition."
+  (csymb ':') <|> fail "Missing \":\" in relation definition."
   args <- identifierP `sepBy1` (csymb ',')
   symb "in"
   c  <- upper
   cs <- many $ alphaNum
-  (csymb '.') <?> "Missing terminating \".\" to relation declaration."
+  (csymb '.') <|> fail "Missing terminating \".\" to relation declaration."
   return $ Pred (ExternalHS (c:cs)) id args []
 
 schemaDatatypeDeclP :: BliParser SchemaEntry
@@ -149,14 +149,14 @@ datatypeConstructorP = do
 schemaEntityP :: BliParser SchemaEntry
 schemaEntityP = do
   id <- identifierP
-  (csymb ':') <?> "Missing \":\" in entity declaration."
+  (csymb ':') <|> fail "Missing \":\" in entity declaration."
   entityType <- identifierP
-  (csymb '.') <?> "Missing terminating \".\" to entity declaration."
+  (csymb '.') <|> fail "Missing terminating \".\" to entity declaration."
   return $ TypeOf id entityType
 
 typeDeclP :: BliParser SchemaEntry
 typeDeclP = do
   symb "type"
   typeId <- identifierP
-  (csymb '.') <?> "Missing terminating \".\" to type declaration."
+  (csymb '.') <|> fail "Missing terminating \".\" to type declaration."
   return $ Type typeId

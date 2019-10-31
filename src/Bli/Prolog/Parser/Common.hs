@@ -13,6 +13,8 @@ import Data.Bli.Prolog.Ast
 import Bli.Prolog.Parser.DateTime
 import Bli.Prolog.Parser.Util
 import Data.BliParser
+import Bli.App.Config.Features
+import Bli.App.Config
 -- import Bli.Prolog.Parser.Datatypes
 
 emptyListTerm :: Term
@@ -37,22 +39,23 @@ operatorP = try (symb "is" >> return "is")
 -- Identifiers, which will be parsed as either terms or predicates.
 identifierP :: BliParser String
 identifierP =
-        (do c <- lower <|> char '☐' <|> char '◇' 
-                       <|> char '■' <|> char '◆'
-                       <|> char '∅' <|> char 'ℕ'
-                       <|> char 'ℤ' <|> char 'ℚ'
-                       <|> char 'ℝ' <|> char 'ℂ'
-                       <|> char '¬' <|> char '∀'
-                       <|> char '∃' <|> char '⊥'
-                       <|> char '⊤' <|> char '⟡'
-                       <|> char '↑' <|> char '↓'
-                       <|> char '↿' <|> char '↾'
-                       <|> char '⇃' <|> char '⇂'
-                       <|> char '※' <|> char '±'
-                       <|> char '∓' <|> char '‽'
-                       <|> char '⸮'
-                       <|> char '⁂' <|> char '♭'
-                       <|> char '♮' <|> char '♯'
+        (do c <- lower <|> ifEnabledP UnicodeSyntax 
+                             (char '☐' <|> char '◇' 
+                          <|> char '■' <|> char '◆'
+                          <|> char '∅' <|> char 'ℕ'
+                          <|> char 'ℤ' <|> char 'ℚ'
+                          <|> char 'ℝ' <|> char 'ℂ'
+                          <|> char '¬' <|> char '∀'
+                          <|> char '∃' <|> char '⊥'
+                          <|> char '⊤' <|> char '⟡'
+                          <|> char '↑' <|> char '↓'
+                          <|> char '↿' <|> char '↾'
+                          <|> char '⇃' <|> char '⇂'
+                          <|> char '※' <|> char '±'
+                          <|> char '∓' <|> char '‽'
+                          <|> char '⸮'
+                          <|> char '⁂' <|> char '♭'
+                          <|> char '♮' <|> char '♯')
             cs <- many (alphaNum <|> char '_')
             case (c:cs) of
               "rel"  -> fail "\"rel\" is a reserved keyword, and may not be used as an identifer."

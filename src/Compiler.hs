@@ -13,8 +13,6 @@ import System.IO
 import System.Directory
 import Data.List
 
-fromJust (Just x) = x
-
 -- The main entrypoint for our compiler
 main = do
   args       <- getArgs

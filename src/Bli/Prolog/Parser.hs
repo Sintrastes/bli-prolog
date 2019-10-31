@@ -21,6 +21,8 @@ import Data.Bli.Prolog.Schema
 import Control.Monad (join)
 import Control.Monad.Bli.Pure
 import Bli.App.Api
+import Bli.App.Config.Features
+import Bli.App.Config
 
 -- Note: The lines below are depreciated, and need to be updated.
 
@@ -84,7 +86,7 @@ assertClauseP = do t <- termP
 -- | Parser for a lambda query.
 lambdaGoalP :: BliParser LambdaGoal
 lambdaGoalP = do skipMany (space >> return ())
-                 csymb '\\' <|> csymb 'λ' <|> csymb 'Λ'
+                 csymb '\\' <|> ifEnabledP UnicodeSyntax (csymb 'λ' <|> csymb 'Λ')
                  vars <- variableP `sepBy` (csymb ',')
                  csymb '.'
                  ts <- termsP

@@ -37,6 +37,7 @@ import Data.Typeable
 import Data.Aeson (toJSON, parseJSON)
 import qualified Data.Aeson as Aeson
 import GHC.Generics
+import qualified Data.BliParser as BliParser
 
 -- Note: By default we can allow for cyclic imports,
 -- and just keep a running list of the modules which have
@@ -328,6 +329,14 @@ ifEnabled extension x = do
   case result of
     True  -> x
     False -> return () 
+
+-- Version of ifEnabled to use in parsers
+ifEnabledP extension x = do
+  result <- BliParser.bli $ extensionEnabled extension
+  case result of
+    True  -> x
+    False -> fail "" 
+
 
 -- | Helper function to preform an action only if an
 --   extension is enabled. Returns a BliResult

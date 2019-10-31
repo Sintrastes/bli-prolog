@@ -8,6 +8,8 @@ import Text.Parsec
 import Bli.Prolog.Parser.Common
 import Bli.Prolog.Parser.Util
 import Data.BliParser
+import Bli.App.Config
+import Bli.App.Config.Features
 
 typeP :: BliParser BliPrologType
 typeP = 
@@ -38,9 +40,15 @@ listTypeP = do
   csymb ']'
   return $ ListT $ typ
 
+rightArrowP :: BliParser ()
+rightArrowP = try (ifEnabledP UnicodeSyntax (csymb '→' <|> csymb '⟶')) <|> symb "->"
+
+leftArrowP :: BliParser ()
+leftArrowP = try (ifEnabledP UnicodeSyntax (csymb '⟵' <|> csymb '←')) <|> symb "<-"
+
 funcTypeP :: BliParser BliPrologType
 funcTypeP = do
-  types <- typeP `sepBy` ((try (symb "<-") <|> symb "->") >> return ())
+  types <- typeP `sepBy` ((try rightArrowP <|> leftArrowP) >> return ())
   return $ foldr1 (FuncT RightArr) $ types
 
 entityTypeP :: BliParser BliPrologType

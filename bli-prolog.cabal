@@ -47,6 +47,7 @@ library
       Bli.Prolog.Parser.Util
       Bli.Prolog.Parser.Common
       Bli.Prolog.Parser.Schema
+      Bli.Prolog.Parser.Procs
       Bli.Prolog.Parser.Terms
       Bli.Prolog.Parser.Types
       Bli.Prolog.Parser.Cli

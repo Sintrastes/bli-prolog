@@ -1,6 +1,7 @@
 
 Todo
 ====
+  * Handle feature declarations in files.
   * Fix the issue in parsing data declarations where constructors with
     arguments have to be declared after constructors without arguments.
   * Implement typechecking of predicates.
