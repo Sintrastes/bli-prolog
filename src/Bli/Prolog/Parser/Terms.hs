@@ -58,13 +58,7 @@ atomP = do
        <|> try appTermP
        <|> (Identifier <$> identifierP) 
   return res
-  --justAtom <- try ((symb ":-") >> return False) <|> return True
-  --case justAtom of
-  --  True -> return res
-  --  False -> fail "Not an atom."
   where
-    -- I'm not sure how much of this is needed. I'll use an identifier here for now.
-    -- symbolicP = Identifier <$> (many1 $ oneOf "#$&*+-./:<=>?@\\^~") <?> "symbolic atom"
     quotedP = (do q <- char '"'
                   s <- manyTill anyChar (try $ char '"')
                   return $ StringLiteral s ) <?> "string literal"
