@@ -75,20 +75,24 @@ termP :: BliParser Term
 termP = do
    many space 
    try (variableP >>= return . Var)
-      <|> try (ifEnabledP EquationalSyntax $ equationalTermP)
       <|> try ruleP
       <|> try ( (\x -> Comp x []) <$> infixTermP)
       <|> try (literalP)
+      <|> try (ifEnabledP EquationalSyntax $ equationalTermP)
       <|> ((listP) <?> "list term")
 
 
 -- A top level term -- each of the alternatives must consume all of their
 -- input to be valid.
 topLevelTermP :: BliParser Term
-topLevelTermP = try (variableP >>= return . Var)
-    <|> try (terminated literalP)
-    <|> try ((terminated listP) <?> "list term")
-    <|> ruleP
+topLevelTermP = do
+  many space
+  try (variableP >>= return . Var)
+      <|> try (terminated ruleP)
+      <|> try (terminated ( (\x -> Comp x []) <$> infixTermP))
+      <|> try (terminated (literalP))
+      <|> try (terminated (ifEnabledP EquationalSyntax $ equationalTermP))
+      <|> terminated ((listP) <?> "list term")
 
 -- I guess this is syntax for a SNOC list?
 listTermsP :: BliParser Term
@@ -110,9 +114,10 @@ listP = do
 termsP :: BliParser Terms
 termsP = sepBy1 (try ((\x -> Comp x []) <$> infixTermP) <|> termP) (csymb ',')
 
+-- Note: I don't think this is needed anymore.
 -- | Parser for a list of prolog terms not containing any rules.
-termsP' :: BliParser Terms
-termsP' = sepBy1 termP' (csymb ',')
+-- termsP' :: BliParser Terms
+-- termsP' = sepBy1 termP' (csymb ',')
 
 appTermP :: BliParser Atom
 appTermP = do id <- identifierP
@@ -121,9 +126,10 @@ appTermP = do id <- identifierP
               char ')'
               return $ AppTerm id atoms  
 
--- | Parser for a prolog literal. (i.e. not a list term)
+-- | Parser for a prolog literal. Note: I don't think this is
+--   very meaningful, we should try to refactor this out.
 literalP :: BliParser Term
-literalP = 
+literalP = -- Each one of these can be a seperate parser.
            try ( do id <- appTermP
                     terms <- parens termsP
                     many space
@@ -134,16 +140,17 @@ literalP =
                    return $ Comp id terms )
        <|> (\x -> Comp x []) <$> atomP
 
+-- Note: I don't think this is needed anymore.
 -- | Parser for a prolog literal which is not an atom.
-literalP' :: BliParser Term
-literalP' = 
-           try ( do id <- appTermP
-                    terms <- parens termsP
-                    return $ Comp id terms )
-       <|> try (do id <- atomP
-                   terms <- parens termsP
-                   return $ Comp id terms )
-       <|> (\x -> Comp x []) <$> atomP
+-- literalP' :: BliParser Term
+-- literalP' = 
+--            try ( do id <- appTermP
+--                     terms <- parens termsP
+--                     return $ Comp id terms )
+--        <|> try (do id <- atomP
+--                    terms <- parens termsP
+--                    return $ Comp id terms )
+--        <|> (\x -> Comp x []) <$> atomP
 
 
 -- | Parser for a plain data constructor, like 'True.

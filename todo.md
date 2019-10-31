@@ -1,6 +1,9 @@
 
 Todo
 ====
+  * Write a parser test suite that runs before the rest of the test suite
+    so we can avoid non-termination issues when using our quasiquoters
+    in our other tests.
   * Handle feature declarations in files.
   * Fix the issue in parsing data declarations where constructors with
     arguments have to be declared after constructors without arguments.

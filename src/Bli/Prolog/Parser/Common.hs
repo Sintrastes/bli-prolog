@@ -31,10 +31,10 @@ operatorP = try (symb "is" >> return "is")
               id <- identifierP
               csymb '`'
               return id)
-  -- Note: We probably shouldn't allow e.x. : and . by themselves,
+  -- Note: We probably shouldn't allow e.x. : and . by themselves, (and = if equational syntax is enabled)
   -- as this could mess with parsing -- but we could allow them to be used
   -- in certain contexts. But for now, we won't use them at all.
-  <|> many (oneOf "#¿¡$&*+-/;<=≌>?@\\⊦⊨⊞⋆∗∘∙⋅⊟⊠∧∨×⊙⊘^~⊗⊕∩∖∪⨝∈≺≻≼≽⊏⊐⊑⊒⊓⊔←→⟵⟶⟷↼⇀↽⇁⇸")
+  <|> many (oneOf "#¿¡$&*+-/;<≌>?@\\⊦⊨⊞⋆∗∘∙⋅⊟⊠∧∨×⊙⊘^~⊗⊕∩∖∪⨝∈≺≻≼≽⊏⊐⊑⊒⊓⊔←→⟵⟶⟷↼⇀↽⇁⇸")
 
 -- Identifiers, which will be parsed as either terms or predicates.
 identifierP :: BliParser String
