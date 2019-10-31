@@ -23,7 +23,10 @@ data IsStored =
  | ExternalHS String
  | NotStored deriving(Eq, Show, Lift, Generic)
 
+data FixityDirection = Infixr | Infixl deriving(Eq, Show, Lift, Generic)
+
 instance Serialize IsStored
+instance Serialize FixityDirection
 
 -- | For our typed schema entry, we can either declare that a predicate
 --   with a given identity can take arguments of the supplied types,
@@ -37,9 +40,21 @@ data SchemaEntry =
   | Type   String
 -- | A declaration that adds a new entity of a given type to the schema. 
   | TypeOf String String
+-- | Declares that a binary operator should either be declared as infixl or infixr.
+--   infixr $
+  | Fixity FixityDirection String
+-- | Declares that a binary operator has lower precedence than some other binary operator.
+--   These declarations can be overidden at the module level by specifying an
+--   *override* parameter. (though I'm not entirely sure how this should work yet)
+--   prec $ < .
+  | FixityCmp String String
 -- | An import statement for Bli Prolog.
   | Using String 
-  | Feature LanguageOption
+-- | A user declaration that one type is a subtype of another.
+  | Subtype String String
+-- | A declaration that a language option has been enabled
+--   or disabled at the module level.
+  | Feature Bool LanguageOption
 -- | Declaration of a new datatype with a given name,
 --   and a collection of constructors, which consist of a name, and
 --   a list of argument types for those constructors.

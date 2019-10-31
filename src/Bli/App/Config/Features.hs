@@ -152,6 +152,12 @@ data LanguageOption =
    | LambekTypes
 -- | Enables the use of infix operators drawn from a set of allowed symbolic characters. 
    | InfixOperators
+-- | Enables rules to be passed as arguments to relations, and to be returned from them.
+   | FirstClassRules
+-- | Enables experimental support for refinement types. Note: This is unsafe, and could make
+--   the type-checker go into an infinite loop -- so before enabling this, we should
+--   make sure we have a built-in mechanism for limiting the typechecking time.
+   | RefinementTypes
 -- | The following features are marked as experimental, and
 --   should only be enabled with caution
   deriving(Eq, Show, Lift, Read, Generic, Enum, Bounded)
