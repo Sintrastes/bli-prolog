@@ -129,6 +129,17 @@ schemaDatatypeDeclP = do
   constructors <- many (try datatypeConstructorEmptyP <|> datatypeConstructorP)
   return $ DataType typeName constructors
 
+schemaDatatypeDeclWithInheritanceP :: BliParser SchemaEntry
+schemaDatatypeDeclWithInheritanceP = do
+  symb "datatype"
+  typeName <- identifierP
+  symb "where"
+  constructors <- many (try datatypeConstructorEmptyP <|> datatypeConstructorP)
+  symb "extends"
+  parentTypeNames <- many1 identifierP
+  -- I think I need a new case for this -- I'm not sure what to do with
+  -- parentTypeNames
+  return $ DataType typeName constructors
 
 datatypeConstructorEmptyP :: BliParser (String, [String])
 datatypeConstructorEmptyP = do
