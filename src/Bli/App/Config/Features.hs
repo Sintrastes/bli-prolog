@@ -14,6 +14,7 @@ defaultLanguageOptions =
    , Aliases
    , DatatypeOverloading
    , EquationalSyntax
+   -- , InfixOperators
    , StoredRelations
    , Procedures
    , ExternalProcedures
@@ -149,6 +150,8 @@ data LanguageOption =
 -- | Enables relations to be defined with the symbols -> and <- to denote on which side an argument is expected. This allows for 
 --   applying predicates on the left and on the right, which allows for queries to be made in a natural language like syntax.
    | LambekTypes
+-- | Enables the use of infix operators drawn from a set of allowed symbolic characters. 
+   | InfixOperators
 -- | The following features are marked as experimental, and
 --   should only be enabled with caution
   deriving(Eq, Show, Lift, Read, Generic, Enum, Bounded)

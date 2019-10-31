@@ -39,6 +39,8 @@ Bedelibry prolog has some features which differentiate it from pure prolog (i.e.
 Unicode support
 ---------------
 
+By default, Bli Prolog supports unicode in string literals:
+
 ~~~
 using system_io.
 
@@ -48,6 +50,8 @@ using system_io.
   print_ln("こんにちは世界!").
 }
 ~~~
+
+In addition, if the `UnicodeSyntax` extension is enabled, then certain unicode symbols can be used as predicates and as type names.
 
 ~~~
   rel ☐: pred.
@@ -76,7 +80,7 @@ This notation is intentionally similar to that of a lambda abstraction, although
   name_of_programming_language(Y).
 ~~~
 
-For the fans of unicode, we also offer some alternate syntax options for this:
+In addition, if `UnicodeSyntax` is enabled, we also offer some alternate syntax options for this:
 ~~~
   λY. programming_language(X), name_of(X,Y).   
   ΛY. programming_language(X), name_of(X,Y).
@@ -236,11 +240,14 @@ This can also be used to construct enums in bedelibry prolog, for example:
 Refinement Types
 ----------------
 
-Note: I may use a different syntax for this later.
+Note: This is an experimental feature, and must be enabled with the `RefinementTypes` language extension. One possible syntax we might use for this extension is: 
 
 ~~~
 type my_type = my_type2(X), p(X).
 ~~~
+
+to declare a subtype of `my_type2` such that the predicate `p` holds, although this syntax is liable to change in the future.
+
 
 Assertions
 ----------
@@ -297,7 +304,7 @@ Note: We may consider adding an `io` or `proc` type in the future to allow for m
 First-class rules
 -----------------
 
-Note: This is an experimental feature. The following is only an example
+Note: This is an experimental feature, and must be enabled with the extension `FirstClassRules`. The following is only an example
 of how this might work in the future, if implemented.
 
 ~~~prolog
@@ -403,7 +410,7 @@ Note: To have a truly advanced metainterpreter that is able to have
 Structural subtyping
 --------------------
 
-Structural subtyping in Bli Prolog can be used both with entitiy types, and datatypes.
+Structural subtyping in Bli Prolog can be used both with entity types, and datatypes.
 
 Unlike in Haskell, where constructors have to belong to a unique algebraic data type, in Bli Prolog, the type of a constructor can be inferred from context, or specifically stated with type annotations. For example, compare the following, which is invalid haskell:
 

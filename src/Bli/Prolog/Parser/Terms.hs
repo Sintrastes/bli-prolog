@@ -55,7 +55,24 @@ atomP = do
        <|> try dataConstructorP
        <|> try dataConstructorEmptyP
        <|> try (TimeperiodLiteral <$> timePeriodP)
-       <|> try appTermP
+       -- <|> try appTermP
+       <|> (Identifier <$> identifierP) 
+  return res
+  where
+    quotedP = (do q <- char '"'
+                  s <- manyTill anyChar (try $ char '"')
+                  return $ StringLiteral s ) <?> "string literal"
+
+-- | Parser for a bedelibry prolog atom which is not a higher-order term.
+simpleAtomP :: BliParser Atom
+simpleAtomP = do
+  res <- try (AtomVar <$> variableP)
+       <|> try quotedP
+       <|> try floatLiteralP
+       <|> try intLiteralP
+       <|> try dataConstructorP
+       <|> try dataConstructorEmptyP
+       <|> try (TimeperiodLiteral <$> timePeriodP)
        <|> (Identifier <$> identifierP) 
   return res
   where
@@ -79,7 +96,7 @@ termP = do
       -- I don't think this is right -- the infix 
       -- term here is parsed as an atom, not an honest
       -- to goodness term.
-      <|> try ( (\x -> Comp x []) <$> infixTermP)
+      <|> try (ifEnabledP InfixOperators $ (\x -> Comp x []) <$> infixTermP)
       <|> try (literalP)
       <|> try (ifEnabledP EquationalSyntax $ equationalTermP)
       <|> ((listP) <?> "list term")
@@ -129,22 +146,42 @@ appTermP = do id <- identifierP
               char ')'
               return $ AppTerm id atoms  
 
+higherOrderTermP :: BliParser Term
+higherOrderTermP = do 
+  id <- appTermP
+  terms <- parens termsP
+  many space
+  return $ Comp id terms
+
+simpleTermP :: BliParser Term
+simpleTermP = do
+  id <- atomP
+  terms <- parens termsP
+  many space
+  return $ Comp id terms
+
+atomicTermP :: BliParser Term
+atomicTermP = do
+       -- atomicTermP
+       -- Note: I think this should really *not*
+       -- be parsing predicates. So maybe a solution is
+       -- to have a (seperate?) parser that does not parse
+       -- predicate atoms.
+       -- Note: disabling this entirely does not seem to work.
+       -- Note: Also, changing this to simpleAtomP
+       -- without changing the other instances of atomP
+       -- to simpleAtomP
+       (\x -> Comp x []) <$> atomP
+
+
 -- | Parser for a prolog literal. Note: I don't think this is
 --   very meaningful, we should try to refactor this out.
 literalP :: BliParser Term
 literalP = -- Each one of these can be a seperate parser.
-           -- higherOrderTermP
-           try ( do id <- appTermP
-                    terms <- parens termsP
-                    many space
-                    return $ Comp id terms )
-           -- simpleTermP
-       <|> try (do id <- atomP
-                   terms <- parens termsP
-                   many space
-                   return $ Comp id terms )
-           -- atomicTermP
-       <|> (\x -> Comp x []) <$> atomP
+           try higherOrderTermP
+       -- simpleTermP
+       <|> try simpleTermP
+       <|> atomicTermP
 
 -- Note: I don't think this is needed anymore.
 -- | Parser for a prolog literal which is not an atom.
