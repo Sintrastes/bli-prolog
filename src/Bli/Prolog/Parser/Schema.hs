@@ -16,6 +16,7 @@ import Data.Bli.Prolog.Schema
 import Bli.App.Config.Features
 import Bli.Prolog.Parser.Util
 import Data.BliParser
+import Control.Monad (join)
 
 -- Depreciated:
 -- parseTypedSchemaFile = parseFromFile typedSchemaFileP 
@@ -38,7 +39,7 @@ typedSchemaLineP = do
 
 typedSchemaFileP :: BliParser Schema
 typedSchemaFileP = do
-  features <- try featureDeclP
+  features <- join <$> many (try featureDeclP <|> featureDisableDeclP)
   lines <- many (try schemaRelnP <|> try schemaEntityP <|> typeDeclP)
   return (features++lines)
 
@@ -49,9 +50,18 @@ featureDeclP = do
   symb "LANGUAGE"
   featureName <- variableP `sepBy1` (csymb ',')
   symb "*/"
-  return $ map Feature $ (map read featureName :: [LanguageOption])
-  
+  return $ map (Feature True) $ (map read featureName :: [LanguageOption])
 
+-- | Parser for language feature declarations.
+featureDisableDeclP :: BliParser [SchemaEntry]
+featureDisableDeclP = do
+  symb "/*"
+  symb "LANGUAGE"
+  symb "DISABLE"
+  featureName <- variableP `sepBy1` (csymb ',')
+  symb "*/"
+  return $ map (Feature False) $ (map read featureName :: [LanguageOption])
+  
 -- | A parser for "using" import statements in .bpl and .bsc files.
 usingDeclP :: BliParser SchemaEntry
 usingDeclP = do
