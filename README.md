@@ -190,6 +190,38 @@ Relations (or, as we will see later, procedures) can be declared with a special 
 
 For relations, this is primarialy for purposes of documentation (as semantically there is no difference), but in the case of procedures, we will see that this makes an important distinction.
 
+Procedures
+----------
+
+Procedures in Bedelibry Prolog are much like `functions` or `methods` in an imperative language. In other words, they can take some number or aguments, and then can preform some "real-world" sequence of actions such as printing to the screen and reading from a database. Procedures in Bedelibry Prolog can be declared either by using the syntax:
+
+~~~
+  proc my_procedure: <ARGS>.
+~~~
+
+Or, by using the functional syntax
+
+~~~
+  my_procedure: arg1 -> arg2 -> ... argn -> proc.
+~~~
+
+Procedures form an important part of the execution model of Bedelibry Prolog. For example, Bedelibry Prolog has a special (built-in) procedure called `_report`, which can be thought of as being declared
+
+~~~
+  proc _report: [eq_judgement].
+~~~
+
+Where `eq_judgement` is a built-in datatype, declared
+
+~~~
+  datatype eq_judgement where
+    constructor _declare_eq: variable_name, any.
+~~~
+
+Whenever a Bedelibry Prolog query is made, behind the scenes, a list of `eq_judgement`s are produced for each solution of the query, stating which variables are bound to which terms, and these are passed to `report_`, which handles the standard display mechanism of query solutions in the Bedelibry Prolog interpreter. 
+
+In a Bedelibry Prolog file which is not a module, *procedures* must be run within a `?- { ... }` block, typically at the end of the file. Queries can also be made within the `?- { ... }` block, as these are essentially just calls to `_report`.
+
 Literals
 --------
 
