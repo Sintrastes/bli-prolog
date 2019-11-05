@@ -80,9 +80,12 @@ loadBliProgramFromFile filePath = do
 -- 
 --   Note: Again, I may want to put this somewhere else later.
 getBliProgramFromFile :: String -> Bli (Maybe BliProgram)
-getBliProgramFromFile filePath = do
+getBliProgramFromFile filePath = undefined 
+-- ^ FOR DEBUGGING
+{- do
   fileContents <- liftIO $ readFile filePath
   parseResult <- liftFromPure $ parseBliPrologProgram fileContents
   case parseResult of
     Left e -> error $ show e -- return $ Nothing
     Right program -> return $ Just program
+-}

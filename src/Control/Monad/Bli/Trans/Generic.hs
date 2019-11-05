@@ -96,6 +96,7 @@ import Control.Monad.Bli.Trans.Generic.Internal
 
 -- Note: To get this to work, we need this to be a newtype.
 instance MonadException m => MonadException (StateBliT t1 t2 t3 t4 alias m)
+instance MonadException m => MonadException (MVarBliT t1 t2 t3 t4 alias m)
 
 newtype StateBliT t1 t2 t3 t4 alias m a =  StateBliT { runBliT :: StateT (BliStore t1 t2 t3 t4 alias) m a }
 

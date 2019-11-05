@@ -6,9 +6,10 @@
 
 module Control.Monad.Bli.MVar (
   Bli,
-  module Generic
+  module Control.Monad.Bli.MVar.Generic
 ) where
 
+import Control.Monad.Bli.MVar.Generic hiding (Bli)
 import qualified Control.Monad.Bli.MVar.Generic as Generic
 import Control.Monad.Bli.Common
 
