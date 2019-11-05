@@ -17,7 +17,7 @@ Checklist to 1.0
 How to install
 ==============
 
-bli-prolog requires that you have the relevant version of the haskell platform installed on your system. For instance, on Ubuntu, if you have not already done so, you should first run:
+Bli-prolog requires that you have the relevant version of the Haskell platform installed on your system, and should run on any of the standard desktop operating systems (Linux, Windows, OSX) with a recent enough version of the Haskell platform installed. For instance, on Ubuntu, if you have not already done so, you should first run:
 
 ~~~
   $ sudo apt install ghc cabal-install
@@ -42,6 +42,18 @@ Alternatively, if `stack` is installed, bli-prolog may be installed simply by ru
 ~~~
 
 which will automatically handle building bli-prolog with the proper ghc version.
+
+On Mac OSX and Windows, simply install the Haskell platform (and preferably stack) with your package manager of choice, and continue the installation process the same as above. For instance, on OSX with homebrew to install with stack, first run:
+
+~~~
+  brew install haskell-stack
+~~~ 
+
+Or on Windows with chocolatey:
+
+~~~
+  choco install haskell-stack
+~~~
 
 Language Features
 =================
