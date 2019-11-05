@@ -88,16 +88,24 @@ solve goal' = do
      | otherwise -> return $ solve' prog goal
 
 -- Uses the List monad for backtracking
+-- Note: Why does this return a list of search trees? -- it 
+-- always retruns a singleton. Can we change this to
+-- make it a better Api?
 solve' :: Program -> Goal -> [SearchTree]
 solve' _ [r] | isReportGoal r = [Sol $ getSolution r]
-solve' prog g@(t1 : ts) = [Node g trees]
-    where trees = do c <- prog
-                     let (tc, tsc) = freshen (join $ map variables g) c
-                     case unify tc t1 of
-                       Just u -> do
-                         let g' = map (subs u) $ tsc ++ ts
-                         solve' prog g'
+solve' prog goal@(t : ts) = [Node goal trees]
+    where trees = do -- For each clause in our program...
+                     clause <- prog
+                     let (clauseHead, clauseBody) = freshen varsInGoal clause
+                     -- attempt to unify the clause head with the first term of our goal.
+                     case unify clauseHead t of
+                       -- If it unifies, make the appropriate substitution and continue.
+                       Just unifier -> do
+                         let newGoal = map (subs unifier) $ clauseBody ++ ts
+                         solve' prog newGoal
+                       -- Otherwise, this branch is empty.
                        Nothing -> []
+          varsInGoal = join $ map variables goal
 --solve _ _ = []
 
 makeReportGoal goal = [Comp (Identifier "_report") reportVars]
