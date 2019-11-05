@@ -13,13 +13,10 @@ author:         Nathan Bedell
 maintainer:     nbedell@tulane.edu
 copyright:      Nathan Bedell, 2019
 license-file:   LICENSE
-build-type:     Custom
+build-type:     Simple
 cabal-version:  >= 1.10
 extra-source-files:
     README.md
-
-custom-setup:
-  setup-depends: base, Cabal, liquidhaskell-cabal >= 0.2.1
 
 flag liquidhaskell
   description: After building, verify with LiquidHaskell
@@ -98,7 +95,6 @@ library
     , parsec
     , parser-combinators
     , data-ordlist
-    , liquidhaskell-cabal >= 0.2.1
     , mmorph
     , either
     , pretty
@@ -121,6 +117,7 @@ library
     , aeson-pretty
     , warp
     , readline
+--    , haskeline
     , warp-tls
     , http-types
     , directory
@@ -155,7 +152,6 @@ executable blipl
   build-depends:
       base <5
     , cmdargs
-    , readline
     , split
     , bli-prolog
   extensions:
@@ -171,7 +167,6 @@ executable blic
       base <5
     , cmdargs
     , directory
-    , readline
     , split
     , bli-prolog
   extensions:
