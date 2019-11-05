@@ -116,8 +116,8 @@ library
     , aeson
     , aeson-pretty
     , warp
-    , readline
---    , haskeline
+--    , readline
+    , haskeline
     , warp-tls
     , http-types
     , directory

@@ -9,7 +9,7 @@ import Control.Monad.Identity
 import Control.Monad.Bli.Trans.Generic
 import Data.Alias
 import Data.BliSet
-import Control.Monad.Trans.State
+import Control.Monad.Trans.State.Strict
 
 -- For writing liftFromPure
 import qualified Control.Monad.Bli.Generic as Bli

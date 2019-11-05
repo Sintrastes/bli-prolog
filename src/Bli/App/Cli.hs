@@ -34,10 +34,12 @@ import Data.List
 import Data.Alias (toKVList)
 import Control.Empty
 import System.Console.CmdArgs as CA hiding (program)
-import System.Console.Readline
+-- import System.Console.Readline
 import Control.Monad.IO.Class
 import Data.BliParser
 import Control.Monad.Bli.Pure (liftFromPure)
+import System.Console.Haskeline hiding (catch)
+import Control.Monad.Trans.Class (lift)
 
 -- | Helper function to get the file extension of a filepath.
 fileExtension :: String -> String
@@ -175,44 +177,47 @@ processCliInput input = do
       processBliCommandRepl command
 
 -- | Function used for tab completion in the REPL.
+{-
 completionFunction :: String -> IO [String]
 completionFunction x = 
    if any (\y -> isPrefixOf x y) commandStrings
    then return $ filter (isPrefixOf x) commandStrings
    else return []
  where commandStrings = join $ map bliReplCommandStrings [minBound..maxBound]
+-}
 
 -- | Main entrypoint for the bli-prolog REPL.
 repl :: Bli ()
-repl = do
-  config    <- getConfig
-  facts     <- getFacts
-  types     <- getTypes
-  relations <- getRelations
-  entities  <- getEntities
-  aliases   <- getAliases
-  let colorOpts = not $ nocolor config
-  liftIO $ setCompletionEntryFunction $ Just completionFunction
-  maybeLine <- liftIO $ readline (blue colorOpts command_prompt)
-  case maybeLine of
-    Nothing -> repl
-    Just line -> do
-      -- Add the user's input to the command line history.
-      liftIO $ addHistory line
-      case parseBliReplCommand line of 
-        ParseError err -> do 
-            printResponse "There was an error parsing the command:"
-            printResponse $ "  " ++ show err
-        DoneParsing blicmd -> do
-            result <- handleBliReplCommand blicmd
-            case result of
-              True  -> repl
-              False -> return ()
-        -- If the user has not entered a REPL command, try processing
-        -- their input as a standard Bedelibry Prolog command.
-        ContinueParsing -> do
-          processCliInput line
-          repl
+repl = runInputT defaultSettings loop
+  where loop = do
+          config    <- lift $ getConfig
+          facts     <- lift $ getFacts
+          types     <- lift $ getTypes
+          relations <- lift $ getRelations
+          entities  <- lift $ getEntities
+          aliases   <- lift$ getAliases
+          let colorOpts = not $ nocolor config
+          -- liftIO $ setCompletionEntryFunction $ Just completionFunction
+          maybeLine <- getInputLine (blue colorOpts command_prompt)
+          case maybeLine of
+            Nothing -> loop
+            Just line -> do
+              -- Add the user's input to the command line history.
+              -- liftIO $ addHistory line
+              case parseBliReplCommand line of 
+                ParseError err -> do 
+                    printResponse "There was an error parsing the command:"
+                    printResponse $ "  " ++ show err
+                DoneParsing blicmd -> do
+                    result <- lift $ handleBliReplCommand blicmd
+                    case result of
+                      True  -> loop
+                      False -> return ()
+                -- If the user has not entered a REPL command, try processing
+                -- their input as a standard Bedelibry Prolog command.
+                ContinueParsing -> do
+                  lift $ processCliInput line
+                  loop
           
 handleBliReplCommand :: BliReplCommand -> Bli Bool
 handleBliReplCommand blicmd = do

@@ -59,7 +59,7 @@ import Prelude hiding (lookup, foldr, filter)
 import Data.Foldable
 import Data.Witherable
 import Control.Monad
-import Control.Monad.Trans.State
+import Control.Monad.Trans.State.Strict
 import Control.Monad.Trans.Class (lift)
 import Data.Bli.Prolog.Ast
 import Data.Bli.Prolog.Types
@@ -73,6 +73,7 @@ import Control.Lens
 import Data.Map (Map)
 import qualified Data.Map as Map
 import Data.Map.Lens
+import System.Console.Haskeline.MonadException
 
 -- For dealing with user-defined "proc" types.
 import Data.Dynamic
@@ -80,6 +81,9 @@ import Type.Reflection
 
 type BliT t1 t2 t3 t4 alias m a = 
  StateT (BliStore t1 t2 t3 t4 alias) m a
+
+-- Note: To get this to work, we need this to be a newtype.
+-- deriving instance MonadException m => MonadException (BliT t1 t2 t3 t4 alias m)
 
 getStore :: (Monad m, BliSet t1, BliSet t2, BliSet t3, BliSet t4, Alias alias)
  => BliT t1 t2 t3 t4 alias m (BliStore t1 t2 t3 t4 alias)

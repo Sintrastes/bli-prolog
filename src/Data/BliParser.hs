@@ -10,7 +10,7 @@ import Control.Applicative
 import Control.Monad.Bli.Common
 import Control.Monad.Bli.Pure
 import Control.Monad (join)
-import Control.Monad.Trans.State
+import Control.Monad.Trans.State.Strict
 import Bli.App.Api
 import Bli.Util
 import Data.Either.Combinators (mapLeft)
