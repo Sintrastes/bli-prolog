@@ -20,7 +20,7 @@ type Bli t1 t2 t3 t4 alias a = BliT t1 t2 t3 t4 alias Identity a
 -- Helper function to go from the pure to the impure version of the Bli monad.
 liftFromPure :: (BliSet t1, BliSet t2, BliSet t3, BliSet t4, Alias alias)
  => Bli t1 t2 t3 t4 alias a -> Bli.Bli t1 t2 t3 t4 alias a
-liftFromPure x = do
+liftFromPure (StateBliT x) = do
   store <- Bli.getStore
   let store' = execState x store
   Bli.modifyStore (\_ -> store')

@@ -71,13 +71,17 @@ library
       Bli.Prolog.Unification.Types
       Bli.Prolog.Unification.Terms
       Bli.Prolog.SearchStrategies
+      -- Control.Monad.Trans.Category
       Control.Monad.Bli.Common
       Control.Monad.Bli.Trans
       Control.Monad.Bli.Trans.Generic
       Control.Monad.Bli
+      Control.Monad.Bli.MVar
+      Control.Monad.Bli.MVar.Generic
       Control.Monad.Bli.Generic
       Control.Monad.Bli.Pure
       Control.Monad.Bli.Pure.Generic
+      Control.Monad.Bli.Trans.Generic.Internal
   other-modules:
       Control.Empty
       Paths_bli_prolog
@@ -116,6 +120,7 @@ library
     , aeson
     , aeson-pretty
     , warp
+    , acme-iot
 --    , readline
     , haskeline
     , warp-tls
@@ -130,8 +135,10 @@ library
       TypeApplications
       GADTs
       DeriveGeneric
+      RankNTypes
       StandaloneDeriving
       NoMonomorphismRestriction
+      TypeOperators
       ExistentialQuantification
       FlexibleContexts
       FlexibleInstances

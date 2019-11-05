@@ -25,6 +25,41 @@ packages:
       sha256: 9e8c93a78f85f6adb03283fc7d38e8c95b9dc45ccfa5aaa9f6dede1dcccf2acd
   original:
     hackage: Cabal-2.2.0.1@sha256:2a80d8fb655474f0eaeb20434c47f64f84e6302e55973056f00df8ca050b9683,20037
+- completed:
+    hackage: MonadCompose-0.9.0.0@sha256:2b209190f13d49f6b1386a3ac34f35fbd877134d1f6412234c92183894331d05,971
+    pantry-tree:
+      size: 355
+      sha256: be5f393ffeface5e9b0d3a4a1b4a1543e29607dfa071d1dc7e5bcf6e898962d5
+  original:
+    hackage: MonadCompose-0.9.0.0@sha256:2b209190f13d49f6b1386a3ac34f35fbd877134d1f6412234c92183894331d05,971
+- completed:
+    hackage: compose-trans-0.1@sha256:cadfd6cdebe94c3adc5acddba1d849fe4850c1eb6335487d2b7561145abf94ee,1550
+    pantry-tree:
+      size: 458
+      sha256: 1d525b0aee783f9cd0ecd2b382a8d7818b7c6195df2b888530a6e3be366b8099
+  original:
+    hackage: compose-trans-0.1@sha256:cadfd6cdebe94c3adc5acddba1d849fe4850c1eb6335487d2b7561145abf94ee,1550
+- completed:
+    hackage: free-5.1@sha256:c8dca310d87a75ab3da084e1bf8b758e2a4ce0ab7397f2cbf109918c4ba61348,4109
+    pantry-tree:
+      size: 3356
+      sha256: 35451a93b6b5c3e02dc8d945564bea2fb36af38ad1db9f792c5f11c325ed53a6
+  original:
+    hackage: free-5.1@sha256:c8dca310d87a75ab3da084e1bf8b758e2a4ce0ab7397f2cbf109918c4ba61348,4109
+- completed:
+    hackage: mmorph-1.0.9@sha256:4dd6d1966746918b7503dafa8b78b75df2245406baa083858e1a2310313aaef7,928
+    pantry-tree:
+      size: 292
+      sha256: 34fcd632805d66c3b6441a65a0b5bd5cda397c49838ca4e3583f7fb648de44ee
+  original:
+    hackage: mmorph-1.0.9@sha256:4dd6d1966746918b7503dafa8b78b75df2245406baa083858e1a2310313aaef7,928
+- completed:
+    hackage: transformers-compat-0.5.1.4@sha256:1b4bfa8589afb1ca0e719129ab261bd90ef0cc3e6c0b9963f94970c082b61250,2805
+    pantry-tree:
+      size: 1138
+      sha256: d1df86bc5b1a81b7dfd5ead911b6acbe248287151575b145e8d8bc12968cc536
+  original:
+    hackage: transformers-compat-0.5.1.4@sha256:1b4bfa8589afb1ca0e719129ab261bd90ef0cc3e6c0b9963f94970c082b61250,2805
 snapshots:
 - completed:
     size: 509471

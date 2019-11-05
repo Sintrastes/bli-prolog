@@ -20,7 +20,7 @@ import Control.Monad.Identity
 import Control.Monad.Morph 
 import Control.Monad.Trans.Compose (mapComposeT)
 
-type GenericBliParser t1 t2 t3 t4 alias m a = ParsecT String () (StateT (BliStore t1 t2 t3 t4 alias) m) a
+type GenericBliParser t1 t2 t3 t4 alias m a = ParsecT String () ((StateBliT t1 t2 t3 t4 alias) m) a
 
 type BliParser a = GenericBliParser FactContainer RelationContainer EntityContainer TypeContainer AliasDatastructure Identity a
 
