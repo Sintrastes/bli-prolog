@@ -203,192 +203,208 @@ repl = do
         ParseError err -> do 
             printResponse "There was an error parsing the command:"
             printResponse $ "  " ++ show err
-        DoneParsing blicmd ->
-          case blicmd of
-             Help -> do
-               screen <- liftIO $ replHelpScreen colorOpts
-               printResponse screen
-               repl
-             Exit -> do
-               return ()
-             ClearSchema -> do
-               printResponse "Clearing all in-memory schema data."
-               setFacts empty
-               setRelations empty
-               setEntities empty
-               repl
-             ClearRelations -> do
-               printResponse "Clearing all in-memory relations (and facts)."
-               setRelations empty
-               setFacts empty
-               repl
-             ClearEntities -> do
-               printResponse "Clearing all in-memory entities (and facts)."
-               setEntities  empty
-               setRelations empty
-               repl
-             ClearFacts -> do
-               printResponse "Clearing all in-memory facts."
-               setFacts empty
-               repl
-             ListSchema ->
-               if  (entities  == empty
-                 && relations == empty
-                 && types     == empty)
-               then do 
-                 printResponse $ yellow colorOpts "Schema is empty."
-                 repl
-               else do
-                 printResponse "NOT IMPLEMENTED."
-                 repl
-             ListRelations ->
-               if relations == empty
-               then do 
-                 printResponse $ yellow colorOpts "No relations in store."
-                 repl
-               else do
-                 liftIO $ mapM_ printResponse $ map (\(name, types) -> "rel "++name++": " ++ intercalate ", " types ++ "." ) $ relations
-                 repl
-             ListTypes ->
-               if types == empty
-               then do 
-                 printResponse $ yellow colorOpts "No types in store."
-                 repl
-               else do
-                 mapM_ (printResponse . (\x -> x ++ ".")) types
-                 repl
-             ListEntities ->
-               if entities == empty
-               then do
-                 printResponse $ yellow colorOpts "No entities in store."
-                 repl
-               else do
-                 mapM_ (printResponse . (\(x,typ) -> x ++ ": " ++ typ ++ "." )) entities
-                 repl
-             ListFacts ->
-               if facts == empty
-               then do
-                 printResponse $ yellow colorOpts "No facts in store."
-                 repl
-               else do
-                 mapM_ printResponse $ map prettyShowClause facts
-                 repl
-             ListAliases -> do
-               ifEnabledThenElse Aliases
-                 (do if aliases == empty
-                     then do 
-                       printResponse $ yellow colorOpts "No aliases in store."
-                     else do 
-                       -- Note: To make this work, I probably need a "to list" function
-                       -- for aliases, so that I can get this to print properly.
-                       mapM_ printResponse $ map (\(id1, id2) -> "alias " ++ id1 ++ " " ++ id2 ++ ".")  $ toKVList aliases)
-                 (printResponse "Aliases have not been enabled.")
-               repl
-             LoadFile filePath -> do
-                maybeFileContents <- do
-                  -- Handle file read exceptions.
-                  liftIO $ catch (Just <$> readFile filePath)
-                                 (\e -> do
-                                    printResponse $ (red colorOpts "Error") ++ " reading file " ++ filePath ++ ":"
-                                    mapM_ (\x -> printResponse $ "  " ++ x) (splitOn "\n" (show (e :: IOException)))
-                                    return Nothing)
-                case maybeFileContents of
-                  -- If there was an error parsing the file contents,
-                  -- Continue with the REPl.
-                  Nothing -> repl
-                  Just fileContents -> do
-                    case fileExtension filePath of
-                       PlainPlExtension   -> do
-                          parseResult <- liftFromPure $ clausesFromString fileContents
-                          case parseResult of
-                              Left e -> printResponse "There has been a parse error."
-                              Right clauses -> do
-                                   printResponse "Need to implement the logic for adding clauses here."
-                                  -- modifyProgram (\x -> x ++ clauses)
-                       BliPlExtension  -> do
-                          -- Currently this will only parse the typed version
-                          parseResult <- liftFromPure $ parseTypedBli fileContents
-                          case parseResult of
-                              Left e -> printResponse "There has been a parse error."
-                              Right lines -> do
-                                  -- Note: We still need to do typechecking of the file here!
-                                  let (types, relations, entities, clauses) = groupSchemaClauses lines
-                                  newEntities entities
-                                  newFacts clauses
-                                  newTypes types
-                                  newRelations relations
-                                  return ()
-                       SchemaFileExtension -> do
-                          parseResult <- liftFromPure $ parseTypedSchema fileContents
-                          case parseResult of
-                              Left e -> printResponse "There has been a parse error."
-                              Right entries -> do
-                                    printResponse $ show entries
-                                    printResponse "Need to implement the logic for modifying the schema here."
-                                   -- modifySchema (\x -> x ++ (getArities entries))
-                    repl
-             ExportFile filePath -> do
-                case fileExtension filePath of
-                  PlainPlExtension -> do
-                    let contents = undefined
-                    liftIO $ catch (writeFile filePath contents)
-                                   (\e -> do
-                                      printResponse $ (red colorOpts "Error") ++ " writing file "++ filePath ++ ":"
-                                      mapM_ (\x -> printResponse $ "  " ++ x) (splitOn "\n" (show (e :: IOException))))
-                  BliPlExtension  -> do
-                    let contents = undefined
-                    liftIO $ catch (writeFile filePath contents)
-                                   (\e -> do
-                                      printResponse $ (red colorOpts "Error") ++ " writing file "++ filePath ++ ":"
-                                      mapM_ (\x -> printResponse $ "  " ++ x) (splitOn "\n" (show (e :: IOException))))
-                  SchemaFileExtension -> do
-                    let contents = undefined
-                    liftIO $ catch (writeFile filePath contents)
-                                   (\e -> do
-                                      printResponse $ (red colorOpts "Error") ++ " writing file "++ filePath ++ ":"
-                                      mapM_ (\x -> printResponse $ "  " ++ x) (splitOn "\n" (show (e :: IOException))))
-                -- io $ putStrLn $ yellow colorOpts "Export command not implemented."
-                repl
-             Alias arg1 arg2 -> do
-                 -- Note: First should check here that 
-                 -- the arguments parse properly as bli identifiers.
-                 addedSuccessfully <- newAlias arg1 arg2
-                 case addedSuccessfully of
-                   SuccessfullyAdded -> do
-                     printResponse $ "Made alias of " ++ arg1 ++ " to " ++ arg2 ++ "."
-                     repl
-                   AliasAlreadyInStore -> do
-                     printResponse $ "Failure. Alias is already is store."
-                     repl
-                   DoesNotHavePrimaryIDOrAlias -> do
-                     printResponse $ "Failure. Neither " ++ arg1 ++ " nor " ++ arg2 ++ " are a primary ID"
-                     printResponse $ "Or a pre-existing alias of a primary ID."
-                     repl
-             GetTypeOf input -> do
-               parseResult <- liftFromPure $ parseBli atomP input
-               case parseResult of
-                 Left e -> do 
-                   printResponse $ show e
-                   repl
-                 Right atom -> do 
-                   response <- typeOfAtom atom
-                   case response of
-                     Nothing -> printResponse "Did not typecheck"
-                     Just typ -> printResponse $ show typ
-                   repl
-             ShowPort -> do
-                liftIO $ print (port config)
-                repl
-             GetPID id -> do
-                pid' <- lookupPrimaryID id
-                case pid' of
-                  Just pid -> do
-                    printResponse $ pid
-                  Nothing -> do
-                    printResponse $ "The term " ++ show id ++ " does not have a primary ID."
-                repl
+        DoneParsing blicmd -> do
+            result <- handleBliReplCommand blicmd
+            case result of
+              True  -> repl
+              False -> return ()
         -- If the user has not entered a REPL command, try processing
         -- their input as a standard Bedelibry Prolog command.
         ContinueParsing -> do
           processCliInput line
           repl
+          
+handleBliReplCommand :: BliReplCommand -> Bli Bool
+handleBliReplCommand blicmd = do
+  let repl = return True
+  let exit = return False
+  config    <- getConfig
+  facts     <- getFacts
+  types     <- getTypes
+  relations <- getRelations
+  entities  <- getEntities
+  aliases   <- getAliases
+  let colorOpts = not $ nocolor config
+  case blicmd of
+      Help -> do
+        screen <- liftIO $ replHelpScreen colorOpts
+        printResponse screen
+        repl
+      Exit -> do
+        exit
+      ClearSchema -> do
+        printResponse "Clearing all in-memory schema data."
+        setFacts empty
+        setRelations empty
+        setEntities empty
+        repl
+      ClearRelations -> do
+        printResponse "Clearing all in-memory relations (and facts)."
+        setRelations empty
+        setFacts empty
+        repl
+      ClearEntities -> do
+        printResponse "Clearing all in-memory entities (and facts)."
+        setEntities  empty
+        setRelations empty
+        repl
+      ClearFacts -> do
+        printResponse "Clearing all in-memory facts."
+        setFacts empty
+        repl
+      ListSchema ->
+        if  (entities  == empty
+          && relations == empty
+          && types     == empty)
+        then do 
+          printResponse $ yellow colorOpts "Schema is empty."
+          repl
+        else do
+          printResponse "NOT IMPLEMENTED."
+          repl
+      ListRelations ->
+        if relations == empty
+        then do 
+          printResponse $ yellow colorOpts "No relations in store."
+          repl
+        else do
+          liftIO $ mapM_ printResponse $ map (\(name, types) -> "rel "++name++": " ++ intercalate ", " types ++ "." ) $ relations
+          repl
+      ListTypes ->
+        if types == empty
+        then do 
+          printResponse $ yellow colorOpts "No types in store."
+          repl
+        else do
+          mapM_ (printResponse . (\x -> x ++ ".")) types
+          repl
+      ListEntities ->
+        if entities == empty
+        then do
+          printResponse $ yellow colorOpts "No entities in store."
+          repl
+        else do
+          mapM_ (printResponse . (\(x,typ) -> x ++ ": " ++ typ ++ "." )) entities
+          repl
+      ListFacts ->
+        if facts == empty
+        then do
+          printResponse $ yellow colorOpts "No facts in store."
+          repl
+        else do
+          mapM_ printResponse $ map prettyShowClause facts
+          repl
+      ListAliases -> do
+        ifEnabledThenElse Aliases
+          (do if aliases == empty
+              then do 
+                printResponse $ yellow colorOpts "No aliases in store."
+              else do 
+                -- Note: To make this work, I probably need a "to list" function
+                -- for aliases, so that I can get this to print properly.
+                mapM_ printResponse $ map (\(id1, id2) -> "alias " ++ id1 ++ " " ++ id2 ++ ".")  $ toKVList aliases)
+          (printResponse "Aliases have not been enabled.")
+        repl
+      LoadFile filePath -> do
+        maybeFileContents <- do
+        -- Handle file read exceptions.
+           liftIO $ catch (Just <$> readFile filePath)
+                          (\e -> do
+                             printResponse $ (red colorOpts "Error") ++ " reading file " ++ filePath ++ ":"
+                             mapM_ (\x -> printResponse $ "  " ++ x) (splitOn "\n" (show (e :: IOException)))
+                             return Nothing)
+        case maybeFileContents of
+             -- If there was an error parsing the file contents,
+             -- Continue with the REPl.
+             Nothing -> repl
+             Just fileContents -> do
+               case fileExtension filePath of
+                  PlainPlExtension   -> do
+                    parseResult <- liftFromPure $ clausesFromString fileContents
+                    case parseResult of
+                        Left e -> printResponse "There has been a parse error."
+                        Right clauses -> do
+                             printResponse "Need to implement the logic for adding clauses here."
+                             -- modifyProgram (\x -> x ++ clauses)
+                  BliPlExtension  -> do
+                     -- Currently this will only parse the typed version
+                     parseResult <- liftFromPure $ parseTypedBli fileContents
+                     case parseResult of
+                         Left e -> printResponse "There has been a parse error."
+                         Right lines -> do
+                             -- Note: We still need to do typechecking of the file here!
+                             let (types, relations, entities, clauses) = groupSchemaClauses lines
+                             newEntities entities
+                             newFacts clauses
+                             newTypes types
+                             newRelations relations
+                             return ()
+                  SchemaFileExtension -> do
+                     parseResult <- liftFromPure $ parseTypedSchema fileContents
+                     case parseResult of
+                         Left e -> printResponse "There has been a parse error."
+                         Right entries -> do
+                               printResponse $ show entries
+                               printResponse "Need to implement the logic for modifying the schema here."
+                               -- modifySchema (\x -> x ++ (getArities entries))
+               repl
+      ExportFile filePath -> do
+         case fileExtension filePath of
+           PlainPlExtension -> do
+             let contents = undefined
+             liftIO $ catch (writeFile filePath contents)
+                            (\e -> do
+                               printResponse $ (red colorOpts "Error") ++ " writing file "++ filePath ++ ":"
+                               mapM_ (\x -> printResponse $ "  " ++ x) (splitOn "\n" (show (e :: IOException))))
+           BliPlExtension  -> do
+             let contents = undefined
+             liftIO $ catch (writeFile filePath contents)
+                            (\e -> do
+                               printResponse $ (red colorOpts "Error") ++ " writing file "++ filePath ++ ":"
+                               mapM_ (\x -> printResponse $ "  " ++ x) (splitOn "\n" (show (e :: IOException))))
+           SchemaFileExtension -> do
+             let contents = undefined
+             liftIO $ catch (writeFile filePath contents)
+                            (\e -> do
+                               printResponse $ (red colorOpts "Error") ++ " writing file "++ filePath ++ ":"
+                               mapM_ (\x -> printResponse $ "  " ++ x) (splitOn "\n" (show (e :: IOException))))
+         -- io $ putStrLn $ yellow colorOpts "Export command not implemented."
+         repl
+      Alias arg1 arg2 -> do
+          -- Note: First should check here that 
+          -- the arguments parse properly as bli identifiers.
+          addedSuccessfully <- newAlias arg1 arg2
+          case addedSuccessfully of
+            SuccessfullyAdded -> do
+              printResponse $ "Made alias of " ++ arg1 ++ " to " ++ arg2 ++ "."
+              repl
+            AliasAlreadyInStore -> do
+              printResponse $ "Failure. Alias is already is store."
+              repl
+            DoesNotHavePrimaryIDOrAlias -> do
+              printResponse $ "Failure. Neither " ++ arg1 ++ " nor " ++ arg2 ++ " are a primary ID"
+              printResponse $ "Or a pre-existing alias of a primary ID."
+              repl
+      GetTypeOf input -> do
+        parseResult <- liftFromPure $ parseBli atomP input
+        case parseResult of
+          Left e -> do 
+            printResponse $ show e
+            repl
+          Right atom -> do 
+            response <- typeOfAtom atom
+            case response of
+              Nothing -> printResponse "Did not typecheck"
+              Just typ -> printResponse $ show typ
+            repl
+      ShowPort -> do
+         liftIO $ print (port config)
+         repl
+      GetPID id -> do
+         pid' <- lookupPrimaryID id
+         case pid' of
+           Just pid -> do
+             printResponse $ pid
+           Nothing -> do
+             printResponse $ "The term " ++ show id ++ " does not have a primary ID."
+         repl
