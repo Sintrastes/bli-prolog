@@ -22,6 +22,7 @@ import Language.Haskell.TH.Quote
 import Data.List.Split
 import Data.List
 import Data.Maybe
+import Control.Exception
 import Data.Yaml
 import Control.Monad.Bli
 import Control.Monad.IO.Class
@@ -390,11 +391,15 @@ configureApplication = do
     Nothing -> return $ Left "Error getting version from cabal file."
     Just version -> do
       opts <- toRecord <$> (cmdArgs $ startOptions version)
-      -- Todo: Do better error handling here.
-      config <- decodeFileEither $ 
-         homeDir ++ bedelibryDir ++ configFileName :: IO (Either ParseException Object)
+      configFile <- decodeFileEither $ homeDir ++
+                            bedelibryDir ++ configFileName :: IO (Either ParseException Object)
       -- Parse yaml
-      case config of
+      case configFile of
+        Left (InvalidYaml (Just (YamlException str))) | isPrefixOf "Yaml file not found" str ->
+            case fromRecord opts of
+              Nothing -> error ""
+              Just opts' -> do
+                return $ Right $ AppConfig { version = version, options = opts', languageOptions = defaultLanguageOptions }
         Left err -> do
           error $ show err
         Right object -> do

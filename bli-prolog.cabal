@@ -141,6 +141,7 @@ library
       OverloadedStrings
       MultiParamTypeClasses
       PatternSynonyms
+      ScopedTypeVariables
       TypeFamilies
   default-language: Haskell2010
 
