@@ -9,6 +9,8 @@ module Control.Monad.Bli.Trans.Generic (
   MVarBliT(..),
   IORefBliT(..),
   NewAliasResult(..),
+  unwrap,
+  getIORefOfStore,
   -- High-level interface
   runBli,
   initBli,
@@ -129,6 +131,9 @@ instance MonadIO m => BliWrapper MVarBliT m where
 
 unwrap :: IORefBliT t1 t2 t3 t4 alias IO a -> IORef (BliStore t1 t2 t3 t4 alias) -> IO a
 unwrap (IORefBliT x) = runReaderT x
+
+getIORefOfStore :: IORefBliT t1 t2 t3 t4 alias IO (IORef (BliStore t1 t2 t3 t4 alias))
+getIORefOfStore = IORefBliT ask
 
 instance BliWrapper IORefBliT IO where
   getStore      = IORefBliT $ ReaderT $ \ioRef -> readIORef ioRef

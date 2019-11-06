@@ -24,8 +24,10 @@ import Bli.Prolog.Parser
 import Bli.Prolog.Parser.Cli
 import Control.Applicative
 import Control.Monad.Bli
+import Control.Monad.Bli.Common
 import Control.Monad.Bli.Conversions
 import Control.Monad.IO.Class
+import Data.IORef
 
 import qualified Control.Monad.Bli.Pure as Pure
 
@@ -99,16 +101,16 @@ requestHandler Nothing = return Nothing
 newServer :: Int -> Bli ()
 newServer port = do
   homeDir <- liftIO $ getHomeDirectory
-  store   <- getStore
+  ioRef   <- getIORefOfStore
   -- Get keys and certificates.
   let tSet = tlsSettings (homeDir ++ "/.bedelibry/prolog-server/server.crt") 
                          (homeDir ++ "/.bedelibry/prolog-server/server.key")
   -- Run the server on the given port.
-  liftIO $ runTLS tSet (setPort port defaultSettings) ( \x -> \y -> (runBliWithStore store) $ app x y)
+  liftIO $ runTLS tSet (setPort port defaultSettings) ( \x -> \y -> app x y ioRef)
 
 -- | Warp application for our server.
-app :: Request -> (Response -> IO ResponseReceived) -> Bli ResponseReceived
-app req respond = 
+app :: Request -> (Response -> IO ResponseReceived) -> IORef (BliStore FactContainer RelationContainer EntityContainer TypeContainer AliasDatastructure) -> IO ResponseReceived
+app req respond = unwrap $  
      (liftIO . respond)
  =<< processResponse
  =<< requestHandler
