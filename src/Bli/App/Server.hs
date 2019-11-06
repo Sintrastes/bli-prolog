@@ -108,7 +108,7 @@ newServer port = do
 
 -- | Warp application for our server.
 app :: Request -> (Response -> IO ResponseReceived) -> Bli ResponseReceived
-app store req respond = 
+app req respond = 
      (liftIO . respond)
  =<< processResponse
  =<< requestHandler
