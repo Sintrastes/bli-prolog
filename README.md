@@ -12,7 +12,7 @@ Checklist to 1.0
 - [ ] Implement higher-order predicates.
 - [ ] Implement full Haskell interop.
 - [x] Implement language feature enabling/disabling.
-- [ ] Write a simple REST API.
+- [x] Write a simple REST API.
 
 How to install
 ==============
