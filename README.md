@@ -55,6 +55,11 @@ Or on Windows with chocolatey:
   choco install haskell-stack
 ~~~
 
+Getting started
+---------------
+
+After following the installation steps above, you should now have the executables `blipl` and `blic`, which are the interpreter and compiler for Bedelibry Prolog respectively. Passing `--help` to either of these executables gives some helpful documentation of their command-line arguments, and this readme file provides some basic examples and explanation of the features of the language. For a more detailed guide, you can consult the [manual](resc/manual/bedelibry_manual.pdf), which is currently being written. 
+
 Language Features
 =================
 
