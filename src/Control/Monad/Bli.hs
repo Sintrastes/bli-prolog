@@ -16,7 +16,7 @@ import Data.Bli.Prolog.Ast
 import Data.Bli.Prolog.Schema
 import Bli.App.Config.Data (AppConfig)
 import Control.Monad.Bli.Generic as ReExport hiding (Bli(..))
-import qualified Control.Monad.Bli.MVar.Generic as Generic
+import qualified Control.Monad.Bli.Generic as Generic
 import Control.Monad.Bli.Common
 
 -- | A monad for wrapping computations done (and run) in bli prolog.

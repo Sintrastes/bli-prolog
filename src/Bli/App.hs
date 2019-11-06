@@ -15,7 +15,7 @@ import Bli.Prolog.SearchStrategies
 import Bli.Prolog.Typechecking
 import Control.Monad.Bli
 import Control.Monad.Bli.Common (ProcContainer(..))
-import Control.Monad.Bli.Pure (liftFromPure)
+import Control.Monad.Bli.Conversions
 import Bli.App.Api
 import Bli.App.Config
 import Data.Aeson

@@ -6,4 +6,4 @@ module Control.Monad.Bli.Generic (
 
 import Control.Monad.Bli.Trans.Generic
 
-type Bli t1 t2 t3 t4 alias a = BliT t1 t2 t3 t4 alias IO a
+type Bli t1 t2 t3 t4 alias a = StateBliT t1 t2 t3 t4 alias IO a

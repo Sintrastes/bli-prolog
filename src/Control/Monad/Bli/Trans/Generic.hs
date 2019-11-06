@@ -1,4 +1,3 @@
-{-# LANGAUGE GeneralizedNewtypeDeriving #-}
 
 --
 -- | Generic transformer version of the bli monad.
@@ -94,9 +93,17 @@ import Type.Reflection
 
 import Control.Monad.Bli.Trans.Generic.Internal
 
+instance MonadException m => MonadException (IOT m) where
+    controlIO f = fromIO $ join $ runIOT <$> f (RunIO (return))
+
+instance (Monad (t2 m), MonadException (t (t2 m)), MonadIO (t (t2 m)), Monad m) => MonadException (ComposeT t t2 m) where
+    controlIO f = do 
+        ComposeT x <- liftIO $ f (RunIO return)
+        ComposeT x
+
 -- Note: To get this to work, we need this to be a newtype.
-instance MonadException m => MonadException (StateBliT t1 t2 t3 t4 alias m) where
-instance MonadException m => MonadException (MVarBliT t1 t2 t3 t4 alias m) where
+deriving instance MonadException m => MonadException (StateBliT t1 t2 t3 t4 alias m)
+deriving instance MonadException m => MonadException (MVarBliT t1 t2 t3 t4 alias m)
 
 newtype StateBliT t1 t2 t3 t4 alias m a =  StateBliT { runBliT :: StateT (BliStore t1 t2 t3 t4 alias) m a }
 

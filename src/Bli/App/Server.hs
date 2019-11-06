@@ -23,8 +23,8 @@ import Bli.Prolog.Typechecking
 import Bli.Prolog.Parser
 import Bli.Prolog.Parser.Cli
 import Control.Applicative
-import Control.Monad.Bli.MVar
-import Control.Monad.Bli.Pure (liftMVarFromPure)
+import Control.Monad.Bli
+import Control.Monad.Bli.Conversions
 import Control.Monad.IO.Class
 
 import qualified Control.Monad.Bli.Pure as Pure
@@ -53,7 +53,7 @@ processResponse Nothing = return $ responseBuilder badRequest400 [] "Bad request
 -- There are a lot of cases here that will never be reached.
 requestHandler :: Maybe BliRequest -> Bli (Maybe BliResponse)
 requestHandler (Just (MakeQuery query)) 
-  = do parseResult <- liftMVarFromPure $ parseBliCommandTyped query
+  = do parseResult <- liftFromPure $ parseBliCommandTyped query
        case parseResult of 
          Left err -> return $ Just $ SyntaxError $ BoundVarNotInBody -- "Some error. Replace me!"
          Right command -> do
@@ -72,7 +72,7 @@ requestHandler (Just (MakeQuery query))
              Result_AssertionFail_AtomsNotInSchema atoms -> do
                  return $ Just $ SyntaxError $ BoundVarNotInBody -- "replace me."
 requestHandler (Just (MakeAssertion assertion))
-  = do parseResult <- liftMVarFromPure $ parseBliCommandTyped assertion
+  = do parseResult <- liftFromPure $ parseBliCommandTyped assertion
        case parseResult of
          Left err -> return $ Just $ SyntaxError $ BoundVarNotInBody -- "replace me."
          Right command -> do

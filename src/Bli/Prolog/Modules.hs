@@ -12,7 +12,7 @@ import Text.Parsec.Char
 import Text.Parsec 
 import Control.Monad
 import Control.Monad.Bli
-import Control.Monad.Bli.Pure (liftFromPure)
+import Control.Monad.Bli.Conversions
 import Bli.App.Config (getBliModuleData)
 import Data.Yaml
 import Bli.Util (groupClauses)

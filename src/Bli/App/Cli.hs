@@ -5,7 +5,9 @@
 
 module Bli.App.Cli where
 
-import Control.Monad.Bli.MVar
+import Data.Convert
+import Control.Monad.Bli.Conversions
+import Control.Monad.Bli
 import Control.Monad
 import Control.Exception.Base
 import qualified Control.Monad.Bli.Pure as Pure
@@ -37,7 +39,7 @@ import System.Console.CmdArgs as CA hiding (program)
 -- import System.Console.Readline
 import Control.Monad.IO.Class
 import Data.BliParser
-import Control.Monad.Bli.Pure (liftFromPure, liftMVarFromPure)
+import Control.Monad.Bli.Conversions
 import System.Console.Haskeline hiding (catch)
 import Control.Monad.Trans.Class (lift)
 
@@ -164,7 +166,7 @@ processCliInput input = do
   let colorOpts = not $ nocolor opts
 
   -- Parse and handle the command
-  parserOutput <- liftMVarFromPure $ parseBliCommandTyped input
+  parserOutput <- liftFromPure $ parseBliCommandTyped input
   case parserOutput of
     Left err -> do printResponse $ ((red colorOpts "Error")++" parsing query string:")
                    printResponse $ foldr1 (\x -> \y -> x ++ "\n" ++ y) $
@@ -325,7 +327,7 @@ handleBliReplCommand blicmd = do
              Just fileContents -> do
                case fileExtension filePath of
                   PlainPlExtension   -> do
-                    parseResult <- liftMVarFromPure $ clausesFromString fileContents
+                    parseResult <- liftFromPure $ clausesFromString fileContents
                     case parseResult of
                         Left e -> printResponse "There has been a parse error."
                         Right clauses -> do
@@ -333,7 +335,7 @@ handleBliReplCommand blicmd = do
                              -- modifyProgram (\x -> x ++ clauses)
                   BliPlExtension  -> do
                      -- Currently this will only parse the typed version
-                     parseResult <- liftMVarFromPure $ parseTypedBli fileContents
+                     parseResult <- liftFromPure $ parseTypedBli fileContents
                      case parseResult of
                          Left e -> printResponse "There has been a parse error."
                          Right lines -> do
@@ -345,7 +347,7 @@ handleBliReplCommand blicmd = do
                              newRelations relations
                              return ()
                   SchemaFileExtension -> do
-                     parseResult <- liftMVarFromPure $ parseTypedSchema fileContents
+                     parseResult <- liftFromPure $ parseTypedSchema fileContents
                      case parseResult of
                          Left e -> printResponse "There has been a parse error."
                          Right entries -> do
@@ -391,7 +393,7 @@ handleBliReplCommand blicmd = do
               printResponse $ "Or a pre-existing alias of a primary ID."
               repl
       GetTypeOf input -> do
-        parseResult <- liftMVarFromPure $ parseBli atomP input
+        parseResult <- liftFromPure $ parseBli atomP input
         case parseResult of
           Left e -> do 
             printResponse $ show e

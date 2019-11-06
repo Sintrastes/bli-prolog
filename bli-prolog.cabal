@@ -77,7 +77,9 @@ library
       Control.Monad.Bli.Trans
       Control.Monad.Bli.Trans.Generic
       Control.Monad.Bli
+      Control.Monad.Bli.TH
       Control.Monad.Bli.MVar
+      Control.Monad.Bli.Conversions
       Control.Monad.Bli.MVar.Generic
       Control.Monad.Bli.Generic
       Control.Monad.Bli.Pure
@@ -103,6 +105,7 @@ library
     , mmorph
     , either
     , pretty
+    , convert
     , servant
     , process
     , data-default
@@ -148,6 +151,7 @@ library
       DeriveLift
       TemplateHaskell
       GeneralizedNewtypeDeriving
+      ConstraintKinds
       OverloadedStrings
       MultiParamTypeClasses
       PatternSynonyms
