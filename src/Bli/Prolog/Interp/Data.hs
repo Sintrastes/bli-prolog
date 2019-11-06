@@ -6,12 +6,13 @@ import Data.Bli.Prolog.Ast
 import qualified Text.PrettyPrint as PP
 import Text.PrettyPrint ((<>),(<+>))
 import qualified Data.Char as C
+import GHC.Generics
 
 -- | Datatype representing the solution to a prolog query.
 data Solution = 
    Solution [(Variable, Term)]
  | ProcReturn
-  deriving (Eq, Read)
+  deriving (Eq, Read, Generic)
 
 
 -- | Helper function for showing solutions.

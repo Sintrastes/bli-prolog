@@ -53,6 +53,7 @@ library
       Bli.Prolog.Compiler.TH
       Bli.App
       Bli.App.Server
+      Bli.App.Server.Api
       Bli.App.Cli
       Bli.App.Api
       Bli.App.Formatting
@@ -102,6 +103,7 @@ library
     , mmorph
     , either
     , pretty
+    , servant
     , process
     , data-default
     , witherable
@@ -145,6 +147,7 @@ library
       DeriveDataTypeable
       DeriveLift
       TemplateHaskell
+      GeneralizedNewtypeDeriving
       OverloadedStrings
       MultiParamTypeClasses
       PatternSynonyms
@@ -181,7 +184,7 @@ executable blic
     TemplateHaskell
   default-language: Haskell2010
 
-test-suite bli-prolog-test-suite
+test-suite main-tests
   type: exitcode-stdio-1.0
   main-is: Tests.hs
   other-modules:
@@ -205,7 +208,7 @@ test-suite bli-prolog-test-suite
       TemplateHaskell, QuasiQuotes
   default-language: Haskell2010
 
-test-suite bli-prolog-parser-test-suite
+test-suite parser
   type: exitcode-stdio-1.0
   main-is: ParserTests.hs
   other-modules:

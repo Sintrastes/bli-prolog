@@ -12,6 +12,8 @@ import Text.Parsec.Combinator
 import Text.Parsec.Char
 import Text.Parsec 
 import Data.BliParser
+import Bli.App.Config
+import Bli.App.Config.Features
 
 dayP :: BliParser InternalTime
 dayP = do
@@ -39,5 +41,5 @@ yearP = do
 
 timePeriodP :: BliParser TimePeriodInternal
 timePeriodP = do
-  periods <- sepBy1 (try dayP <|> try monthP <|> yearP) (symb "\\/")
+  periods <- sepBy1 (try dayP <|> try monthP <|> yearP) ( try (ifEnabledP UnicodeSyntax (symb "∨")) <|> (symb "\\/"))
   return $ InternalUnion periods
