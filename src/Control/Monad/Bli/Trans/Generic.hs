@@ -86,6 +86,7 @@ import Control.Monad.Trans (lift)
 import Control.Monad.Trans.Reader
 import Control.Monad.Trans.Compose
 import Control.Monad.Trans.IO
+import Data.IORef
 
 -- For dealing with user-defined "proc" types.
 import Data.Dynamic
@@ -114,6 +115,8 @@ instance Monad m => BliWrapper StateBliT m where
 
 newtype MVarBliT t1 t2 t3 t4 alias m a = MVarBliT { runMVarBliT :: (ComposeT IOT (ReaderT (MVar (BliStore t1 t2 t3 t4 alias))) ) m a }
 
+newtype IORefBliT t1 t2 t3 t4 alias m a = IORefBliT { runIORefBliT :: (ComposeT IOT (ReaderT (IORef (BliStore t1 t2 t3 t4 alias))) ) m a }
+
 instance MonadIO m => BliWrapper MVarBliT m where
   getStore      =  MVarBliT $ ComposeT $ sequenceIO $ takeMVar <$> ask
   modifyStore f =  MVarBliT $ ComposeT $ sequenceIO $ ((\var -> modifyMVar_ var (return . f)) <$> ask)
@@ -121,6 +124,14 @@ instance MonadIO m => BliWrapper MVarBliT m where
                mvar <- liftIO $ newMVar state
                app' <- liftIO $ runIOT app
                runReaderT app' mvar
+
+instance MonadIO m => BliWrapper IORefBliT m where
+  getStore      = IORefBliT $ ComposeT $ sequenceIO $ readIORef <$> ask
+  modifyStore f = IORefBliT $ ComposeT $ sequenceIO $ ((\var -> modifyIORef var f) <$> ask)
+  evalBliT (IORefBliT (ComposeT app)) state = do
+               ioRef <- liftIO $ newIORef state
+               app' <- liftIO $ runIOT app
+               runReaderT app' ioRef
 
 deriving instance Functor m => Functor (MVarBliT t1 t2 t3 t4 alias m)
 deriving instance Functor m => Functor (StateBliT t1 t2 t3 t4 alias m)
