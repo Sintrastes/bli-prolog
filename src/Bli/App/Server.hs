@@ -45,7 +45,7 @@ parseRequest req
 processResponse :: Maybe BliResponse -> Bli Response
 processResponse (Just (SyntaxError err)) = return $ responseBuilder badRequest400 [] "Syntax error"
 processResponse (Just (QuerySuccess response)) = return $ jsonResponse $ byteString $ BU.fromString $ response
-processResponse (Just AssertionSuccess) = return $ responseBuilder status200 [] ""
+processResponse (Just AssertionSuccess) = return $ responseBuilder status200 [] "Assertion success"
 processResponse Nothing = return $ responseBuilder badRequest400 [] "Bad request"
 
 -- This is where the magic happens.
@@ -61,16 +61,16 @@ requestHandler (Just (MakeQuery query))
            -- Todo: This should handle all errors, not just the first one.
            case head results of
              Result_QueryFail_AtomsNotInSchema atoms -> do
-                 return $ Just $ SyntaxError $ BoundVarNotInBody -- "Query fail, replace me."
+                 return $ Just $ QuerySuccess "Query fail: Atoms not in schema" -- "Query fail, replace me."
              Result_QueryFail_BoundVarNotInBody -> do
-                 return $ Just $ SyntaxError $ BoundVarNotInBody -- "Query fail, replace me."
+                 return $ Just $ QuerySuccess "Query fail: Bound var not in body." -- "Query fail, replace me."
              Result_QuerySuccess solutions -> do
-                 return $ Just $ SyntaxError $ BoundVarNotInBody -- "Query success, replace me."
+                 return $ Just $ QuerySuccess (show solutions)
         -- These will never happen.
              Result_AssertionSuccess -> do
-                 return $ Just $ SyntaxError $ BoundVarNotInBody -- "replace me."
+                 return $ Just $ AssertionSuccess
              Result_AssertionFail_AtomsNotInSchema atoms -> do
-                 return $ Just $ SyntaxError $ BoundVarNotInBody -- "replace me."
+                 return $ Just $ QuerySuccess "Assertion fail" -- "replace me."
 requestHandler (Just (MakeAssertion assertion))
   = do parseResult <- liftFromPure $ parseBliCommandTyped assertion
        case parseResult of
@@ -81,16 +81,16 @@ requestHandler (Just (MakeAssertion assertion))
            case head results of
            -- These will never happen
              Result_QueryFail_AtomsNotInSchema atoms -> do
-                 return $ Just $ SyntaxError $ BoundVarNotInBody -- "replace me."
+                 return $ Just $ QuerySuccess "Query fail: Atoms not in schema." -- "replace me."
              Result_QueryFail_BoundVarNotInBody -> do
-                 return $ Just $ SyntaxError $ BoundVarNotInBody -- "replace me."
+                 return $ Just $ QuerySuccess "Query fail: Bound var not in body." -- "replace me."
              -- These will happen.
              Result_QuerySuccess solutions -> do
-               return $ Just $ SyntaxError $ BoundVarNotInBody -- "replace me."
+               return $ Just $ QuerySuccess (show solutions) -- "replace me."
              Result_AssertionSuccess -> do
-               return $ Just $ SyntaxError $ BoundVarNotInBody -- "replace me."
+               return $ Just $ AssertionSuccess
              Result_AssertionFail_AtomsNotInSchema atoms -> do
-               return $ Just $ SyntaxError $ BoundVarNotInBody -- "replace me."
+               return $ Just $ QuerySuccess "Assertion fail: Atoms not in schema." -- "replace me."
 -- If we recieve an unsupported request, return the appropriate
 -- response.
 requestHandler Nothing = return Nothing
@@ -108,7 +108,7 @@ newServer port = do
 
 -- | Warp application for our server.
 app :: Request -> (Response -> IO ResponseReceived) -> Bli ResponseReceived
-app req respond = 
+app store req respond = 
      (liftIO . respond)
  =<< processResponse
  =<< requestHandler
