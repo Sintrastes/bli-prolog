@@ -81,6 +81,8 @@ library
       Control.Monad.Bli.MVar
       Control.Monad.Bli.Conversions
       Control.Monad.Bli.MVar.Generic
+      Control.Monad.Bli.IORef
+      Control.Monad.Bli.IORef.Generic
       Control.Monad.Bli.Generic
       Control.Monad.Bli.Pure
       Control.Monad.Bli.Pure.Generic

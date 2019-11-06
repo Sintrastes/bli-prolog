@@ -13,9 +13,9 @@ import Bli.Prolog.Interp
 import Bli.Prolog.Interp.Data
 import Bli.Prolog.SearchStrategies
 import Bli.Prolog.Typechecking
-import Control.Monad.Bli
+import Control.Monad.Bli.IORef
 import Control.Monad.Bli.Common (ProcContainer(..))
-import Control.Monad.Bli.Conversions
+import Control.Monad.Bli.Conversions (liftIORefFromPure)
 import Bli.App.Api
 import Bli.App.Config
 import Data.Aeson

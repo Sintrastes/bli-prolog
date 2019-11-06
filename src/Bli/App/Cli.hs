@@ -6,8 +6,8 @@
 module Bli.App.Cli where
 
 import Data.Convert
-import Control.Monad.Bli.Conversions
-import Control.Monad.Bli
+import Control.Monad.Bli.Conversions (liftIORefFromPure)
+import Control.Monad.Bli.IORef
 import Control.Monad
 import Control.Exception.Base
 import qualified Control.Monad.Bli.Pure as Pure
@@ -39,9 +39,10 @@ import System.Console.CmdArgs as CA hiding (program)
 -- import System.Console.Readline
 import Control.Monad.IO.Class
 import Data.BliParser
-import Control.Monad.Bli.Conversions
 import System.Console.Haskeline hiding (catch)
 import Control.Monad.Trans.Class (lift)
+
+liftFromPure = liftIORefFromPure
 
 -- | Helper function to get the file extension of a filepath.
 fileExtension :: String -> String

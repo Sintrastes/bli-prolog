@@ -7,6 +7,7 @@ module Control.Monad.Bli.Trans.Generic (
   BliT(..),
   StateBliT(..),
   MVarBliT(..),
+  IORefBliT(..),
   NewAliasResult(..),
   -- High-level interface
   runBli,
@@ -105,6 +106,7 @@ instance (Monad (t2 m), MonadException (t (t2 m)), MonadIO (t (t2 m)), Monad m) 
 -- Note: To get this to work, we need this to be a newtype.
 deriving instance MonadException m => MonadException (StateBliT t1 t2 t3 t4 alias m)
 deriving instance MonadException m => MonadException (MVarBliT t1 t2 t3 t4 alias m)
+deriving instance MonadException m => MonadException (IORefBliT t1 t2 t3 t4 alias m)
 
 newtype StateBliT t1 t2 t3 t4 alias m a =  StateBliT { runBliT :: StateT (BliStore t1 t2 t3 t4 alias) m a }
 
@@ -135,15 +137,19 @@ instance MonadIO m => BliWrapper IORefBliT m where
 
 deriving instance Functor m => Functor (MVarBliT t1 t2 t3 t4 alias m)
 deriving instance Functor m => Functor (StateBliT t1 t2 t3 t4 alias m)
+deriving instance Functor m => Functor (IORefBliT t1 t2 t3 t4 alias m)
 
 deriving instance Monad m => Applicative (MVarBliT t1 t2 t3 t4 alias m)
 deriving instance Monad m => Applicative (StateBliT t1 t2 t3 t4 alias m)
+deriving instance Monad m => Applicative (IORefBliT t1 t2 t3 t4 alias m)
 
 deriving instance Monad m => Monad (MVarBliT t1 t2 t3 t4 alias m)
 deriving instance Monad m => Monad (StateBliT t1 t2 t3 t4 alias m)
+deriving instance Monad m => Monad (IORefBliT t1 t2 t3 t4 alias m)
 
 deriving instance (MonadIO m) => MonadIO (MVarBliT t1 t2 t3 t4 alias m)
 deriving instance (MonadIO m) => MonadIO (StateBliT t1 t2 t3 t4 alias m)
+deriving instance (MonadIO m) => MonadIO (IORefBliT t1 t2 t3 t4 alias m)
 
 type BliT = StateBliT
 
