@@ -16,7 +16,6 @@ import Distribution.Simple
 import Distribution.Verbosity
 import Distribution.PackageDescription.Parsec
 import Control.Monad
-import System.Cmd
 import Data.ByteString (writeFile)
 import System.Process
 import System.Directory

@@ -111,6 +111,7 @@ data Options =
           , server'        :: Bool
           , bedelibryMode' :: String
           , port'          :: Maybe Int
+          , prompt'        :: Bool
           , burl'          :: String
           }
   deriving (Show, Data, Typeable)

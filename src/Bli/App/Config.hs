@@ -171,17 +171,32 @@ parseBliReplCommand input =
 -- | The banner which is displayed when the user first loads the repl.
 --   Note: To automate this, I need some sort of pretty printing library.
 replBanner :: String -> Bool -> String
-replBanner version colorOpts = foldr1 (\x -> \y -> x ++ "\n" ++ y) $
-    [""
-    ,"  |      |            |"
-    ,"  |      |  .         |"
-    ,"  |---|  |     |---|  |"
-    ,"  |   |  |  |  |   |  |"
-    ,"  |---|  |  |  |---|  |"
-    ,"               |"
-    ,"               |"
-    ,"Welcome to the bli-prolog interpreter v" ++ version ++ "! (C) Nathan Bedell 2019"
-    ,"Type "++(blue colorOpts $ bliReplCommandString Cmd_Help)++" for help, or "++(blue colorOpts $ bliReplCommandString Cmd_Exit)++" to quit."]
+replBanner version colorOpts = 
+    "\n"++
+    "  |      |            |\n"++
+    "  |      |  .         |\n"++
+    "  |---|  |     |---|  |\n"++
+    "  |   |  |  |  |   |  |\n"++
+    "  |---|  |  |  |---|  |\n"++
+    "               |\n"++
+    "               |\n"++
+    "Welcome to the bli-prolog interpreter v" ++ version ++"\n"++
+    "Type "++(blue colorOpts $ bliReplCommandString Cmd_Help)++" for help, or "++(blue colorOpts $ bliReplCommandString Cmd_Exit)++" to quit."
+
+-- | The banner which is displayed when the user first loads the repl in server mode.
+--   Note: To automate this, I need some sort of pretty printing library.
+serverReplBanner :: String -> Bool -> String
+serverReplBanner version colorOpts = 
+    "\n"++
+    "  |      |            |\n"++
+    "  |      |  .         |\n"++
+    "  |---|  |     |---|  |\n"++
+    "  |   |  |  |  |   |  |\n"++
+    "  |---|  |  |  |---|  |\n"++
+    "               |\n"++
+    "               |\n"++
+    "Welcome to the bli-prolog server v" ++ version ++ "\n"++
+    "Type "++(blue colorOpts $ bliReplCommandString Cmd_Help)++" for help, or "++(blue colorOpts $ bliReplCommandString Cmd_Exit)++" to quit."
 
 -- | Help screen to print when :h is called in the REPL
 replHelpScreen :: Bool -> IO String
@@ -265,11 +280,25 @@ instance IsRecord AppConfig where
                            Map.lookup "bedelibryMode" record :: Maybe (Maybe String)) 
     port <- join $ ((\(Typ x) -> cast x) <$> Map.lookup "port" record :: Maybe (Maybe (Maybe Int))) 
     burl <- join $ ((\(Typ x) -> cast x) <$> Map.lookup "burl" record :: Maybe (Maybe String))
-    version <- join $ ((\(Typ x) -> cast x) <$> Map.lookup "burl" record :: Maybe (Maybe String))
-    return $ AppConfig (Options search program schema goal limit depth verbose
-                                nocolor json server bedelibryMode port burl)
-                        version
-                        defaultLanguageOptions
+    let version = "" -- join $ ((\(Typ x) -> cast x) <$> Map.lookup "burl" record :: Maybe (Maybe String))
+    prompt <- join $ ((\(Typ x) -> cast x) <$> Map.lookup "prompt" record :: Maybe (Maybe Bool))
+    return $ AppConfig (Options { 
+                   search'  = search
+                 , program' = program
+                 , schema' = schema
+                 , goal' = goal
+                 , limit' = limit
+                 , depth' = depth
+                 , verbose' = verbose
+                 , nocolor' = nocolor
+                 , json' = json
+                 , server' = server
+                 , bedelibryMode' = bedelibryMode
+                 , port' = port
+                 , prompt' = prompt
+                 , burl' = burl })
+               version
+               defaultLanguageOptions
   toRecord (AppConfig options version langOptions) = 
       toRecord options #> 
       Map.fromList [("version", Typ version)]
@@ -289,16 +318,44 @@ instance IsRecord Options where
     bedelibryMode <- join $ ((\(Typ x) -> cast x) <$>
                            Map.lookup "bedelibryMode" record :: Maybe (Maybe String)) 
     port <- join $ ((\(Typ x) -> cast x) <$> Map.lookup "port" record :: Maybe (Maybe (Maybe Int))) 
+    prompt <- join $ ((\(Typ x) -> cast x) <$> Map.lookup "prompt" record :: Maybe (Maybe Bool))
     burl <- join $ ((\(Typ x) -> cast x) <$> Map.lookup "burl" record :: Maybe (Maybe String))
-    return $ Options search program schema goal limit depth verbose
-                     nocolor json server bedelibryMode port burl
-  toRecord (Options search program schema goal limit depth verbose
-                    nocolor json server bedelibryMode port burl) =
+    return $ Options { 
+                search' = search
+              , program' = program
+              , schema' = schema
+              , goal' = goal
+              , limit' = limit
+              , depth' = depth
+              , verbose' = verbose
+              , nocolor' = nocolor
+              , json' = json
+              , server' = server
+              , bedelibryMode' = bedelibryMode
+              , port' = port
+              , prompt' = prompt
+              , burl' = burl }
+
+  toRecord (Options { 
+                search' = search
+              , program' = program
+              , schema' = schema
+              , goal' = goal
+              , limit' = limit
+              , depth' = depth
+              , verbose' = verbose
+              , nocolor' = nocolor
+              , json' = json
+              , server' = server
+              , bedelibryMode' = bedelibryMode
+              , port' = port
+              , prompt' = prompt
+              , burl' = burl }) =
      Map.fromList [("search", Typ search), ("program", Typ program), ("schema", Typ schema)
                   ,("goal", Typ goal), ("limit", Typ limit), ("depth", Typ depth)
                   ,("verbose", Typ verbose), ("nocolor", Typ nocolor), ("json", Typ json)
                   ,("server", Typ server), ("bedelibryMode", Typ bedelibryMode)
-                  ,("port", Typ port), ("burl", Typ burl)]
+                  ,("port", Typ port), ("prompt", Typ prompt), ("burl", Typ burl)]
 
 -- Funcctions to get data from the AppConfig
 search (AppConfig options _ _) = search' options
@@ -313,7 +370,7 @@ json (AppConfig options _ _) = json' options
 server (AppConfig options _ _) = server' options
 port (AppConfig options _ _) = port' options
 burl (AppConfig options _ _) = burl' options
-
+prompt (AppConfig options _ _) = prompt' options
 
 -- Functions to get langauge options from the AppConfig
 
@@ -368,6 +425,7 @@ startOptions version =
           , json' = False &= help "Specify whether or not json output formatting is used for queries."
           , server' = False &= help "Starts a REST server for processing bli prolog queries if set."
           , port' = def &= help "Port number to start the server."
+          , prompt' = False &= help "Specify whether or not to run a server with a prompt."
           , burl' = def &= help "URL of the bedelibry server configured to work with bli-prolog."
           -- For example, bli-prolog can be configured to only send assertions to the server
           -- on an explicit :export-bedelibry command, or this can be done automatically.
@@ -415,6 +473,7 @@ configureApplication = do
           let serverF = HashMap.lookup "server" object 
           let portF = HashMap.lookup "port" object 
           let burlF = HashMap.lookup "burl" object 
+          let promptF = HashMap.lookup "prompt" object 
           let bedelibryModeF = HashMap.lookup "bedelibryMode" object 
           let verboseF = HashMap.lookup "verbose" object
           -- Now, I'll want to do something here in the Maybe monad to send
@@ -502,6 +561,11 @@ configureApplication = do
                        Nothing -> Just $ Typ $ (Nothing :: Maybe Int)
                        _ -> Nothing
              
+               let promptF' =
+                     case promptF of
+                       Just (Bool b) -> Just $ Typ $ b
+                       _ -> Nothing
+
                -- burl <- burlF
                let burlF' =
                      case burlF of
@@ -517,7 +581,7 @@ configureApplication = do
                          ("verbose",verboseF'),("nocolor",nocolorF'),
                          ("json",jsonF'),("server",serverF'),
                          ("bedelibryMode",bedelibryModeF'),
-                         ("port",portF'),("burl",burlF')]
+                         ("port",portF'),("prompt",promptF'),("burl",burlF')]
                -- Extracts all the "Just" entries, removing the "Nothing"s
           let fromJust (Just x) = x
           let newRecordFields = mapMaybe id $ fromJust $ maybeFields

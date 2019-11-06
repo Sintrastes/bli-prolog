@@ -155,6 +155,7 @@ library
       GeneralizedNewtypeDeriving
       ConstraintKinds
       OverloadedStrings
+      BangPatterns
       MultiParamTypeClasses
       PatternSynonyms
       ScopedTypeVariables

@@ -32,7 +32,9 @@ main = do
   result <- configureApplication
   -- Make sure version loaded from file successfully.
   case result of 
-    Left err -> putStrLn $ (red True) "Error loading command line options. Aborting."
+    Left err -> do 
+      putStrLn $ (red True) "Error loading command line options. Aborting."
+      putStrLn err
     Right opts -> do
       let versionStr = version opts
       let colorOpts = not $ nocolor opts
@@ -65,8 +67,16 @@ main = do
               case (port opts) of
                 Just n -> do
                     putStrLn "Warning: Need to load files here."
-                    initBli opts (do forkBli (newServer n)
-                                     repl)
+                    case prompt opts of
+                      True -> do 
+                        -- Print the main banner if options set to verbose.
+                        if (verbose opts) 
+                          then putStrLn $ serverReplBanner versionStr colorOpts 
+                          else return ()
+                        initBli opts (do forkBli (newServer n)
+                                         repl)
+                      False -> do
+                        initBli opts (newServer n)
                 Nothing -> putStrLn "Please specify a port number to use the server."
         -- If not configured to start server...
             False -> do
