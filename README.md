@@ -273,10 +273,11 @@ Being able to work with such datatypes simply and naturally is one of the things
 important when working with bedelibry. For example, when making a query about a remark that was made
 at a certain time.
 
-In the future, we may also implement binary operators for operating on periods, for example:
+The built-in binary operator `\/` can be used to create more general unions of periods, for example:
 ~~~
-  2019-10 \/ 2019-11 \/ 2019-12 : period.
+  '2019-10 \/ '2019-11 \/ '2019-12 : period.
 ~~~
+If `UnicodeSyntax` is enabled, then `∨` or `∪` can be used in place of `\/`. In the future, we may also support `/\` (or `∩` and `∧` with `UnicodeSyntax`) for intersections of periods.
 
 Aliases
 -------
