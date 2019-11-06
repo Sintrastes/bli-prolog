@@ -20,6 +20,13 @@ import Bli.Prolog.Parser
 import Control.Monad (when)
 import Data.List (intersperse, isPrefixOf)
 import Data.List.Split
+import Control.Concurrent (forkIO, ThreadId)
+import Control.Monad.IO.Class
+
+forkBli :: Bli () -> Bli ThreadId
+forkBli app = do
+  ioRef <- getIORefOfStore
+  liftIO $ forkIO $ unwrap app ioRef
 
 main = do
   result <- configureApplication
@@ -58,7 +65,8 @@ main = do
               case (port opts) of
                 Just n -> do
                     putStrLn "Warning: Need to load files here."
-                    initBli opts (newServer n)
+                    initBli opts (do forkBli (newServer n)
+                                     repl)
                 Nothing -> putStrLn "Please specify a port number to use the server."
         -- If not configured to start server...
             False -> do
