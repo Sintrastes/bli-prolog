@@ -63,6 +63,8 @@ Bedelibry prolog has some features which differentiate it from pure prolog (i.e.
 Server mode
 -----------
 
+In addition to the interpreter, Bli Prolog can be run in server mode when the `--server` flag is passed as a command line option, which enables remote interaction via a simple REST API.  The server can be run either in headless mode (which is default), or with a REPL if a `--prompt` flag is also passed as a command line option.
+
 ![](resc/server_usage.gif)
 
 Unicode support
