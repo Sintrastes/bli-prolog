@@ -110,6 +110,7 @@ library
     , convert
     , servant
     , process
+    , fuzzyset
     , data-default
     , witherable
     , mtl

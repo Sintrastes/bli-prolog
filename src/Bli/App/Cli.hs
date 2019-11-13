@@ -42,6 +42,10 @@ import Data.BliParser
 import System.Console.Haskeline hiding (catch)
 import Control.Monad.Trans.Class (lift)
 
+import qualified Data.Text as Text
+
+import Data.FuzzySet
+
 liftFromPure = liftIORefFromPure
 
 -- | Helper function to get the file extension of a filepath.
@@ -209,8 +213,8 @@ repl = runInputT defaultSettings loop
               -- liftIO $ addHistory line
               case parseBliReplCommand line of 
                 ParseError err -> do 
-                    printResponse "There was an error parsing the command:"
-                    printResponse $ "  " ++ show err
+                    printResponse $ (red colorOpts "Error") ++ ": " ++ show err
+                    loop
                 DoneParsing blicmd -> do
                     result <- lift $ handleBliReplCommand blicmd
                     case result of
@@ -219,8 +223,26 @@ repl = runInputT defaultSettings loop
                 -- If the user has not entered a REPL command, try processing
                 -- their input as a standard Bedelibry Prolog command.
                 ContinueParsing -> do
-                  lift $ processCliInput line
-                  loop
+                  -- Handle typo suggestions
+                  if ( line /= "" && head line == ':')
+                    then do
+                      if line == ":" 
+                        then do 
+                          printResponse $ (red colorOpts "Error")++": \":\" must be followed by a valid command." 
+                          loop
+                        else do
+                          let fuzzySet = fromList $ map Text.pack commandStringsAll :: FuzzySet
+                          case getOne fuzzySet $ Text.pack (tail line) of
+                            Just suggestion -> do 
+                              printResponse $ (red colorOpts "Error")++
+                                ": Command \""++tail line++"\" not found. Did you mean \""++
+                                (tail $ Text.unpack suggestion)++"\"?"
+                            Nothing -> do 
+                              printResponse $ (red colorOpts "Error")++": Command \""++tail line++"\" not found."
+                          loop
+                    else do 
+                      lift $ processCliInput line
+                      loop
           
 handleBliReplCommand :: BliReplCommand -> Bli Bool
 handleBliReplCommand blicmd = do

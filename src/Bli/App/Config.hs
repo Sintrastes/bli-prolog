@@ -89,6 +89,10 @@ bliReplCommandStrings cmd =
     Cmd_GetTypeOf      -> [":t",":type"]
     Cmd_ShowPort       -> [":port"]
     Cmd_GetPID         -> [":pid"]
+
+-- | A list of all command strings used by the appliation
+commandStringsAll = join $ map bliReplCommandStrings $ enumValues @BliReplCommandType
+
 -- | Takes a BliReplCommandType, and returns just the primary string
 --   which can be used to invoke that command.
 bliReplCommandString :: BliReplCommandType -> String
@@ -150,22 +154,34 @@ parseBliReplCommand input =
     Just cmd -> 
       case typeToCommand cmd of
         Just cmd -> DoneParsing $ cmd
-        Nothing -> ParseError "Invalid format."
+        Nothing -> ParseError "Wrong number of arguments supplied to command. See :help for usage."
     Nothing -> 
       case () of
         -- TODO: Better error handling here.
         _ | any (\cmd -> isPrefixOf cmd input) (bliReplCommandStrings Cmd_LoadFile) ->
-            DoneParsing $ LoadFile $ (splitOn " " input) !! 1
+          if length (splitOn " " input) == 2
+            then DoneParsing $ LoadFile $ (splitOn " " input) !! 1
+            else ContinueParsing
           | any (\cmd -> isPrefixOf cmd input) (bliReplCommandStrings Cmd_ExportFile) ->
-            DoneParsing $ ExportFile $ (splitOn " " input) !! 1
+            if length (splitOn " " input) == 2
+              then DoneParsing $ ExportFile $ (splitOn " " input) !! 1
+              else ContinueParsing
           | any (\cmd -> isPrefixOf cmd input) (bliReplCommandStrings Cmd_Alias) ->
-            DoneParsing $ Alias ((splitOn " " input) !! 1) ((splitOn " " input) !! 2)
+            if length (splitOn " " input) == 3
+              then DoneParsing $ Alias ((splitOn " " input) !! 1) ((splitOn " " input) !! 2)
+              else ContinueParsing
           | any (\cmd -> isPrefixOf cmd input) (bliReplCommandStrings Cmd_SetMode) ->
-            DoneParsing $ SetMode ((splitOn " " input) !! 1)
+            if length (splitOn " " input) == 2
+              then DoneParsing $ SetMode ((splitOn " " input) !! 1)
+              else ContinueParsing
           | any (\cmd -> isPrefixOf cmd input) (bliReplCommandStrings Cmd_GetTypeOf) ->
-            DoneParsing $ GetTypeOf ((splitOn " " input) !! 1)
+            if length (splitOn " " input) == 2
+              then DoneParsing $ GetTypeOf ((splitOn " " input) !! 1)
+              else ContinueParsing
           | any (\cmd -> isPrefixOf cmd input) (bliReplCommandStrings Cmd_GetPID) ->
-            DoneParsing $ GetPID ((splitOn " " input) !! 1)
+            if length (splitOn " " input) == 2
+              then DoneParsing $ GetPID ((splitOn " " input) !! 1)
+              else ContinueParsing
           | otherwise -> ContinueParsing
 
 -- | The banner which is displayed when the user first loads the repl.
