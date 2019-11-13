@@ -386,6 +386,9 @@ json (AppConfig options _ _) = json' options
 server (AppConfig options _ _) = server' options
 port (AppConfig options _ _) = port' options
 burl (AppConfig options _ _) = burl' options
+fuzzySuggest (AppConfig options _ _) = fuzzySuggest' options
+https (AppConfig options _ _) = https' options
+multiErrors (AppConfig options _ _) = multiErrors' options
 prompt (AppConfig options _ _) = prompt' options
 
 -- Functions to get langauge options from the AppConfig
@@ -448,6 +451,7 @@ startOptions version =
           -- In addition, we have this option both for entities, and for facts.
           , fuzzySuggest' = True &= help "Turn on fuzzy suggestions in the typechecker for terms/predicates/types."
           , multiErrors' = False &= help "Tells the type checker to display multiple errors if encountered."
+          , https' = False &= help "Enables use of https in the server."
           , bedelibryMode' = "" &= help "Sets the mode of interaction between bli-prolog and the bedebliry server."
           }
   &= summary ("bli-prolog interpreter v" ++ version ++ ", (C) Nathan Bedell 2019")

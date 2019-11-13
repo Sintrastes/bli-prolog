@@ -114,6 +114,7 @@ data Options =
           , prompt'        :: Bool
           , burl'          :: String
           , fuzzySuggest'  :: Bool
+          , https' :: Bool
           , multiErrors'   :: Bool
           }
   deriving (Show, Data, Typeable)
