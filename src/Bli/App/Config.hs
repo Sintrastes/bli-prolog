@@ -446,6 +446,8 @@ startOptions version =
           -- For example, bli-prolog can be configured to only send assertions to the server
           -- on an explicit :export-bedelibry command, or this can be done automatically.
           -- In addition, we have this option both for entities, and for facts.
+          , fuzzySuggest' = True &= help "Turn on fuzzy suggestions in the typechecker for terms/predicates/types."
+          , multiErrors' = False &= help "Tells the type checker to display multiple errors if encountered."
           , bedelibryMode' = "" &= help "Sets the mode of interaction between bli-prolog and the bedebliry server."
           }
   &= summary ("bli-prolog interpreter v" ++ version ++ ", (C) Nathan Bedell 2019")

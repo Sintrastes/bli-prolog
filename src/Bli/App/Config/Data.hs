@@ -113,6 +113,8 @@ data Options =
           , port'          :: Maybe Int
           , prompt'        :: Bool
           , burl'          :: String
+          , fuzzySuggest'  :: Bool
+          , multiErrors'   :: Bool
           }
   deriving (Show, Data, Typeable)
 
