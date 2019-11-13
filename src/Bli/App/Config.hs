@@ -296,6 +296,9 @@ instance IsRecord AppConfig where
                            Map.lookup "bedelibryMode" record :: Maybe (Maybe String)) 
     port <- join $ ((\(Typ x) -> cast x) <$> Map.lookup "port" record :: Maybe (Maybe (Maybe Int))) 
     burl <- join $ ((\(Typ x) -> cast x) <$> Map.lookup "burl" record :: Maybe (Maybe String))
+    fuzzySuggest <- join $ ((\(Typ x) -> cast x) <$> Map.lookup "fuzzySuggest" record :: Maybe (Maybe Bool))
+    https <- join $ ((\(Typ x) -> cast x) <$> Map.lookup "https" record :: Maybe (Maybe Bool))
+    multiErrors <- join $ ((\(Typ x) -> cast x) <$> Map.lookup "multiErrors" record :: Maybe (Maybe Bool))
     let version = "" -- join $ ((\(Typ x) -> cast x) <$> Map.lookup "burl" record :: Maybe (Maybe String))
     prompt <- join $ ((\(Typ x) -> cast x) <$> Map.lookup "prompt" record :: Maybe (Maybe Bool))
     return $ AppConfig (Options { 
@@ -312,7 +315,10 @@ instance IsRecord AppConfig where
                  , bedelibryMode' = bedelibryMode
                  , port' = port
                  , prompt' = prompt
-                 , burl' = burl })
+                 , burl' = burl
+                 , fuzzySuggest' = fuzzySuggest
+                 , https' = https
+                 , multiErrors' = multiErrors })
                version
                defaultLanguageOptions
   toRecord (AppConfig options version langOptions) = 
@@ -336,6 +342,9 @@ instance IsRecord Options where
     port <- join $ ((\(Typ x) -> cast x) <$> Map.lookup "port" record :: Maybe (Maybe (Maybe Int))) 
     prompt <- join $ ((\(Typ x) -> cast x) <$> Map.lookup "prompt" record :: Maybe (Maybe Bool))
     burl <- join $ ((\(Typ x) -> cast x) <$> Map.lookup "burl" record :: Maybe (Maybe String))
+    fuzzySuggest <- join $ ((\(Typ x) -> cast x) <$> Map.lookup "fuzzySuggest" record :: Maybe (Maybe Bool))
+    https <- join $ ((\(Typ x) -> cast x) <$> Map.lookup "https" record :: Maybe (Maybe Bool))
+    multiErrors <- join $ ((\(Typ x) -> cast x) <$> Map.lookup "multiErrors" record :: Maybe (Maybe Bool))
     return $ Options { 
                 search' = search
               , program' = program
@@ -350,7 +359,10 @@ instance IsRecord Options where
               , bedelibryMode' = bedelibryMode
               , port' = port
               , prompt' = prompt
-              , burl' = burl }
+              , burl' = burl
+              , fuzzySuggest' = fuzzySuggest
+              , https' = https
+              , multiErrors' = multiErrors }
 
   toRecord (Options { 
                 search' = search
@@ -366,12 +378,16 @@ instance IsRecord Options where
               , bedelibryMode' = bedelibryMode
               , port' = port
               , prompt' = prompt
-              , burl' = burl }) =
+              , burl' = burl
+              , fuzzySuggest' = fuzzySuggest
+              , https' = https
+              , multiErrors' = multiErrors }) =
      Map.fromList [("search", Typ search), ("program", Typ program), ("schema", Typ schema)
                   ,("goal", Typ goal), ("limit", Typ limit), ("depth", Typ depth)
                   ,("verbose", Typ verbose), ("nocolor", Typ nocolor), ("json", Typ json)
                   ,("server", Typ server), ("bedelibryMode", Typ bedelibryMode)
-                  ,("port", Typ port), ("prompt", Typ prompt), ("burl", Typ burl)]
+                  ,("port", Typ port), ("prompt", Typ prompt), ("burl", Typ burl), ("fuzzySuggest", Typ fuzzySuggest)
+                  ,("https", Typ https), ("multiErrors", Typ multiErrors)]
 
 -- Funcctions to get data from the AppConfig
 search (AppConfig options _ _) = search' options
@@ -495,6 +511,9 @@ configureApplication = do
           let serverF = HashMap.lookup "server" object 
           let portF = HashMap.lookup "port" object 
           let burlF = HashMap.lookup "burl" object 
+          let fuzzySuggestF = HashMap.lookup "fuzzySuggest" object
+          let httpsF = HashMap.lookup "https" object
+          let multiErrorsF = HashMap.lookup "multiErrors" object
           let promptF = HashMap.lookup "prompt" object 
           let bedelibryModeF = HashMap.lookup "bedelibryMode" object 
           let verboseF = HashMap.lookup "verbose" object
@@ -593,6 +612,21 @@ configureApplication = do
                      case burlF of
                        Just (String s) -> Just $ Typ $ s
                        _ -> Nothing
+
+               let fuzzySuggestF' =
+                        case fuzzySuggestF of
+                          Just (Bool b) -> Just $ Typ $ b
+                          _ -> Nothing
+
+               let httpsF' =
+                    case httpsF of
+                      Just (Bool b) -> Just $ Typ $ b
+                      _ -> Nothing
+
+               let multiErrorsF' = 
+                    case multiErrorsF of 
+                      Just (Bool b) -> Just $ Typ b
+                      _ -> Nothing
                   
                let unwrapMaybe (x, Just y) = Just (x,y)
                    unwrapMaybe (x, Nothing) = Nothing
@@ -603,7 +637,10 @@ configureApplication = do
                          ("verbose",verboseF'),("nocolor",nocolorF'),
                          ("json",jsonF'),("server",serverF'),
                          ("bedelibryMode",bedelibryModeF'),
-                         ("port",portF'),("prompt",promptF'),("burl",burlF')]
+                         ("port",portF'),("prompt",promptF'),("burl",burlF'),
+                         ("fuzzySuggest", fuzzySuggestF'),
+                         ("https", httpsF'), 
+                         ("multiErrors", multiErrorsF')]
                -- Extracts all the "Just" entries, removing the "Nothing"s
           let fromJust (Just x) = x
           let newRecordFields = mapMaybe id $ fromJust $ maybeFields
