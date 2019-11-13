@@ -14,7 +14,7 @@ defaultLanguageOptions =
    , Aliases
    , DatatypeOverloading
    , EquationalSyntax
-   -- , InfixOperators
+   , InfixOperators
    , StoredRelations
    , Procedures
    , ExternalProcedures

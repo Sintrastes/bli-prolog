@@ -102,13 +102,13 @@ termP' =  do
 termP :: BliParser Term
 termP = do
   many space 
-  try (variableP >>= return . Var)
-     <|> try ruleP
+  try ruleP
      -- I don't think this is right -- the infix 
      -- term here is parsed as an atom, not an honest
      -- to goodness term.
      <|> try (ifEnabledP InfixOperators $ (\x -> Comp x []) <$> infixTermP)
      <|> try (literalP)
+     <|> try (variableP >>= return . Var)
      <|> try (ifEnabledP EquationalSyntax $ equationalTermP)
      <|> ((listP) <?> "list term")
 
@@ -155,7 +155,18 @@ appTermP = do id <- identifierP
               char '('
               atoms <- atomP `sepBy` csymb ','
               char ')'
-              return $ AppTerm id atoms  
+              return $ AppTerm id atoms 
+        
+{- -- Note: This should only be enabled
+   -- for when we allow variable perdicates in the head
+   -- of rules.              
+varAppTermP :: BliParser Atom
+varAppTermP = do id <- variableP
+                 char '('
+                 atoms <- atomP `sepBy` csymb ','
+                 char ')'
+                 return $ AppTerm (Var id) atoms 
+-}
 
 higherOrderTermP :: BliParser Term
 higherOrderTermP = do 
@@ -170,6 +181,13 @@ simpleTermP = do
   terms <- parens termsP
   many space
   return $ Comp id terms
+
+varTermP :: BliParser Term
+varTermP = do
+  id <- variableP
+  terms <- parens termsP
+  many space
+  return $ Comp (AtomVar id) terms
 
 atomicTermP :: BliParser Term
 atomicTermP = do
@@ -192,6 +210,7 @@ literalP = trace "In literal parser" $
            -- Each one of these can be a seperate parser.
            try higherOrderTermP
        -- simpleTermP
+       <|> try varTermP
        <|> try simpleTermP
        <|> atomicTermP
 
