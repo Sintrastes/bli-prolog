@@ -23,6 +23,7 @@ import Control.Monad.Bli.Pure
 import Bli.App.Api
 import Bli.App.Config.Features
 import Bli.App.Config
+import Debug.Trace
 
 -- Note: The lines below are depreciated, and need to be updated.
 
@@ -77,7 +78,9 @@ bliPrologProgramP = do
 
 -- | Parser for the assertion of a prolog clause.
 assertClauseP :: BliParser Clause
-assertClauseP = do t <- termP
+assertClauseP = trace "In assert clause" $ 
+                do t <- termP
+                   trace ("t is " ++ (show t) ++ " in assertClauseP") $ return ()
                    body <- option []
                         (symb ":-" >> termsP)
                    csymb '!'
@@ -85,7 +88,8 @@ assertClauseP = do t <- termP
 
 -- | Parser for a lambda query.
 lambdaGoalP :: BliParser LambdaGoal
-lambdaGoalP = do skipMany (space >> return ())
+lambdaGoalP = trace "in lambda goal" $ 
+              do skipMany (space >> return ())
                  csymb '\\' <|> ifEnabledP UnicodeSyntax (csymb 'λ' <|> csymb 'Λ')
                  vars <- variableP `sepBy` (csymb ',')
                  csymb '.'
@@ -95,7 +99,8 @@ lambdaGoalP = do skipMany (space >> return ())
 
 -- | Parser for an assertion -- a prolog goal ending with a ! instead of a .
 assertionP :: BliParser Goal
-assertionP = do ts <- termsP
+assertionP = trace "In assertion parser" $
+             do ts <- termsP
                 csymb '!'
                 return ts
 

@@ -18,12 +18,14 @@ import Bli.Prolog.Parser.Util
 import Data.BliParser
 import Control.Monad (join)
 
+import Debug.Trace
+
 -- Depreciated:
 -- parseTypedSchemaFile = parseFromFile typedSchemaFileP 
 parseTypedSchema = parseBli typedSchemaFileP
 
 typedSchemaLineP :: BliParser BliCommand
-typedSchemaLineP = do
+typedSchemaLineP = trace "in typed schema line" $ do
     many space
     res <- (try schemaRelnP 
        <|> try schemaEmptyRelnP 

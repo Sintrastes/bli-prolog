@@ -45,7 +45,7 @@ handleParseError parseError = joinResults $ map handleMessage msgs
   -- a more principled approach to error handling should
   -- probably be taken here.
   where msgs = errorMessages parseError
-        handleMessage (Message msg) = undefined
+        handleMessage (Message msg) = Result_SyntaxError msg
         handleMessage msg = Result_SyntaxError (messageString msg)
 
 

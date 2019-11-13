@@ -32,7 +32,11 @@ parseBliCommandTyped string = parseBli bliCommandTypedP string
 -- | Parser for a bedelibry command.
 bliCommandTypedP :: BliParser BliCommand
 bliCommandTypedP = do 
-  result <- (try (terminated typedSchemaLineP) `eitherP` (try (terminated assertClauseP) `eitherP` (try (terminated assertionP) `eitherP` (try (terminated goalP) `eitherP` (terminated lambdaGoalP)))))
+  result <- (try (terminated typedSchemaLineP) 
+              `eitherP` (try (terminated assertClauseP) 
+              `eitherP` (try (terminated assertionP) 
+              `eitherP` (try (terminated goalP) 
+              `eitherP` (terminated lambdaGoalP)))))
   case result of
      Left x  -> return $ x
      Right x -> case x of 

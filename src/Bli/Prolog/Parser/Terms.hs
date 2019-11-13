@@ -13,24 +13,28 @@ import Bli.Prolog.Parser.Infix
 import Data.BliParser
 import Bli.App.Config
 import Bli.App.Config.Features
+import Debug.Trace
 
 -- | Parser for a plain prolog goal.                
 goalP :: BliParser Goal
-goalP = do ts <- termsP
+goalP = trace "In goal parser" $ 
+        do ts <- termsP
            csymb '.'
            return ts  
 
 -- | Parser for a term that uses equational syntax
 equationalTermP :: BliParser Term
-equationalTermP = do (Comp t args) <- termP
+equationalTermP = trace "In equational term parser." $
+                  do (Comp t args) <- termP'
                      csymb '='
-                     y <- termP
+                     y <- termP'
                      csymb '.'
                      return $ Comp t (args ++ [y])
 
 -- | Parser for a plain prolog clause, parsed as a Rule. 
 ruleP :: BliParser Term
-ruleP = do csymb '{'
+ruleP = trace "In rule parser" $
+        do csymb '{'
            t <- termP'
            symb ":-"
            body <- termsP
@@ -81,25 +85,32 @@ simpleAtomP = do
                   return $ StringLiteral s ) <?> "string literal"
 
 
--- | Parser for a prolog term which is not a rule.
+-- | Parser for a prolog term which is not an equational term.
 termP' :: BliParser Term
-termP' =  try (variableP >>= return . Var)
-    <|> try literalP
-    <|> (listP     <?> "list term")
+termP' =  do
+  many space 
+  try (variableP >>= return . Var)
+     <|> try ruleP
+     -- I don't think this is right -- the infix 
+     -- term here is parsed as an atom, not an honest
+     -- to goodness term.
+     <|> try (ifEnabledP InfixOperators $ (\x -> Comp x []) <$> infixTermP)
+     <|> try (literalP)
+     <|> ((listP) <?> "list term")
 
 -- | Parser for a prolog term.
 termP :: BliParser Term
 termP = do
-   many space 
-   try (variableP >>= return . Var)
-      <|> try ruleP
-      -- I don't think this is right -- the infix 
-      -- term here is parsed as an atom, not an honest
-      -- to goodness term.
-      <|> try (ifEnabledP InfixOperators $ (\x -> Comp x []) <$> infixTermP)
-      <|> try (literalP)
-      <|> try (ifEnabledP EquationalSyntax $ equationalTermP)
-      <|> ((listP) <?> "list term")
+  many space 
+  try (variableP >>= return . Var)
+     <|> try ruleP
+     -- I don't think this is right -- the infix 
+     -- term here is parsed as an atom, not an honest
+     -- to goodness term.
+     <|> try (ifEnabledP InfixOperators $ (\x -> Comp x []) <$> infixTermP)
+     <|> try (literalP)
+     <|> try (ifEnabledP EquationalSyntax $ equationalTermP)
+     <|> ((listP) <?> "list term")
 
 
 -- A top level term -- each of the alternatives must consume all of their
@@ -109,9 +120,9 @@ topLevelTermP = do
   many space
   try (variableP >>= return . Var)
       <|> try (terminated ruleP)
-      <|> try (terminated ( (\x -> Comp x []) <$> infixTermP))
-      <|> try (terminated (literalP))
-      <|> try (terminated (ifEnabledP EquationalSyntax $ equationalTermP))
+      <|> try (ifEnabledP InfixOperators $ (\x -> Comp x []) <$> terminated infixTermP)
+      <|> try (terminated literalP)
+      <|> try (ifEnabledP EquationalSyntax $ terminated equationalTermP)
       <|> terminated ((listP) <?> "list term")
 
 -- I guess this is syntax for a SNOC list?
@@ -124,7 +135,7 @@ listTermsP =
 
 -- | Parser that handles lists as prolog terms.
 listP :: BliParser Term
-listP = do
+listP = trace "In list parser" $ do
   res <- between (csymb '[') (csymb ']')
                  (option emptyListTerm listTermsP)
   many space
@@ -132,7 +143,7 @@ listP = do
 
 -- | Parser for a list of prolog terms.
 termsP :: BliParser Terms
-termsP = sepBy1 (try ((\x -> Comp x []) <$> infixTermP) <|> termP) (csymb ',')
+termsP = sepBy1 (try ((\x -> Comp x []) <$> (ifEnabledP InfixOperators infixTermP)) <|> termP) (csymb ',')
 
 -- Note: I don't think this is needed anymore.
 -- | Parser for a list of prolog terms not containing any rules.
@@ -177,7 +188,8 @@ atomicTermP = do
 -- | Parser for a prolog literal. Note: I don't think this is
 --   very meaningful, we should try to refactor this out.
 literalP :: BliParser Term
-literalP = -- Each one of these can be a seperate parser.
+literalP = trace "In literal parser" $
+           -- Each one of these can be a seperate parser.
            try higherOrderTermP
        -- simpleTermP
        <|> try simpleTermP
