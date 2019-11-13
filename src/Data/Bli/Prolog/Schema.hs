@@ -37,7 +37,7 @@ data SchemaEntry =
 -- | A declaration that adds a new relation of a given type to the schema.
     Pred IsStored String [String] [Direction]
 -- | A declaration that adds a new type to the schema.
-  | Type   String
+  | Type Bool String
 -- | A declaration that adds a new entity of a given type to the schema. 
   | TypeOf String String
 -- | Declares that a binary operator should either be declared as infixl or infixr.

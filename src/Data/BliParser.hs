@@ -36,7 +36,7 @@ parseBli parser string = (mapLeft handleParseError)
 
 -- | Helper function to convert parser errors into the appropriate BliResult format.
 handleParseError :: ParseError -> [BliResult]
-handleParseError parseError = joinResults $ map handleMessage msgs
+handleParseError parseError = map handleMessage msgs
   -- If the message can be parsed as a BliResult,
   -- wrap it as a standard BliResult, otherwise,
   -- wrap it as a parser error.
@@ -44,7 +44,7 @@ handleParseError parseError = joinResults $ map handleMessage msgs
   -- FeatureNotEnabled errors -- otherwise,
   -- a more principled approach to error handling should
   -- probably be taken here.
-  where msgs = errorMessages parseError
+  where msgs = [last $ errorMessages parseError]
         handleMessage (Message msg) = Result_SyntaxError msg
         handleMessage msg = Result_SyntaxError (messageString msg)
 

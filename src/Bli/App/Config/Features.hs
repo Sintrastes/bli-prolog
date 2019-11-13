@@ -13,6 +13,7 @@ defaultLanguageOptions =
      TypePredicates
    , Aliases
    , DatatypeOverloading
+   , BedelibryInteraction
    , EquationalSyntax
    , InfixOperators
    , StoredRelations
@@ -158,6 +159,8 @@ data LanguageOption =
 --   the type-checker go into an infinite loop -- so before enabling this, we should
 --   make sure we have a built-in mechanism for limiting the typechecking time.
    | RefinementTypes
+-- | Enables interaction with the bedelibry server, and enables all of the relevant syntactic features.
+   | BedelibryInteraction
 -- | The following features are marked as experimental, and
 --   should only be enabled with caution
   deriving(Eq, Show, Lift, Read, Generic, Enum, Bounded)
@@ -170,5 +173,6 @@ experimentalFeatures =
   , Procedures
   , AdvancedPartialApplication
   , LambekTypes
+  , BedelibryInteraction
   ]
 

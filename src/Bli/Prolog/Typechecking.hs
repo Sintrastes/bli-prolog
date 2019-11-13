@@ -306,7 +306,7 @@ loadBliCommand (AssertClause clause) = do
 loadBliCommand (AssertSchema (TypeOf termId typeId)) = do
   newEntity termId typeId
   return ()
-loadBliCommand (AssertSchema (Type typeName)) = do
+loadBliCommand (AssertSchema (Type _ typeName)) = do
   newType typeName
   return ()
 loadBliCommand (AssertSchema (DataType typeName constrs)) = do

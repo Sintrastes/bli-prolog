@@ -172,7 +172,7 @@ processTypecheckedBliCommand command = do
                      setRelations result
                      return $ Result_AssertionSuccess
           else return $ Result_AssertionFail_TypeNotDeclared (head typesNotInSchema)
-        Type typeName -> do
+        Type _ typeName -> do
           -- Add type to schema if not in schema.
           case tryInsert typeName types of
               Left _ -> return $ Result_AssertionFail_AlreadyAsserted

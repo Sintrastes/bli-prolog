@@ -17,6 +17,7 @@ import Bli.App.Config.Features
 import Bli.Prolog.Parser.Util
 import Data.BliParser
 import Control.Monad (join)
+import Bli.App.Config
 
 import Debug.Trace
 
@@ -34,6 +35,7 @@ typedSchemaLineP = trace "in typed schema line" $ do
        <|> try schemaEntityP
        <|> try schemaExternalRelnP
        <|> try typeDeclP 
+       <|> try (ifEnabledP BedelibryInteraction typeDeclExternP)
        <|> try schemaEntityRelnP
        <|> try schemaDatatypeDeclP
        <|> schemaExternalRelnHSP)
@@ -183,16 +185,14 @@ typeDeclP = do
   symb "type"
   typeId <- identifierP
   (csymb '.') <?> "Missing terminating \".\" to type declaration."
-  return $ Type typeId
---  return $ Type Builtin typeId
+  return $ Type False typeId
 
 -- | Declares an external type -- that is, one that is
 --   handled by an external bedelibry server.
-typeDeclExtenP :: BliParser SchemaEntry
-typeDeclExtenP = do
+typeDeclExternP :: BliParser SchemaEntry
+typeDeclExternP = do
   symb "extern"
   symb "type"
   typeId <- identifierP
   (csymb '.') <?> "Missing terminating \".\" to type declaration."
-  return $ Type typeId
---   return $ Type External typeId
+  return $ Type True typeId

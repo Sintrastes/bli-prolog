@@ -32,7 +32,7 @@ groupProgramCmdsDecls xs = go xs ([],[])
 reorderProg :: BliProgram -> BliProgram
 reorderProg prog = do
   let (types, relations, entities, clauses, goals) = groupSchemaClausesBpl prog
-  (map (AssertSchema . Type) types) ++ (map (AssertSchema . uncurry TypeOf) entities)
+  (map (\(t,b) -> AssertSchema $ Type b t) types) ++ (map (AssertSchema . uncurry TypeOf) entities)
         ++ (map (AssertSchema . (\(x,y) -> Pred NotStored x y []) ) relations) ++ (map AssertClause clauses)
         ++ (map Query $ map (\goal -> (collectGoalVars goal, goal)) goals)
 

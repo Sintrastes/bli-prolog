@@ -18,7 +18,7 @@ groupSchemaClauses commands = go commands ([], [], [], [])
  where go [] xs = xs
        go ((AssertClause c):xs) (types,relations,entities,clauses)
            = go xs (types, relations, entities, c:clauses) -- Not relevant for a schema file.
-       go ((AssertSchema (Type t)):xs) (types,relations,entities,clauses)
+       go ((AssertSchema (Type _ t)):xs) (types,relations,entities,clauses)
            = go xs (t:types, relations, entities, clauses)
        go ((AssertSchema (TypeOf t ty)):xs) (types,relations,entities,clauses)
            = go xs (types, relations, (t,ty):entities, clauses)
@@ -30,15 +30,15 @@ groupSchemaClauses commands = go commands ([], [], [], [])
        go ((AssertSchema (Using modName)):xs) (types, relations, entities, clauses) = undefined
 
 -- | Version of group schema clauses which includes goals at the end of the file.
-groupSchemaClausesBpl :: BliProgram -> ([TypeDecl], [RelDecl], [EntityDecl], [Clause], [Goal])
+groupSchemaClausesBpl :: BliProgram -> ([(TypeDecl, Bool)], [RelDecl], [EntityDecl], [Clause], [Goal])
 groupSchemaClausesBpl commands = go commands ([], [], [], [], []) 
  where go [] xs = xs
        go ((AssertClause c):xs) (types,relations,entities,clauses, goals)
            = go xs (types, relations, entities, c:clauses, goals)
        go (Query (vars, goal):xs) (types,relations,entities,clauses,goals)
           = go xs (types, relations, entities, clauses, goal:goals)
-       go ((AssertSchema (Type t)):xs) (types,relations,entities,clauses,goals)
-           = go xs (t:types, relations, entities, clauses, goals)
+       go ((AssertSchema (Type b t)):xs) (types,relations,entities,clauses,goals)
+           = go xs ((t,b):types, relations, entities, clauses, goals)
        go ((AssertSchema (TypeOf t ty)):xs) (types,relations,entities,clauses,goals)
            = go xs (types, relations, (t,ty):entities, clauses,goals)
        go ((AssertSchema (Pred isStored name argTypes dirs)):xs) (types,relations,entities,clauses,goals)
@@ -57,7 +57,7 @@ groupClauses commands = go commands ([], [], [], [], [])
  where go [] xs = xs
        go ((AssertClause c):xs) (types,relations,entities,clauses,modules)
            = go xs (types, relations, entities, c:clauses,modules)
-       go ((AssertSchema (Type t)):xs) (types,relations,entities,clauses,modules)
+       go ((AssertSchema (Type _ t)):xs) (types,relations,entities,clauses,modules)
            = go xs (t:types, relations, entities, clauses, modules)
        go ((AssertSchema (TypeOf t ty)):xs) (types,relations,entities,clauses,modules)
            = go xs (types, relations, (t,ty):entities, clauses, modules)

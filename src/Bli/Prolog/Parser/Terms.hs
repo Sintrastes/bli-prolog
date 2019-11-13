@@ -258,5 +258,5 @@ infixTermParensP = do
   op    <- operatorP
   many space
   atom2 <- (AtomVar <$> variableP) <|> (try infixTermParensP) <|> atomP
-  csymb ')'
+  csymb ')' 
   return $ AppTerm op [atom1 , atom2] 

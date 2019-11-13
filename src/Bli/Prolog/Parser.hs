@@ -83,7 +83,7 @@ assertClauseP = trace "In assert clause" $
                    trace ("t is " ++ (show t) ++ " in assertClauseP") $ return ()
                    body <- option []
                         (symb ":-" >> termsP)
-                   csymb '!'
+                   csymb '!' <|> fail "Clause assertions should be terminated with \"!\"."
                    return (t, body)
 
 -- | Parser for a lambda query.
