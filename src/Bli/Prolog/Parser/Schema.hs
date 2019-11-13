@@ -177,9 +177,22 @@ schemaEntityP = do
   (csymb '.') <?> "Missing terminating \".\" to entity declaration."
   return $ TypeOf id entityType
 
+-- | Declares a (local) type.
 typeDeclP :: BliParser SchemaEntry
 typeDeclP = do
   symb "type"
   typeId <- identifierP
   (csymb '.') <?> "Missing terminating \".\" to type declaration."
   return $ Type typeId
+--  return $ Type Builtin typeId
+
+-- | Declares an external type -- that is, one that is
+--   handled by an external bedelibry server.
+typeDeclExtenP :: BliParser SchemaEntry
+typeDeclExtenP = do
+  symb "extern"
+  symb "type"
+  typeId <- identifierP
+  (csymb '.') <?> "Missing terminating \".\" to type declaration."
+  return $ Type typeId
+--   return $ Type External typeId
