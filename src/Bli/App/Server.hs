@@ -36,11 +36,14 @@ import Bli.App.Api
 
 parseRequest :: Request -> Bli (Maybe BliRequest)
 parseRequest req 
-    | (method == "GET") && (path == [pack "query"]) 
+    | (method == "GET") && (path == []) 
         = do body <- liftIO $ body'
-             return $ Just $ MakeQuery $ BU.toString $ B.toStrict body
+             let Just query = join $ lookup (BU.fromString "query") params
+             -- liftIO $ print query
+             return $ Just $ MakeQuery $ BU.toString query
     | otherwise = return $ Nothing
   where path   = pathInfo req
+        params = queryString req
         method = requestMethod req
         body'  = strictRequestBody req
 
@@ -106,7 +109,8 @@ newServer port = do
   let tSet = tlsSettings (homeDir ++ "/.bedelibry/prolog-server/server.crt") 
                          (homeDir ++ "/.bedelibry/prolog-server/server.key")
   -- Run the server on the given port.
-  liftIO $ runTLS tSet (setPort port defaultSettings) ( \x -> \y -> app x y ioRef)
+  -- liftIO $ runTLS tSet (setPort port defaultSettings) ( \x -> \y -> app x y ioRef)
+  liftIO $ run port ( \x -> \y -> app x y ioRef)
 
 -- | Warp application for our server.
 app :: Request -> (Response -> IO ResponseReceived) -> IORef (BliStore FactContainer RelationContainer EntityContainer TypeContainer AliasDatastructure) -> IO ResponseReceived
