@@ -128,7 +128,9 @@ printHelpScreen = putStrLn $ foldr1 (\x -> \y -> x ++ "\n" ++ y) $
    "  --bytecode        Compiles to Bedelibry Prolog bytecode instead of linking into",
    "                    a static executable.",
    "  --no-typecheck    Skips the typechecking step.",
-   "  --only-typecheck  Only typecheck the given file, skipping the compilation step."
+   "  --only-typecheck  Only typecheck the given file, skipping the compilation step.",
+   "  --modules         Allows the user to supply a list of space delimited modules, or directories containing modules,",
+   "                    (which will be recursively searched for .bpl files) to be used in the compilation."
   ]
  where Just version = $(getVersionFromCabal)
        name         = $(getCompilerNameFromCabal) 
