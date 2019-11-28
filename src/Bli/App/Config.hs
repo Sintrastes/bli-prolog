@@ -299,6 +299,7 @@ instance IsRecord AppConfig where
     fuzzySuggest <- join $ ((\(Typ x) -> cast x) <$> Map.lookup "fuzzySuggest" record :: Maybe (Maybe Bool))
     https <- join $ ((\(Typ x) -> cast x) <$> Map.lookup "https" record :: Maybe (Maybe Bool))
     multiErrors <- join $ ((\(Typ x) -> cast x) <$> Map.lookup "multiErrors" record :: Maybe (Maybe Bool))
+    remote <- join $ ((\(Typ x) -> cast x) <$> Map.lookup "remote" record :: Maybe (Maybe (Maybe String))) 
     let version = "" -- join $ ((\(Typ x) -> cast x) <$> Map.lookup "burl" record :: Maybe (Maybe String))
     prompt <- join $ ((\(Typ x) -> cast x) <$> Map.lookup "prompt" record :: Maybe (Maybe Bool))
     return $ AppConfig (Options { 
@@ -318,7 +319,8 @@ instance IsRecord AppConfig where
                  , burl' = burl
                  , fuzzySuggest' = fuzzySuggest
                  , https' = https
-                 , multiErrors' = multiErrors })
+                 , multiErrors' = multiErrors
+                 , remote' = remote })
                version
                defaultLanguageOptions
   toRecord (AppConfig options version langOptions) = 
@@ -381,13 +383,14 @@ instance IsRecord Options where
               , burl' = burl
               , fuzzySuggest' = fuzzySuggest
               , https' = https
-              , multiErrors' = multiErrors }) =
+              , multiErrors' = multiErrors
+              , remote' = remote }) =
      Map.fromList [("search", Typ search), ("program", Typ program), ("schema", Typ schema)
                   ,("goal", Typ goal), ("limit", Typ limit), ("depth", Typ depth)
                   ,("verbose", Typ verbose), ("nocolor", Typ nocolor), ("json", Typ json)
                   ,("server", Typ server), ("bedelibryMode", Typ bedelibryMode)
                   ,("port", Typ port), ("prompt", Typ prompt), ("burl", Typ burl), ("fuzzySuggest", Typ fuzzySuggest)
-                  ,("https", Typ https), ("multiErrors", Typ multiErrors)]
+                  ,("https", Typ https), ("multiErrors", Typ multiErrors), ("remote", Typ remote)]
 
 -- Funcctions to get data from the AppConfig
 search (AppConfig options _ _) = search' options
@@ -405,6 +408,7 @@ burl (AppConfig options _ _) = burl' options
 fuzzySuggest (AppConfig options _ _) = fuzzySuggest' options
 https (AppConfig options _ _) = https' options
 multiErrors (AppConfig options _ _) = multiErrors' options
+remote (AppConfig options _ _) = remote' options
 prompt (AppConfig options _ _) = prompt' options
 
 -- Functions to get langauge options from the AppConfig
@@ -467,6 +471,7 @@ startOptions version =
           -- In addition, we have this option both for entities, and for facts.
           , fuzzySuggest' = True &= help "Turn on fuzzy suggestions in the typechecker for terms/predicates/types."
           , multiErrors' = False &= help "Tells the type checker to display multiple errors if encountered."
+          , remote' = Nothing &= help "The address to use to connect to a remote Bedelibry Prolog server as a thin client."
           , https' = False &= help "Enables use of https in the server."
           , bedelibryMode' = "" &= help "Sets the mode of interaction between bli-prolog and the bedebliry server."
           }
@@ -514,6 +519,7 @@ configureApplication = do
           let fuzzySuggestF = HashMap.lookup "fuzzySuggest" object
           let httpsF = HashMap.lookup "https" object
           let multiErrorsF = HashMap.lookup "multiErrors" object
+          let remoteF = HashMap.lookup "remote" object
           let promptF = HashMap.lookup "prompt" object 
           let bedelibryModeF = HashMap.lookup "bedelibryMode" object 
           let verboseF = HashMap.lookup "verbose" object
@@ -627,7 +633,14 @@ configureApplication = do
                     case multiErrorsF of 
                       Just (Bool b) -> Just $ Typ b
                       _ -> Nothing
-                  
+
+               let remoteF' =
+                     case remoteF of
+                       Nothing -> Just $ Typ (Nothing :: Maybe String)
+                       -- Note: I'll need to do additional parsing here to deal with this.
+                       Just (String n) -> Just $ Typ $ Just n
+                       _ -> Nothing
+
                let unwrapMaybe (x, Just y) = Just (x,y)
                    unwrapMaybe (x, Nothing) = Nothing
                -- Finally, collect all of the fields into a record
@@ -640,7 +653,7 @@ configureApplication = do
                          ("port",portF'),("prompt",promptF'),("burl",burlF'),
                          ("fuzzySuggest", fuzzySuggestF'),
                          ("https", httpsF'), 
-                         ("multiErrors", multiErrorsF')]
+                         ("multiErrors", multiErrorsF'),("remote",remoteF')]
                -- Extracts all the "Just" entries, removing the "Nothing"s
           let fromJust (Just x) = x
           let newRecordFields = mapMaybe id $ fromJust $ maybeFields

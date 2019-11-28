@@ -116,6 +116,7 @@ data Options =
           , fuzzySuggest'  :: Bool
           , https' :: Bool
           , multiErrors'   :: Bool
+          , remote' :: Maybe String
           }
   deriving (Show, Data, Typeable)
 
