@@ -73,6 +73,16 @@ processBliCommandRepl command = do
   results <- processBliCommand command
   mapM_ displayResult results
 
+processBliCommandRemote :: BliCommand -> Bli ()
+processBliCommandRemote command = do
+  opts <- getConfig
+  let Just address = remote opts
+  printResponse "Not implemented."
+  -- Make an http request to the configured server, and 
+  -- print the results
+  -- results <- undefined
+  -- mapM_ displayResult results
+
 displayFailure :: FailureMode -> String
 displayFailure (AtomsNotInSchema atoms) =
     "    The identifiers "++ show atoms++"\n"++
@@ -163,6 +173,31 @@ processCliInput input = do
                      (yellow colorOpts
                         "All bli prolog commands end with either a '.' or an '!'.")
     Right command -> do
+      processBliCommandRemote command
+
+processThinClientInput :: String -> Bli ()
+processThinClientInput "" = return ()
+processThinClientInput input = do
+  -- Get schema, clauses, and options from context.
+  types     <- getTypes
+  relations <- getRelations
+  entities  <- getEntities
+  facts     <- getFacts
+  opts      <- getConfig
+  aliases   <- getAliases
+  let colorOpts = not $ nocolor opts
+
+  -- Parse and handle the command
+  parserOutput <- liftFromPure $ parseBliCommandTyped input
+  case parserOutput of
+    Left err -> do printResponse $ ((red colorOpts "Error")++" parsing query string:")
+                   printResponse $ foldr1 (\x -> \y -> x ++ "\n" ++ y) $
+                                          (map (\x -> "  " ++ x)) $ 
+                                          (splitOn "\n" $ show err)
+                   printResponse $ 
+                     (yellow colorOpts
+                        "All bli prolog commands end with either a '.' or an '!'.")
+    Right command -> do
       processBliCommandRepl command
 
 -- | Function used for tab completion in the REPL.
@@ -225,6 +260,67 @@ repl = runInputT defaultSettings loop
                     else do 
                       lift $ processCliInput line
                       loop
+
+-- | Run the application as a thin client connecting to
+--   a remote Bedelibry Prolog server.
+thinClient :: String -> Bli ()
+thinClient serverAddress = do 
+  -- Handle connection to the server and exception handling... 
+
+  -- Start the client
+  runInputT defaultSettings loop
+  where loop = do
+          config    <- lift $ getConfig
+          facts     <- lift $ getFacts
+          types     <- lift $ getTypes
+          relations <- lift $ getRelations
+          entities  <- lift $ getEntities
+          aliases   <- lift$ getAliases
+          let colorOpts = not $ nocolor config
+          -- liftIO $ setCompletionEntryFunction $ Just completionFunction
+          maybeLine <- getInputLine (blue colorOpts command_prompt)
+          case maybeLine of
+            Nothing -> loop
+            Just line -> do
+              -- Add the user's input to the command line history.
+              -- liftIO $ addHistory line
+              case parseBliReplCommand line of 
+                ParseError err -> do 
+                    printResponse $ (red colorOpts "Error") ++ ": " ++ show err
+                    loop
+                DoneParsing blicmd -> do
+                    result <- lift $ handleThinClientCommand blicmd
+                    case result of
+                      True  -> loop
+                      False -> return ()
+                -- If the user has not entered a REPL command, try processing
+                -- their input as a standard Bedelibry Prolog command.
+                ContinueParsing -> do
+                  -- Handle typo suggestions
+                  if ( line /= "" && head line == ':')
+                   then do
+                     if line == ":" 
+                       then do 
+                         printResponse $ (red colorOpts "Error")++": \":\" must be followed by a valid command." 
+                         loop
+                       else do
+                         let fuzzySet = fromList $ map Text.pack commandStringsAll :: FuzzySet
+                         case getOne fuzzySet $ Text.pack (tail line) of
+                           Just suggestion -> do 
+                             printResponse $ (red colorOpts "Error")++
+                               ": Command \""++tail line++"\" not found. Did you mean \""++
+                               (tail $ Text.unpack suggestion)++"\"?"
+                           Nothing -> do 
+                             printResponse $ (red colorOpts "Error")++": Command \""++tail line++"\" not found."
+                             loop
+                    else do 
+                      lift $ processThinClientInput line
+                      loop
+
+handleThinClientCommand :: BliReplCommand -> Bli Bool
+handleThinClientCommand command = do
+  printResponse "Not implemented."
+  return False
           
 handleBliReplCommand :: BliReplCommand -> Bli Bool
 handleBliReplCommand blicmd = do

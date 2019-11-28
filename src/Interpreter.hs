@@ -80,15 +80,22 @@ main = do
                 Nothing -> putStrLn "Please specify a port number to use the server."
         -- If not configured to start server...
             False -> do
-              case goal opts of
-                "" -> do
-                   -- Print the main banner if options set to verbose.
-                   if (verbose opts) then putStrLn $ replBanner versionStr colorOpts else return ()
-                   -- Run a bli prolog REPL with the user configuration.
-                   putStrLn "Warning: Need to handle getting data from files here."
-                   initBli opts repl
-                -- If the user supplies a non-empty goal-string, run a single
-                -- command rather than starting the REPL.
-                input -> do
-                    putStrLn "Warning: Need to handle getting data from files here."
-                    initBli opts $ processCliInput input
+              -- Check to see if we need to run the appliation as a thin client.
+              case remote opts of
+                Just address -> do
+                  -- Launch the appliation as a thin client.
+                  putStrLn "NOT IMPLEMENTED"
+                Nothing -> do
+                  -- Otherwise...
+                  case goal opts of
+                    "" -> do
+                       -- Print the main banner if options set to verbose.
+                       if (verbose opts) then putStrLn $ replBanner versionStr colorOpts else return ()
+                       -- Run a bli prolog REPL with the user configuration.
+                       putStrLn "Warning: Need to handle getting data from files here."
+                       initBli opts repl
+                    -- If the user supplies a non-empty goal-string, run a single
+                    -- command rather than starting the REPL.
+                    input -> do
+                        putStrLn "Warning: Need to handle getting data from files here."
+                        initBli opts $ processCliInput input
