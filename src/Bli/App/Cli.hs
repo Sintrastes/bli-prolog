@@ -443,8 +443,9 @@ handleBliReplCommand blicmd = do
                      parseResult <- liftFromPure $ parseTypedBli fileContents
                      case parseResult of
                          Left e -> printResponse "There has been a parse error."
-                         Right lines -> do
+                         Right program -> do
                              -- Note: We still need to do typechecking of the file here!
+                             let lines = getCommands program
                              let (types, relations, entities, clauses) = groupSchemaClauses lines
                              newEntities entities
                              newFacts clauses

@@ -19,7 +19,7 @@ import Bli.Prolog.Typechecking (collectGoalVars)
 
 -- | Helper function which splits a BliProgram into 
 --   its commands, and it's declarations.
-groupProgramCmdsDecls :: BliProgram -> (BliProgram, BliProgram)
+groupProgramCmdsDecls :: [BliCommand] -> ([BliCommand], [BliCommand])
 groupProgramCmdsDecls xs = go xs ([],[])
   where go (cmd@(Assert goal):xs) (cmds, decls) = go xs (cmds, cmd:decls)
         go (cmd@(AssertClause clause):xs) (cmds, decls) = go xs (cmds, cmd:decls)
@@ -29,17 +29,17 @@ groupProgramCmdsDecls xs = go xs ([],[])
 
 -- | Helper function to reorder a BliProgram into its logical order
 --   for the purposes of sequentially typechecking.
-reorderProg :: BliProgram -> BliProgram
-reorderProg prog = do
-  let (types, relations, entities, clauses, goals) = groupSchemaClausesBpl prog
+reorderProg :: [BliCommand] -> [BliCommand]
+reorderProg x = do
+  let (types, relations, entities, clauses, goals) = groupSchemaClausesBpl x
   (map (\(t,b) -> AssertSchema $ Type b t) types) ++ (map (AssertSchema . uncurry TypeOf) entities)
         ++ (map (AssertSchema . (\(x,y) -> Pred NotStored x y []) ) relations) ++ (map AssertClause clauses)
-        ++ (map Query $ map (\goal -> (collectGoalVars goal, goal)) goals)
+        ++ (map Query $ map (\goal -> (collectGoalVars goal, goal)) goals)       
 
 -- | Helper function to load all the declarations
 --   in a prolog schema into the running Bli context. 
 --   This should be defined in the Bli monad module.
-loadDecs :: BliProgram -> Bli Bool
+loadDecs :: [BliCommand] -> Bli Bool
 loadDecs prog = do
     let (types,relations,entities,clauses) = groupSchemaClauses prog
     r1 <- newFacts     clauses
@@ -59,9 +59,10 @@ runtimeCfg = AppConfig {
 
 -- | Takes a BliProgram which has already been type-checked, 
 --   and executes all of the commands in the program.
-executeProgram :: BliProgram -> IO ()
+executeProgram :: [BliCommand] -> IO ()
 executeProgram prog = initBli runtimeCfg $ do
-  let (commands, declarations) = groupProgramCmdsDecls (reverse prog)
+  let progCommands = prog
+  let (commands, declarations) = groupProgramCmdsDecls $ (reverse progCommands)
   result <- loadDecs declarations
   case result of 
     False -> error "Failed loading declarations." 

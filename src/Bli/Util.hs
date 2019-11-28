@@ -13,9 +13,10 @@ termHead (Comp x _) = x
 
 -- | Get all of the relevant data from a schema file and group it
 --   into the appropriate lists
-groupSchemaClauses :: BliProgram -> ([TypeDecl], [RelDecl], [EntityDecl], [Clause])
-groupSchemaClauses commands = go commands ([], [], [], []) 
- where go [] xs = xs
+groupSchemaClauses :: [BliCommand] -> ([TypeDecl], [RelDecl], [EntityDecl], [Clause])
+groupSchemaClauses program = go commands ([], [], [], []) 
+ where commands = program
+       go [] xs = xs
        go ((AssertClause c):xs) (types,relations,entities,clauses)
            = go xs (types, relations, entities, c:clauses) -- Not relevant for a schema file.
        go ((AssertSchema (Type _ t)):xs) (types,relations,entities,clauses)
@@ -30,9 +31,10 @@ groupSchemaClauses commands = go commands ([], [], [], [])
        go ((AssertSchema (Using modName)):xs) (types, relations, entities, clauses) = undefined
 
 -- | Version of group schema clauses which includes goals at the end of the file.
-groupSchemaClausesBpl :: BliProgram -> ([(TypeDecl, Bool)], [RelDecl], [EntityDecl], [Clause], [Goal])
-groupSchemaClausesBpl commands = go commands ([], [], [], [], []) 
- where go [] xs = xs
+groupSchemaClausesBpl :: [BliCommand] -> ([(TypeDecl, Bool)], [RelDecl], [EntityDecl], [Clause], [Goal])
+groupSchemaClausesBpl program = go commands ([], [], [], [], []) 
+ where commands = program
+       go [] xs = xs
        go ((AssertClause c):xs) (types,relations,entities,clauses, goals)
            = go xs (types, relations, entities, c:clauses, goals)
        go (Query (vars, goal):xs) (types,relations,entities,clauses,goals)
@@ -53,8 +55,9 @@ groupSchemaClausesBpl commands = go commands ([], [], [], [], [])
 --   where the final component of the return type is a list of modules which have to be
 --   imported
 groupClauses :: BliProgram -> ([TypeDecl], [RelDecl], [EntityDecl], [Clause], [String])
-groupClauses commands = go commands ([], [], [], [], []) 
- where go [] xs = xs
+groupClauses program = go commands ([], [], [], [], []) 
+ where commands = getCommands program
+       go [] xs = xs
        go ((AssertClause c):xs) (types,relations,entities,clauses,modules)
            = go xs (types, relations, entities, c:clauses,modules)
        go ((AssertSchema (Type _ t)):xs) (types,relations,entities,clauses,modules)

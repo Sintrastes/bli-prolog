@@ -322,8 +322,9 @@ loadBliCommand (AssertSchema (Pred _ predName argTypes _)) = do
 --   Note: This does not currently deal with module imports.
 typecheckBliProgram :: BliProgram -> Bli (Either [InvalidClause] Ok)
 typecheckBliProgram prog = do
-  results <- mapM (\cmd -> do 
-      result <- typecheckBliCommand cmd
-      loadBliCommand cmd
-      return result) prog
-  return $ foldr joinErrors (Right Ok) results
+    results <- mapM (\cmd -> do 
+        result <- typecheckBliCommand cmd
+        loadBliCommand cmd
+        return result) commands
+    return $ foldr joinErrors (Right Ok) results
+  where commands = getCommands prog

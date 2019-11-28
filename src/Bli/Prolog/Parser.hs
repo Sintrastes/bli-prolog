@@ -49,7 +49,7 @@ prologProgramP = do spacesOrComments
                     return $ clauses
 
 -- | Parser for a bli prolog schema. Only contains assertions. No queries.
-bliPrologSchemaP :: BliParser BliProgram
+bliPrologSchemaP :: BliParser [BliCommand]
 bliPrologSchemaP = do
   lines' <- many $ try typedSchemaLineP `eitherP` clauseP
   let lines = map (\line -> case line of
@@ -88,9 +88,8 @@ bliPrologModuleP = do
   let slines = map (\line -> case line of
                               Left sEntry  -> sEntry
                               Right clause -> AssertClause clause) slines'
-  let plines = map Query $ map (\x -> (collectGoalVars x,x)) plines'
   
-  return $ Module moduleName (slines ++ plines)
+  return $ Module moduleName slines
 
 -- | Parser for the assertion of a prolog clause.
 assertClauseP :: BliParser Clause

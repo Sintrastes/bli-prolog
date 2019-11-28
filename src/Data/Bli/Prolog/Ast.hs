@@ -114,4 +114,9 @@ type Clauses = [Clause]
 
 data BliProgram = 
     Program [BliCommand]
-  | Module String [BliCommand]
+  | Module String [BliCommand] deriving(Show, Eq, Lift, Generic)
+
+instance Serialize BliProgram
+
+getCommands (Program cmds) = cmds
+getCommands (Module _ cmds) = cmds
