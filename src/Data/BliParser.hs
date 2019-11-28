@@ -45,8 +45,8 @@ handleParseError parseError = map handleMessage msgs
   -- a more principled approach to error handling should
   -- probably be taken here.
   where msgs = [last $ errorMessages parseError]
-        handleMessage (Message msg) = Result_SyntaxError msg
-        handleMessage msg = Result_SyntaxError (messageString msg)
+        handleMessage (Message msg) = SyntaxError msg
+        handleMessage msg = SyntaxError (messageString msg)
 
 
 handleParseErrors :: [ParseError] -> [BliResult]

@@ -12,7 +12,8 @@ import Bli.Prolog.Parser
 import Bli.Prolog.Interp
 import Bli.Prolog.Interp.Data
 import Bli.Prolog.SearchStrategies
-import Bli.Prolog.Typechecking
+import Bli.Prolog.Typechecking hiding (InvalidClause(..))
+import qualified Bli.Prolog.Typechecking.Data as Typechecking
 import Control.Monad.Bli.IORef
 import Control.Monad.Bli.Common (ProcContainer(..))
 import Control.Monad.Bli.Conversions (liftIORefFromPure)
@@ -50,9 +51,9 @@ assertClause head' body' = do
               (return body')
     let clause = (head, body) 
     case tryInsert clause clauses of
-        Left _ -> return $ Result_AssertionFail_AlreadyAsserted 
+        Left _ -> return $ AssertionFail AlreadyAsserted 
         Right result -> do setFacts result
-                           return $ Result_AssertionSuccess
+                           return $ AssertionSuccess GenericAssertionSuccess
 
 processTypecheckedBliCommand :: BliCommand -> Bli BliResult
 processTypecheckedBliCommand command = do
@@ -91,7 +92,7 @@ processTypecheckedBliCommand command = do
          -- Note: This should be an AddedEntityLocally result,
          -- but we can return mutliple results here, so I need
          -- to figure out how to handle that.
-         return Result_AssertionSuccess
+         return $ AssertionSuccess GenericAssertionSuccess
        else do  -- Note: If there is a mixutre of type predicates
                 -- and other predicates being asserted, I don't know
                 -- what to do.
@@ -105,11 +106,11 @@ processTypecheckedBliCommand command = do
          -- If all is well, update the store.
            Right result -> do 
                    setFacts result 
-                   return $ Result_AssertionSuccess
+                   return $ AssertionSuccess GenericAssertionSuccess
            -- We can probably refine this to get it to tell us which of the terms
            -- was already asserted.
            -- If there were any errors, the assertions fails.
-           Left _ -> return $ Result_AssertionFail_AlreadyAsserted
+           Left _ -> return $ AssertionFail AlreadyAsserted
     (AssertClause (term, []) ) -> do
        let goal = [term]
        results <- checkForTypePredicateAssertion goal
@@ -118,14 +119,14 @@ processTypecheckedBliCommand command = do
        then do
          liftIO $ print results -- debugging
          let Comp (Identifier typeId) [Comp (Identifier entityId) []] = term
-         return $ Result_AssertionSuccess_AddedEntityLocally entityId typeId
+         return $ AssertionSuccess $ AddedEntityLocally entityId typeId
        else assertClause term []
     (AssertClause (head,body) ) -> do
       assertClause head body
     (Query (vars, goal)) -> do
       tree <- makeReportTree goal
       let searchF = searchFunction (search opts) $ depth opts
-      return $ Result_QuerySuccess $ 
+      return $ QuerySuccess $ QueryFinished $ 
                 map Solution 
                   $ map (filter (\(x,y) -> x `elem` vars)) 
                   $ map (\(Solution x) -> x) $ searchF tree
@@ -139,8 +140,8 @@ processTypecheckedBliCommand command = do
          then do
            let (Comp (StringLiteral s) []) = head args
            liftIO $ putStrLn s
-           return $ Result_QuerySuccess [ProcReturn]
-         else return $ Result_QuerySuccess []
+           return $ QuerySuccess (QueryFinished [ProcReturn])
+         else return $ QuerySuccess (QueryFinished [])
     (Query (_,goal')) -> do
        -- First, expand all aliases (if aliases have been enabled)
        goal <- ifEnabledThenElse Aliases 
@@ -153,7 +154,7 @@ processTypecheckedBliCommand command = do
        let searchF = searchFunction (search opts) $ depth opts
        tree <- makeReportTree goal
        let solutions = limiting $ searchF tree
-       return $ Result_QuerySuccess solutions
+       return $ QuerySuccess (QueryFinished solutions)
     (AssertSchema schemaEntry) -> do
       case schemaEntry of
         Pred _ predName argTypes _ -> do
@@ -167,18 +168,18 @@ processTypecheckedBliCommand command = do
                   (zip (map (\x -> BliSet.lookup (==x) types) argTypes) argTypes)
           if typesNotInSchema == []
           then case tryInsert (predName, argTypes) relations of
-                 Left _       -> return $ Result_AssertionFail_AlreadyAsserted
+                 Left _       -> return $ AssertionFail AlreadyAsserted
                  Right result -> do
                      setRelations result
-                     return $ Result_AssertionSuccess
-          else return $ Result_AssertionFail_TypeNotDeclared (head typesNotInSchema)
+                     return $ (AssertionSuccess GenericAssertionSuccess)
+          else return $ AssertionFail (TypeNotDeclared (head typesNotInSchema))
         Type _ typeName -> do
           -- Add type to schema if not in schema.
           case tryInsert typeName types of
-              Left _ -> return $ Result_AssertionFail_AlreadyAsserted
+              Left _ -> return $ AssertionFail AlreadyAsserted
               Right result -> do
                   setTypes result
-                  return $ Result_AssertionSuccess
+                  return $ AssertionSuccess GenericAssertionSuccess
         TypeOf termId typeId -> do
           addEntityToSchema termId typeId
         DataType typeName constrs -> do
@@ -186,9 +187,9 @@ processTypecheckedBliCommand command = do
           case result of      
             False -> do
               -- TODO: Make this more specific
-              return $ Result_AssertionFail_AlreadyAsserted
+              return $ AssertionFail AlreadyAsserted
             True -> do
-              return $ Result_AssertionSuccess
+              return $ AssertionSuccess GenericAssertionSuccess
 
 -- | Check to see if the user is asserting a type predicate
 checkForTypePredicateAssertion :: Goal -> Bli [BliResult]
@@ -199,7 +200,7 @@ checkForTypePredicateAssertion goal = do
          results <- mapM (\(Comp (Identifier typ) [Comp (Identifier x) []]) -> 
                              addEntityToSchema x typ) goal
          -- if everything went successfully...
-         return $ [Result_AssertionSuccess]
+         return $ [AssertionSuccess GenericAssertionSuccess]
        else return []
 
 processBliCommand :: BliCommand -> Bli [BliResult]
@@ -219,28 +220,28 @@ processBliCommand command = do
   -- Just deal with the first error. Later we will probably want to
   -- display multiple errors.
   case mapLeft head typecheckResult of
-    Left (AtomsNotInSchema atoms) -> do
+    Left (Typechecking.AtomsNotInSchema atoms) -> do
       case isAssertion command of
         True  -> do
-          return $ [Result_AssertionFail_AtomsNotInSchema atoms]
+          return $ [AssertionFail $ AtomsNotInSchema atoms]
         False -> do
-          return $ [Result_QueryFail_AtomsNotInSchema atoms]
-    Left BoundVarNotInBody -> do
+          return $ [QueryFail $ AtomsNotInSchema atoms]
+    Left Typechecking.BoundVarNotInBody -> do
       -- This can only occur for lambda queries.
-      return $ [Result_QueryFail_BoundVarNotInBody]
-    Left (NotAPredicate (x,y,z)) -> do
+      return $ [QueryFail BoundVarNotInBody]
+    Left (Typechecking.NotAPredicate (x,y,z)) -> do
       case isAssertion command of
         True  -> do
-          return $ [Result_AssertionFail_NotAPredicate [(x,y,z)]]
+          return $ [AssertionFail $ NotAPredicate [(x,y,z)]]
         False -> do
-          return $ [Result_QueryFail_NotAPredicate [(x,y,z)]]
-    Left (TypeError (x,n,y,z)) -> do
+          return $ [QueryFail $ NotAPredicate [(x,y,z)]]
+    Left (Typechecking.TypeError (x,n,y,z)) -> do
       case isAssertion command of
         True  -> do
-          return $ [Result_AssertionFail_TypeError [(x,n,y,z)]]
+          return $ [AssertionFail $ TypeError [(x,n,y,z)]]
         False -> do
-          return $ [Result_QueryFail_TypeError [(x,n,y,z)]]
-    Left (EntityNotDeclared x t) -> do
+          return $ [QueryFail $ TypeError [(x,n,y,z)]]
+    Left (Typechecking.EntityNotDeclared x t) -> do
       case isAssertion command of
         True -> do
           -- Check to see if we are trying to assert type predicates,
@@ -252,7 +253,7 @@ processBliCommand command = do
                 True -> do
                   -- Asserting type predicates -- this is fine.
                   (\x -> [x]) <$> processTypecheckedBliCommand command
-                False -> return $ [Result_AssertionFail_EntityNotDeclared x t]
+                False -> return $ [AssertionFail $ EntityNotDeclared x t]
             (AssertClause (term,[])) -> do
               let goal = [term]
               typePredicates <- getTypePredicates goal
@@ -260,14 +261,14 @@ processBliCommand command = do
                 True -> do
                   -- Asserting type predicates -- this is fine.
                   (\x -> [x]) <$> processTypecheckedBliCommand command
-                False -> return $ [Result_AssertionFail_EntityNotDeclared x t]
+                False -> return $ [AssertionFail $ EntityNotDeclared x t]
             _ -> do
-              return $ [Result_AssertionFail_EntityNotDeclared x t]
+              return $ [AssertionFail $EntityNotDeclared x t]
         False -> do
-          return $ [Result_QueryFail_EntityNotDeclared x t]
-    Left (TypeNotDeclared x) -> do
+          return $ [QueryFail $ EntityNotDeclared x t]
+    Left (Typechecking.TypeNotDeclared x) -> do
       -- This should only occur for assertions.
-      return $ [Result_AssertionFail_TypeNotDeclared x]
+      return $ [AssertionFail $ TypeNotDeclared x]
     Right Ok -> do
       (\x -> [x]) <$> processTypecheckedBliCommand command
 
@@ -277,12 +278,13 @@ addEntityToSchema termId typeId = do
   types <- getTypes
   entities <- getEntities
   case BliSet.lookup (==typeId) types of
-                Nothing -> return $ Result_AssertionFail_TypeNotDeclared typeId
+                Nothing -> return $ AssertionFail (TypeNotDeclared typeId)
                 Just _ -> 
                   case tryInsert (termId, typeId) entities of
-                    Left _ -> return $ Result_AssertionFail_AlreadyAsserted
+                    Left _ -> return $ AssertionFail AlreadyAsserted
                     Right result -> do
                       setEntities result
-                      return $ Result_AssertionSuccess  
+                      -- TODO: Need to update this with Bedelibry logic
+                      return $ (AssertionSuccess GenericAssertionSuccess)
 
         

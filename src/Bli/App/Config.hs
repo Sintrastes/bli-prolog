@@ -439,7 +439,7 @@ ifEnabled' extension x = do
   result <- extensionEnabled extension
   case result of 
     True  -> x
-    False -> return $ Result_ExtensionNotEnabled extension 
+    False -> return $ ExtensionNotEnabled extension 
 
 ifEnabledThenElse extension x y = do
   result <- extensionEnabled extension

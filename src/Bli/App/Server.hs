@@ -60,8 +60,9 @@ requestHandler :: Maybe BliRequest -> Bli (Maybe BliResponse)
 requestHandler (Just (MakeQuery query)) 
   = do parseResult <- liftFromPure $ parseBliCommandTyped query
        case parseResult of 
-         Left err -> return $ Just $ SyntaxError $ BoundVarNotInBody -- "Some error. Replace me!"
-         Right command -> do
+         Left err -> return $ Just $ BliRequest $ SyntaxError $ BoundVarNotInBody -- "Some error. Replace me!"
+         Right command -> return $ Just BliRequest command
+          {- do
            results <- processBliCommand command
            -- Todo: This should handle all errors, not just the first one.
            case head results of
@@ -75,7 +76,7 @@ requestHandler (Just (MakeQuery query))
              Result_AssertionSuccess -> do
                  return $ Just $ AssertionSuccess
              Result_AssertionFail_AtomsNotInSchema atoms -> do
-                 return $ Just $ QuerySuccess "Assertion fail" -- "replace me."
+                 return $ Just $ QuerySuccess "Assertion fail" -- "replace me." -}
 requestHandler (Just (MakeAssertion assertion))
   = do parseResult <- liftFromPure $ parseBliCommandTyped assertion
        case parseResult of
