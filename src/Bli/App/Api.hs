@@ -49,7 +49,7 @@ data FailureMode =
 
 data AssertionSuccessMode = 
     AddedEntityLocally String String
-  | AddedEntityBledelibry String String
+  | AddedEntityBedelibry String String
   | GenericAssertionSuccess deriving(Show,Eq)
 
 data QuerySuccessMode = 

@@ -19,7 +19,7 @@ import Data.Text.Encoding
 import Data.String
 import System.Directory
 import Control.Monad
-import Bli.Prolog.Typechecking
+import Bli.Prolog.Typechecking hiding (InvalidClause(..))
 import Bli.Prolog.Parser
 import Bli.Prolog.Parser.Cli
 import Control.Applicative
@@ -48,9 +48,9 @@ parseRequest req
         body'  = strictRequestBody req
 
 processResponse :: Maybe BliResponse -> Bli Response
-processResponse (Just (SyntaxError err)) = return $ responseBuilder badRequest400 [] "Syntax error"
-processResponse (Just (QuerySuccess response)) = return $ jsonResponse $ byteString $ BU.fromString $ response
-processResponse (Just AssertionSuccess) = return $ responseBuilder status200 [] "Assertion success"
+processResponse (Just (BliResponse (SyntaxError err))) = return $ responseBuilder badRequest400 [] "Syntax error"
+processResponse (Just (BliResponse (QuerySuccess response))) = return $ jsonResponse $ byteString $ BU.fromString $ show response
+processResponse (Just (BliResponse (AssertionSuccess _))) = return $ responseBuilder status200 [] "Assertion success"
 processResponse Nothing = return $ responseBuilder badRequest400 [] "Bad request"
 
 -- This is where the magic happens.
@@ -60,8 +60,10 @@ requestHandler :: Maybe BliRequest -> Bli (Maybe BliResponse)
 requestHandler (Just (MakeQuery query)) 
   = do parseResult <- liftFromPure $ parseBliCommandTyped query
        case parseResult of 
-         Left err -> return $ Just $ BliRequest $ SyntaxError $ BoundVarNotInBody -- "Some error. Replace me!"
-         Right command -> return $ Just BliRequest command
+         Left err -> return $ Just $ BliResponse $ SyntaxError $ show err
+         Right command -> do
+          results <- processBliCommand command
+          return $ Just $ BliResponse (head results)
           {- do
            results <- processBliCommand command
            -- Todo: This should handle all errors, not just the first one.
@@ -79,8 +81,14 @@ requestHandler (Just (MakeQuery query))
                  return $ Just $ QuerySuccess "Assertion fail" -- "replace me." -}
 requestHandler (Just (MakeAssertion assertion))
   = do parseResult <- liftFromPure $ parseBliCommandTyped assertion
-       case parseResult of
-         Left err -> return $ Just $ SyntaxError $ BoundVarNotInBody -- "replace me."
+       case parseResult of 
+         Left err -> return $ Just $ BliResponse $ SyntaxError $ show err -- "Some error. Replace me!"
+         Right command -> do
+          results <- processBliCommand command
+           -- Todo: This should handle all errors, not just the first one.
+          return $ Just $ BliResponse (head results)
+
+         {- Left err -> return $ Just $ SyntaxError $ BoundVarNotInBody -- "replace me."
          Right command -> do
            results <- processBliCommand command
            -- Todo: This should handle all errors, not just the first one.
@@ -96,7 +104,7 @@ requestHandler (Just (MakeAssertion assertion))
              Result_AssertionSuccess -> do
                return $ Just $ AssertionSuccess
              Result_AssertionFail_AtomsNotInSchema atoms -> do
-               return $ Just $ QuerySuccess "Assertion fail: Atoms not in schema." -- "replace me."
+               return $ Just $ QuerySuccess "Assertion fail: Atoms not in schema." -- "replace me." -}
 -- If we recieve an unsupported request, return the appropriate
 -- response.
 requestHandler Nothing = return Nothing

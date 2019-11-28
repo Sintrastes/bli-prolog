@@ -9,7 +9,7 @@ import Data.Convert
 import Control.Monad.Bli.Conversions (liftIORefFromPure)
 import Control.Monad.Bli.IORef
 import Control.Monad
-import Control.Exception.Base
+import Control.Exception.Base hiding (TypeError)
 import qualified Control.Monad.Bli.Pure as Pure
 import Bli.Util
 import Bli.App
@@ -21,7 +21,7 @@ import Bli.App.Colors
 import Bli.App.Config
 import Bli.App.Config.Data
 import Bli.App.Config.Features
-import Bli.Prolog.Typechecking
+import Bli.Prolog.Typechecking hiding (InvalidClause(..))
 import Data.Bli.Prolog.Ast
 import Data.Bli.Prolog.Schema
 import Data.Aeson hiding (json)
@@ -73,36 +73,57 @@ processBliCommandRepl command = do
   results <- processBliCommand command
   mapM_ displayResult results
 
+displayFailure :: FailureMode -> String
+displayFailure (AtomsNotInSchema atoms) =
+    "    The identifiers "++ show atoms++"\n"++
+    "    have not been declared in a schema."
+displayFailure BoundVarNotInBody =
+    "    Variables bound by a lambda abstraction that do not appear\n"++
+    "    In the body of a query."
+displayFailure (EntityNotDeclared t x) =
+    "    The term "++t++" has not been declared as an entity\n"++
+    "    of type "++x++"."
+displayFailure (TypeNotDeclared t) =
+    "    The type "++t++"\n    has not been declared."
+displayFailure (NotAPredicate ((id, n, typ):_)) =
+    "    Identifier "++id++" is being used as an "++fmt n++"ary predicate\n"++
+    "    but is declared to be a term of type "++typ++"."
+displayFailure (TypeError ((p, n, expectedType, actualType):_)) =
+  "    Type error. In predicate "++p++" at argument "++show n++",\n"++
+  "    expected a term of type "++expectedType++" but instead recieved a term of type "++actualType++"."
+displayFailure AlreadyAsserted = "  Already asserted."
+displayFailure (CannotDeclareEntityOfBuiltinType str) =
+  "    Cannot declare an entity of builtin type "++ str ++ "."
+displayFailure CannotDeclaraDatatypeAsEntity =
+  "    Cannot declare a datatype or data constructor as\n" ++
+  "    an entity."
+
 -- | Displays a single BliResult, formatted for the Command Line Interface.
 displayResult :: BliResult -> Bli ()
 displayResult result = do
   opts      <- getConfig
   let colorOpts = not $ nocolor opts
   case result of
-    Result_QueryFail_AtomsNotInSchema atoms -> do
-      printResponse $ (red colorOpts "Failure.")++" Query unsuccessful.\n"++
-                      "    The identifiers "++ show atoms++"\n"++
-                      "    have not been declared in a schema."
-    Result_QueryFail_BoundVarNotInBody -> do
-      printResponse $ (red colorOpts "Failure.")++" Query unsuccessful.\n"++
-                      "    Variables bound by a lambda abstraction that do not appear\n"++
-                      "    In the body of a query."
-    Result_QueryFail_EntityNotDeclared t x -> do
-      printResponse $ (red colorOpts "Failure.")++" Query unsuccessful.\n"++
-                      "    The term "++t++" has not been declared as an entity\n"++
-                      "    of type "++x++"."
-    Result_QueryFail_TypeNotDeclared t -> do
-      printResponse $ (red colorOpts "Failure.")++" Query unsuccessful.\n"++
-                      "    The type "++t++"\n    has not been declared."
-    Result_QueryFail_NotAPredicate ((id, n, typ):_) -> do
-      printResponse $ (red colorOpts "Failure.")++" Query unsuccesful.\n" ++
-                      "    Identifier "++id++" is being used as an "++fmt n++"ary predicate\n"++
-                      "    but is declared to be a term of type "++typ++"."
-    Result_QueryFail_TypeError _ -> do
-      printResponse $ (red colorOpts "Failure.")++" Query unsuccesful.\n" ++
-                      "    Type error."
-    Result_QuerySuccess [ProcReturn] -> return ()
-    Result_QuerySuccess solutions -> do
+    SyntaxError err -> do
+      printResponse "Syntax error."
+    ExtensionNotEnabled option -> do
+      printResponse $ "The extension "++ show option++" is not enabled."
+    QueryFail failureType -> do
+      printResponse $ (red colorOpts "Failure.") ++
+        " Query unsuccessful.\n" ++ displayFailure failureType
+    AssertionFail failureType -> do
+      printResponse $ (red colorOpts "Failure.") ++ 
+        " Assertion unsuccessful.\n" ++ displayFailure failureType
+    AssertionSuccess (AddedEntityLocally entityName entityType) -> do 
+      printResponse $ (green colorOpts "Ok. ")++"Added "++entityName++" to the list of entities of type "++entityType++"."
+    AssertionSuccess (AddedEntityBedelibry entityName entityType) -> do
+      printResponse $ (green colorOpts "Ok.") ++ "\n" ++
+        "    Added "++entityName++" to the list of entities of type\n" ++
+        "    "++entityType++" in the Bedelibry server.\n"
+    AssertionSuccess GenericAssertionSuccess -> do
+      printResponse $ (green colorOpts "OK.")++" Assertion successful."
+    QuerySuccess (QueryFinished [ProcReturn]) -> return ()
+    QuerySuccess (QueryFinished solutions) -> do
       case solutions of
         [] -> do
           printResponse (yellow colorOpts "No solutions.")
@@ -116,45 +137,6 @@ displayResult result = do
           case json opts of
             True  -> liftIO $ mapM_ (putStrLn . solutionToJson) solutions
             False -> liftIO $ mapM_ print solutions 
-    Result_AssertionSuccess -> do
-      printResponse $ (green colorOpts "OK.")++" Assertion successful."
-      -- Note: If we have stored somewhere a list of how to make a type into
-      -- its plural form, then we can have better responses here.
-    Result_AssertionSuccess_AddedEntityLocally entityName entityType  -> do
-      printResponse $ (green colorOpts "Ok. ")++"Added "++entityName++" to the list of entities of type "++entityType++"."
-    Result_AssertionSuccess_AddedEntityBedelibry entityName entityType -> do
-      printResponse $ (green colorOpts "Ok.") ++ "\n" ++
-                      "    Added "++entityName++" to the list of entities of type\n" ++
-                      "    "++entityType++" in the Bedelibry server.\n"
-    Result_AssertionFail_EntityNotDeclared t x -> do
-      printResponse $ (red colorOpts "Failure.")++" Assertion unsuccessful.\n" ++
-                      "    The term "++t++" has not been declared as an entity\n" ++
-                      "    of type "++x++"."
-    Result_AssertionFail_TypeNotDeclared t -> do
-      printResponse $ (red colorOpts "Failure.")++" Assertion unsuccessful.\n"++
-                      "    The type "++t++"\n    has not been declared."
-    Result_AssertionFail_NotAPredicate ((id, n, typ):_) -> do
-      printResponse $ (red colorOpts "Failure.")++" Assertion unsuccessful.\n" ++
-                      "    Identifier "++id++" is being used as an "++fmt n++"ary predicate\n" ++
-                      "    but is declared to be a term of type "++typ++"."
-    Result_AssertionFail_TypeError ((p, n, expectedType, actualType):_) -> do
-      printResponse $ (red colorOpts "Failure.")++" Assertion unsuccesful.\n"++
-                      "    Type error. In predicate "++p++" at argument "++show n++",\n"++
-                      "    expected a term of type "++expectedType++" but instead recieved a term of type "++actualType++"."
-    Result_AssertionFail_AtomsNotInSchema atoms -> do
-      printResponse $ (red colorOpts "Failure.")++" Assertion unsuccessful.\n"++
-                      "    The identifiers "++ show atoms ++ "\n" ++
-                      "    have not been declared in a schema."
-    Result_AssertionFail_AlreadyAsserted -> do
-      printResponse $ (yellow colorOpts "Already asserted.")
-    Result_AssertionFail_CannotDeclareEntityOfBuiltinType str -> do
-      printResponse $ (red colorOpts "Failure.")++ " Assertion unsuccessful.\n" ++
-                      "    Cannot declare an entity of builtin type "++ str ++ "."
-    Result_AssertionFail_CannotDeclaraDatatypeAsEntity -> do
-      printResponse $ (red colorOpts "Failure.")++" Assertion unsuccessful.\n" ++
-                      "    Cannot declare a datatype or data constructor as\n" ++
-                      "    an entity."
-
 
 -- | Helper function to process bli-prolog commands in a running application.
 processCliInput :: String -> Bli ()
