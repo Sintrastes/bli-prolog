@@ -41,6 +41,10 @@ import Control.Monad.IO.Class
 import Data.BliParser
 import System.Console.Haskeline hiding (catch)
 import Control.Monad.Trans.Class (lift)
+import Data.ByteString.Lazy.UTF8
+import Control.Lens
+import Network.Wreq hiding (get)
+import qualified Network.Wreq as Wreq
 
 import qualified Data.Text as Text
 
@@ -73,15 +77,15 @@ processBliCommandRepl command = do
   results <- processBliCommand command
   mapM_ displayResult results
 
-processBliCommandRemote :: BliCommand -> Bli ()
-processBliCommandRemote command = do
+processBliCommandRemote :: String -> Bli ()
+processBliCommandRemote input = do
   opts <- getConfig
   let Just address = remote opts
-  printResponse "Not implemented."
   -- Make an http request to the configured server, and 
   -- print the results
-  -- results <- undefined
-  -- mapM_ displayResult results
+  response <- liftIO $ Wreq.get $ address ++ "/?query=" ++ input
+  let Just result = read <$> toString <$> (response ^? responseBody) :: Maybe BliResult
+  displayResult result
 
 displayFailure :: FailureMode -> String
 displayFailure (AtomsNotInSchema atoms) =
@@ -173,7 +177,7 @@ processCliInput input = do
                      (yellow colorOpts
                         "All bli prolog commands end with either a '.' or an '!'.")
     Right command -> do
-      processBliCommandRemote command
+      processBliCommandRemote input
 
 processThinClientInput :: String -> Bli ()
 processThinClientInput "" = return ()
@@ -198,7 +202,7 @@ processThinClientInput input = do
                      (yellow colorOpts
                         "All bli prolog commands end with either a '.' or an '!'.")
     Right command -> do
-      processBliCommandRemote command
+      processBliCommandRemote input
 
 -- | Function used for tab completion in the REPL.
 {-
@@ -263,8 +267,8 @@ repl = runInputT defaultSettings loop
 
 -- | Run the application as a thin client connecting to
 --   a remote Bedelibry Prolog server.
-thinClient :: String -> Bli ()
-thinClient serverAddress = do 
+thinClient :: Bli ()
+thinClient = do 
   -- Handle connection to the server and exception handling... 
 
   -- Start the client

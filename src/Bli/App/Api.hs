@@ -33,7 +33,7 @@ data BliResult =
   | QueryFail FailureMode 
   | AssertionFail FailureMode
   | QuerySuccess QuerySuccessMode
-  | AssertionSuccess AssertionSuccessMode deriving(Show, Eq)
+  | AssertionSuccess AssertionSuccessMode deriving(Show, Eq, Read)
 
 data FailureMode =
     BoundVarNotInBody 
@@ -45,16 +45,16 @@ data FailureMode =
   | NotAPredicate [(String, Int, String)]
   | WrongArities [(String,Int,Int)]
   | CannotDeclareEntityOfBuiltinType String
-  | CannotDeclaraDatatypeAsEntity deriving(Show, Eq)
+  | CannotDeclaraDatatypeAsEntity deriving(Show, Eq, Read)
 
 data AssertionSuccessMode = 
     AddedEntityLocally String String
   | AddedEntityBedelibry String String
-  | GenericAssertionSuccess deriving(Show,Eq)
+  | GenericAssertionSuccess deriving(Show, Eq, Read)
 
 data QuerySuccessMode = 
     QueryFinished [Solution]
-  | AdditionalInputRequired deriving(Show, Eq)
+  | AdditionalInputRequired deriving(Show, Eq, Read)
   
 -- | Helper function to combine multiple BliResults into one.
 --   Note: This should probably be of type [BliResult] -> [BliResult],

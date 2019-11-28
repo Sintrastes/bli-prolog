@@ -48,9 +48,11 @@ parseRequest req
         body'  = strictRequestBody req
 
 processResponse :: Maybe BliResponse -> Bli Response
-processResponse (Just (BliResponse (SyntaxError err))) = return $ responseBuilder badRequest400 [] "Syntax error"
-processResponse (Just (BliResponse (QuerySuccess response))) = return $ jsonResponse $ byteString $ BU.fromString $ show response
-processResponse (Just (BliResponse (AssertionSuccess _))) = return $ responseBuilder status200 [] "Assertion success"
+-- processResponse (Just (BliResponse (SyntaxError err))) = return $ responseBuilder badRequest400 [] "Syntax error"
+-- processResponse (Just (BliResponse (QuerySuccess response))) = return $ jsonResponse $ byteString $ BU.fromString $ show response
+-- processResponse (Just (BliResponse (AssertionSuccess _))) = return $ responseBuilder status200 [] "Assertion success"
+-- Catchall case
+processResponse (Just (BliResponse x)) = return $ jsonResponse $ byteString $ BU.fromString $ show x
 processResponse Nothing = return $ responseBuilder badRequest400 [] "Bad request"
 
 -- This is where the magic happens.

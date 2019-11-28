@@ -84,7 +84,7 @@ main = do
               case remote opts of
                 Just address -> do
                   -- Launch the appliation as a thin client.
-                  putStrLn "NOT IMPLEMENTED"
+                  initBli opts thinClient
                 Nothing -> do
                   -- Otherwise...
                   case goal opts of
