@@ -74,7 +74,23 @@ bliPrologProgramP = do
                               Right clause -> AssertClause clause) slines'
   let plines = map Query $ map (\x -> (collectGoalVars x,x)) plines'
   
-  return $ slines ++ plines
+  return $ Program $ slines ++ plines
+
+  -- | Parser for a bli prolog program.
+bliPrologModuleP :: BliParser BliProgram
+bliPrologModuleP = do
+  symb "module"
+  moduleName <- identifierP
+  csymb '.'
+  slines' <- many $ try typedSchemaLineP `eitherP` clauseP
+  -- Symbol to indicate that we are done with definitions, and
+  -- everything from now on is to be interpreted as a command.
+  let slines = map (\line -> case line of
+                              Left sEntry  -> sEntry
+                              Right clause -> AssertClause clause) slines'
+  let plines = map Query $ map (\x -> (collectGoalVars x,x)) plines'
+  
+  return $ Module moduleName (slines ++ plines)
 
 -- | Parser for the assertion of a prolog clause.
 assertClauseP :: BliParser Clause

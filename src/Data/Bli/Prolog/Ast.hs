@@ -112,6 +112,6 @@ isQuery _ = False
 type Program = Clauses
 type Clauses = [Clause]
 
--- | A type synonym for BliPrograms,
--- which can contain both assertions and queries.
-type BliProgram = [BliCommand]
+data BliProgram = 
+    Program [BliCommand]
+  | Module String [BliCommand]
