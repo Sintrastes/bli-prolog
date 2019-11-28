@@ -198,7 +198,7 @@ processThinClientInput input = do
                      (yellow colorOpts
                         "All bli prolog commands end with either a '.' or an '!'.")
     Right command -> do
-      processBliCommandRepl command
+      processBliCommandRemote command
 
 -- | Function used for tab completion in the REPL.
 {-
