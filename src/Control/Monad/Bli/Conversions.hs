@@ -1,8 +1,6 @@
 
 module Control.Monad.Bli.Conversions where
 
-import Data.Convert
-
 import Data.Alias
 import Data.BliSet
 import Control.Monad.Trans.State.Strict
@@ -44,13 +42,3 @@ liftIORefFromPure (State.StateBliT x) = do
 liftStateToMVar :: (BliSet t1, BliSet t2, BliSet t3, BliSet t4, Alias alias)
  => State.Bli t1 t2 t3 t4 alias a -> MVar.Bli t1 t2 t3 t4 alias a
 liftStateToMVar = undefined
-
--- Convertible instances --
-
-instance (BliSet t1, BliSet t2, BliSet t3, BliSet t4, Alias alias) => 
-   Convertible (Pure.Bli t1 t2 t3 t4 alias a) (MVar.Bli t1 t2 t3 t4 alias a) where
-     convert = liftMVarFromPure
-
-instance (BliSet t1, BliSet t2, BliSet t3, BliSet t4, Alias alias) => 
-   Convertible (Pure.Bli t1 t2 t3 t4 alias a) (State.Bli t1 t2 t3 t4 alias a) where
-     convert = liftFromPure

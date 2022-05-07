@@ -36,6 +36,7 @@ import Data.HashMap.Strict (HashMap)
 import qualified Data.HashMap.Strict as HashMap
 import Data.Typeable
 import Data.Aeson (toJSON, parseJSON)
+import Data.Aeson.KeyMap (toHashMap)
 import qualified Data.Aeson as Aeson
 import GHC.Generics
 import qualified Data.BliParser as BliParser
@@ -54,7 +55,7 @@ getBliModuleData = do
   case yaml of
     Left err -> return $ Nothing
     Right obj -> do
-      case HashMap.lookup "modules" obj of
+      case HashMap.lookup "modules" (toHashMap obj) of
         Nothing -> return Nothing
         Just array -> do
           -- Make sure each of the elements of the array has the right
@@ -65,17 +66,17 @@ getBliModuleData = do
             Nothing -> return $ Nothing
 
 
--- | Takes a BliReplCommandType, and returns a list of the strings 
+-- | Takes a BliReplCommandType, and returns a list of the strings
 --   which can be used to invoke that command.
 bliReplCommandStrings :: BliReplCommandType -> [String]
-bliReplCommandStrings cmd = 
+bliReplCommandStrings cmd =
   case cmd of
     Cmd_Help           -> [":h",":help"]
     Cmd_Exit           -> [":exit",":quit",":q"]
     Cmd_ExportFile     -> [":export"]
     Cmd_LoadFile       -> [":load"]
     Cmd_Alias          -> [":alias"]
-    Cmd_ClearFacts     -> [":clr-facts"] 
+    Cmd_ClearFacts     -> [":clr-facts"]
     Cmd_ClearSchema    -> [":clr-schema"]
     Cmd_ClearRelations -> [":clr-relations",":clr-rels"]
     Cmd_ClearEntities  -> [":clr-entities",":clr-ents"]
@@ -99,7 +100,7 @@ bliReplCommandString :: BliReplCommandType -> String
 bliReplCommandString cmd = head $ bliReplCommandStrings cmd
 
 -- | Takes a BliReplCommandType, and returns a short description of
---   what that command does. 
+--   what that command does.
 bliReplCommandDescriptions :: BliReplCommandType -> String
 bliReplCommandDescriptions cmd =
   case cmd of
@@ -124,7 +125,7 @@ bliReplCommandDescriptions cmd =
     Cmd_GetPID         -> "Gets the primary identifier of the given term, if it exists."
 
 typeToCommand :: BliReplCommandType -> Maybe BliReplCommand
-typeToCommand ty = 
+typeToCommand ty =
   case ty of
      Cmd_Help           -> Just Help
      Cmd_Exit           -> Just Exit
@@ -149,13 +150,13 @@ typeToCommand ty =
 parseBliReplCommand :: String -> BliReplParseResult
 parseBliReplCommand input =
   case lookup True $
-     zip (map (\x -> (filter (\x -> x /= ' ') input) `elem` (bliReplCommandStrings x)) (enumValues @BliReplCommandType)) 
+     zip (map (\x -> (filter (\x -> x /= ' ') input) `elem` (bliReplCommandStrings x)) (enumValues @BliReplCommandType))
          (enumValues @BliReplCommandType) of
-    Just cmd -> 
+    Just cmd ->
       case typeToCommand cmd of
         Just cmd -> DoneParsing $ cmd
         Nothing -> ParseError "Wrong number of arguments supplied to command. See :help for usage."
-    Nothing -> 
+    Nothing ->
       case () of
         -- TODO: Better error handling here.
         _ | any (\cmd -> isPrefixOf cmd input) (bliReplCommandStrings Cmd_LoadFile) ->
@@ -187,7 +188,7 @@ parseBliReplCommand input =
 -- | The banner which is displayed when the user first loads the repl.
 --   Note: To automate this, I need some sort of pretty printing library.
 replBanner :: String -> Bool -> String
-replBanner version colorOpts = 
+replBanner version colorOpts =
     "\n"++
     "  |      |            |\n"++
     "  |      |  .         |\n"++
@@ -202,7 +203,7 @@ replBanner version colorOpts =
 -- | The banner which is displayed when the user first loads the repl in server mode.
 --   Note: To automate this, I need some sort of pretty printing library.
 serverReplBanner :: String -> Bool -> String
-serverReplBanner version colorOpts = 
+serverReplBanner version colorOpts =
     "\n"++
     "  |      |            |\n"++
     "  |      |  .         |\n"++
@@ -217,7 +218,7 @@ serverReplBanner version colorOpts =
 -- | Help screen to print when :h is called in the REPL
 replHelpScreen :: Bool -> IO String
 replHelpScreen colorOpts = do
-  let footer = 
+  let footer =
          ["Usage:"
          ,"  [PROLOG_TERM|PROLOG_CLAUSE]!   Assert a fact or rule."
          ,"  [PROLOG_TERM].                 Make a standard prolog query."
@@ -225,7 +226,7 @@ replHelpScreen colorOpts = do
          ,""
          ,"For more information, please see the documentation at https://github.com/Sintrastes/bli-prolog."]
   -- Length of the largest command, used for formatting.
-  let maxCommandLength = foldr1 max 
+  let maxCommandLength = foldr1 max
         $ map length
         $ map bliReplCommandString
             (enumValues @BliReplCommandType)
@@ -242,19 +243,19 @@ replHelpScreen colorOpts = do
   -- Additional offset needed to deal with color codes
   let magic_number = 10
   -- Helper function to append spaces to the end of a string until it reaches the desired length.
-  let concatSpaces n str 
+  let concatSpaces n str
         | length str < n = concatSpaces n (str ++ " ")
         | otherwise = str
-  let cmdColumn = map (\x -> (take initial_offset $ repeat ' ') ++ x) 
+  let cmdColumn = map (\x -> (take initial_offset $ repeat ' ') ++ x)
         $ map (concatSpaces (maxCommandLength + column_offset + magic_number))
         $ map (\str -> blue colorOpts str)
-        $ map bliReplCommandString 
+        $ map bliReplCommandString
         $ enumValues @BliReplCommandType
   let descColumn = map bliReplCommandDescriptions (enumValues @BliReplCommandType)
   let cmdsAndDescs = zipWith (++) cmdColumn descColumn
   maybeWindow <- size
   case maybeWindow of
-    Nothing -> 
+    Nothing ->
       -- If we can't get the terminal size, then just use "standard" formatting.
       return $ foldr1 (\x -> \y -> x ++ "\n" ++ y) $
          ["Commands:"] ++
@@ -266,10 +267,10 @@ replHelpScreen colorOpts = do
       let width = min termWidth max_width
       let removeLeadingWhitespace (' ':xs) = removeLeadingWhitespace xs
           removeLeadingWhitespace xs = xs
-      let fmtHelp (wd:wrds) acc 
+      let fmtHelp (wd:wrds) acc
             | (length $ removeLeadingWhitespace $ last (splitOn "\n" (acc++" "++wd))) + column_offset + maxCommandLength + initial_offset >= width =
                  fmtHelp wrds (acc++"\n"++(take (column_offset + maxCommandLength + initial_offset + 1 + overhang) (repeat ' '))++wd)
-            | otherwise = 
+            | otherwise =
                  fmtHelp wrds (acc++" "++wd)
           fmtHelp [] acc = acc
       -- Helper function to format the descriptions in a readable way given the terminal width.
@@ -282,27 +283,27 @@ replHelpScreen colorOpts = do
 
 instance IsRecord AppConfig where
   fromRecord record = do
-    search <- join $ ((\(Typ x) -> cast x) <$> Map.lookup "search" record :: Maybe (Maybe Search)) 
-    program <- join $ ((\(Typ x) -> cast x) <$> Map.lookup "program" record :: Maybe (Maybe FilePath)) 
-    schema <- join $ ((\(Typ x) -> cast x) <$> Map.lookup "schema" record :: Maybe (Maybe FilePath)) 
-    goal <- join $ ((\(Typ x) -> cast x) <$> Map.lookup "goal" record :: Maybe (Maybe String)) 
-    limit <- join $ ((\(Typ x) -> cast x) <$> Map.lookup "limit" record :: Maybe (Maybe (Maybe Int))) 
-    depth <- join $ ((\(Typ x) -> cast x) <$> Map.lookup "depth" record :: Maybe (Maybe Int)) 
-    verbose <- join $ ((\(Typ x) -> cast x) <$> Map.lookup "verbose" record :: Maybe (Maybe Bool)) 
-    nocolor <- join $ ((\(Typ x) -> cast x) <$> Map.lookup "nocolor" record :: Maybe (Maybe Bool)) 
-    json <- join $ ((\(Typ x) -> cast x) <$> Map.lookup "json" record :: Maybe (Maybe Bool)) 
-    server <- join $ ((\(Typ x) -> cast x) <$> Map.lookup "server" record :: Maybe (Maybe Bool)) 
+    search <- join $ ((\(Typ x) -> cast x) <$> Map.lookup "search" record :: Maybe (Maybe Search))
+    program <- join $ ((\(Typ x) -> cast x) <$> Map.lookup "program" record :: Maybe (Maybe FilePath))
+    schema <- join $ ((\(Typ x) -> cast x) <$> Map.lookup "schema" record :: Maybe (Maybe FilePath))
+    goal <- join $ ((\(Typ x) -> cast x) <$> Map.lookup "goal" record :: Maybe (Maybe String))
+    limit <- join $ ((\(Typ x) -> cast x) <$> Map.lookup "limit" record :: Maybe (Maybe (Maybe Int)))
+    depth <- join $ ((\(Typ x) -> cast x) <$> Map.lookup "depth" record :: Maybe (Maybe Int))
+    verbose <- join $ ((\(Typ x) -> cast x) <$> Map.lookup "verbose" record :: Maybe (Maybe Bool))
+    nocolor <- join $ ((\(Typ x) -> cast x) <$> Map.lookup "nocolor" record :: Maybe (Maybe Bool))
+    json <- join $ ((\(Typ x) -> cast x) <$> Map.lookup "json" record :: Maybe (Maybe Bool))
+    server <- join $ ((\(Typ x) -> cast x) <$> Map.lookup "server" record :: Maybe (Maybe Bool))
     bedelibryMode <- join $ ((\(Typ x) -> cast x) <$>
-                           Map.lookup "bedelibryMode" record :: Maybe (Maybe String)) 
-    port <- join $ ((\(Typ x) -> cast x) <$> Map.lookup "port" record :: Maybe (Maybe (Maybe Int))) 
+                           Map.lookup "bedelibryMode" record :: Maybe (Maybe String))
+    port <- join $ ((\(Typ x) -> cast x) <$> Map.lookup "port" record :: Maybe (Maybe (Maybe Int)))
     burl <- join $ ((\(Typ x) -> cast x) <$> Map.lookup "burl" record :: Maybe (Maybe String))
     fuzzySuggest <- join $ ((\(Typ x) -> cast x) <$> Map.lookup "fuzzySuggest" record :: Maybe (Maybe Bool))
     https <- join $ ((\(Typ x) -> cast x) <$> Map.lookup "https" record :: Maybe (Maybe Bool))
     multiErrors <- join $ ((\(Typ x) -> cast x) <$> Map.lookup "multiErrors" record :: Maybe (Maybe Bool))
-    remote <- join $ ((\(Typ x) -> cast x) <$> Map.lookup "remote" record :: Maybe (Maybe (Maybe String))) 
+    remote <- join $ ((\(Typ x) -> cast x) <$> Map.lookup "remote" record :: Maybe (Maybe (Maybe String)))
     let version = "" -- join $ ((\(Typ x) -> cast x) <$> Map.lookup "burl" record :: Maybe (Maybe String))
     prompt <- join $ ((\(Typ x) -> cast x) <$> Map.lookup "prompt" record :: Maybe (Maybe Bool))
-    return $ AppConfig (Options { 
+    return $ AppConfig (Options {
                    search'  = search
                  , program' = program
                  , schema' = schema
@@ -323,32 +324,34 @@ instance IsRecord AppConfig where
                  , remote' = remote })
                version
                defaultLanguageOptions
-  toRecord (AppConfig options version langOptions) = 
-      toRecord options #> 
+  toRecord (AppConfig options version langOptions) =
+      toRecord options #>
       Map.fromList [("version", Typ version)]
 
 instance IsRecord Options where
   fromRecord record = do
-    search <- join $ ((\(Typ x) -> cast x) <$> Map.lookup "search" record :: Maybe (Maybe Search)) 
-    program <- join $ ((\(Typ x) -> cast x) <$> Map.lookup "program" record :: Maybe (Maybe FilePath)) 
-    schema <- join $ ((\(Typ x) -> cast x) <$> Map.lookup "schema" record :: Maybe (Maybe FilePath)) 
-    goal <- join $ ((\(Typ x) -> cast x) <$> Map.lookup "goal" record :: Maybe (Maybe String)) 
-    limit <- join $ ((\(Typ x) -> cast x) <$> Map.lookup "limit" record :: Maybe (Maybe (Maybe Int))) 
-    depth <- join $ ((\(Typ x) -> cast x) <$> Map.lookup "depth" record :: Maybe (Maybe Int)) 
-    verbose <- join $ ((\(Typ x) -> cast x) <$> Map.lookup "verbose" record :: Maybe (Maybe Bool)) 
-    nocolor <- join $ ((\(Typ x) -> cast x) <$> Map.lookup "nocolor" record :: Maybe (Maybe Bool)) 
-    json <- join $ ((\(Typ x) -> cast x) <$> Map.lookup "json" record :: Maybe (Maybe Bool)) 
-    server <- join $ ((\(Typ x) -> cast x) <$> Map.lookup "server" record :: Maybe (Maybe Bool)) 
+    remote <- join $ ((\(Typ x) -> cast x) <$> Map.lookup "remote" record :: Maybe (Maybe (Maybe String)))
+    search <- join $ ((\(Typ x) -> cast x) <$> Map.lookup "search" record :: Maybe (Maybe Search))
+    program <- join $ ((\(Typ x) -> cast x) <$> Map.lookup "program" record :: Maybe (Maybe FilePath))
+    schema <- join $ ((\(Typ x) -> cast x) <$> Map.lookup "schema" record :: Maybe (Maybe FilePath))
+    goal <- join $ ((\(Typ x) -> cast x) <$> Map.lookup "goal" record :: Maybe (Maybe String))
+    limit <- join $ ((\(Typ x) -> cast x) <$> Map.lookup "limit" record :: Maybe (Maybe (Maybe Int)))
+    depth <- join $ ((\(Typ x) -> cast x) <$> Map.lookup "depth" record :: Maybe (Maybe Int))
+    verbose <- join $ ((\(Typ x) -> cast x) <$> Map.lookup "verbose" record :: Maybe (Maybe Bool))
+    nocolor <- join $ ((\(Typ x) -> cast x) <$> Map.lookup "nocolor" record :: Maybe (Maybe Bool))
+    json <- join $ ((\(Typ x) -> cast x) <$> Map.lookup "json" record :: Maybe (Maybe Bool))
+    server <- join $ ((\(Typ x) -> cast x) <$> Map.lookup "server" record :: Maybe (Maybe Bool))
     bedelibryMode <- join $ ((\(Typ x) -> cast x) <$>
-                           Map.lookup "bedelibryMode" record :: Maybe (Maybe String)) 
-    port <- join $ ((\(Typ x) -> cast x) <$> Map.lookup "port" record :: Maybe (Maybe (Maybe Int))) 
+                           Map.lookup "bedelibryMode" record :: Maybe (Maybe String))
+    port <- join $ ((\(Typ x) -> cast x) <$> Map.lookup "port" record :: Maybe (Maybe (Maybe Int)))
     prompt <- join $ ((\(Typ x) -> cast x) <$> Map.lookup "prompt" record :: Maybe (Maybe Bool))
     burl <- join $ ((\(Typ x) -> cast x) <$> Map.lookup "burl" record :: Maybe (Maybe String))
     fuzzySuggest <- join $ ((\(Typ x) -> cast x) <$> Map.lookup "fuzzySuggest" record :: Maybe (Maybe Bool))
     https <- join $ ((\(Typ x) -> cast x) <$> Map.lookup "https" record :: Maybe (Maybe Bool))
     multiErrors <- join $ ((\(Typ x) -> cast x) <$> Map.lookup "multiErrors" record :: Maybe (Maybe Bool))
-    return $ Options { 
+    return $ Options {
                 search' = search
+              , remote' = remote
               , program' = program
               , schema' = schema
               , goal' = goal
@@ -366,7 +369,7 @@ instance IsRecord Options where
               , https' = https
               , multiErrors' = multiErrors }
 
-  toRecord (Options { 
+  toRecord (Options {
                 search' = search
               , program' = program
               , schema' = schema
@@ -418,21 +421,21 @@ extensionEnabled extension = do
   languageOpts <- languageOptions <$> getConfig
   return $ extension `elem` languageOpts
 
--- | Helper function to preform an action 
+-- | Helper function to preform an action
 --   only if an extension is enabled, and
 --   to do nothing otherwise.
 ifEnabled extension x = do
   result <- extensionEnabled extension
   case result of
     True  -> x
-    False -> return () 
+    False -> return ()
 
 -- Version of ifEnabled to use in parsers
 ifEnabledP extension x = do
   result <- BliParser.bli $ extensionEnabled extension
   case result of
     True  -> x
-    False -> fail "" 
+    False -> fail ""
 
 
 -- | Helper function to preform an action only if an
@@ -441,16 +444,16 @@ ifEnabledP extension x = do
 --   extension is not enabled.
 ifEnabled' extension x = do
   result <- extensionEnabled extension
-  case result of 
+  case result of
     True  -> x
-    False -> return $ ExtensionNotEnabled extension 
+    False -> return $ ExtensionNotEnabled extension
 
 ifEnabledThenElse extension x y = do
   result <- extensionEnabled extension
-  case result of 
+  case result of
     True  -> x
     False -> y
-  
+
 -- | Starting options for the bli-prolog exectuable.
 startOptions version =
   Options { search' = def &= help "Specify wether to use DFS, BFS, or Limited"
@@ -488,7 +491,7 @@ configureApplication = do
   -- Get the version from the cabal file at compile-time.
   homeDir <- getHomeDirectory
   let v = $(getVersionFromCabal)
-  case v of 
+  case v of
     Nothing -> return $ Left "Error getting version from cabal file."
     Just version -> do
       opts <- toRecord <$> (cmdArgs $ startOptions version)
@@ -505,43 +508,43 @@ configureApplication = do
           error $ show err
         Right object -> do
           -- Get all the fields from the hashmap
-          let searchF = HashMap.lookup "search" object 
-          let programF = HashMap.lookup "program" object 
-          let schemaF = HashMap.lookup "schema" object 
-          let limitF = HashMap.lookup "limit" object 
-          let depthF = HashMap.lookup "depth" object 
-          let goalF = HashMap.lookup "goal" object 
-          let nocolorF = HashMap.lookup "nocolor" object 
-          let jsonF = HashMap.lookup "json" object 
-          let serverF = HashMap.lookup "server" object 
-          let portF = HashMap.lookup "port" object 
-          let burlF = HashMap.lookup "burl" object 
-          let fuzzySuggestF = HashMap.lookup "fuzzySuggest" object
-          let httpsF = HashMap.lookup "https" object
-          let multiErrorsF = HashMap.lookup "multiErrors" object
-          let remoteF = HashMap.lookup "remote" object
-          let promptF = HashMap.lookup "prompt" object 
-          let bedelibryModeF = HashMap.lookup "bedelibryMode" object 
-          let verboseF = HashMap.lookup "verbose" object
+          let searchF = HashMap.lookup "search" (toHashMap object)
+          let programF = HashMap.lookup "program" (toHashMap object)
+          let schemaF = HashMap.lookup "schema" (toHashMap object)
+          let limitF = HashMap.lookup "limit" (toHashMap object)
+          let depthF = HashMap.lookup "depth" (toHashMap object)
+          let goalF = HashMap.lookup "goal" (toHashMap object)
+          let nocolorF = HashMap.lookup "nocolor" (toHashMap object)
+          let jsonF = HashMap.lookup "json" (toHashMap object)
+          let serverF = HashMap.lookup "server" (toHashMap object)
+          let portF = HashMap.lookup "port" (toHashMap object)
+          let burlF = HashMap.lookup "burl" (toHashMap object)
+          let fuzzySuggestF = HashMap.lookup "fuzzySuggest" (toHashMap object)
+          let httpsF = HashMap.lookup "https" (toHashMap object)
+          let multiErrorsF = HashMap.lookup "multiErrors" (toHashMap object)
+          let remoteF = HashMap.lookup "remote" (toHashMap object)
+          let promptF = HashMap.lookup "prompt" (toHashMap object)
+          let bedelibryModeF = HashMap.lookup "bedelibryMode" (toHashMap object)
+          let verboseF = HashMap.lookup "verbose" (toHashMap object)
           -- Now, I'll want to do something here in the Maybe monad to send
           -- each one of these to a Typ field.
-          
+
           -- Note: This code is confusing, I probably don't need to use a maybe monad here.
           -- Also, this logic should probably be in a different function/module.
-          let maybeFields = do 
+          let maybeFields = do
                -- search <- searchF
                let searchF' =
                      case searchF of
                        -- Note: Here we need to do some parsing to get the right type
                        Just (String str) -> Just $ Typ str
-                       _          -> Nothing     
-  
+                       _          -> Nothing
+
                -- program <- programF
                let programF' =
                      case programF of
                        Just (String str) -> Just $ Typ str
                        _          -> Nothing
-  
+
                -- schema <- schemaF
                let schemaF' =
                      case schemaF of
@@ -560,54 +563,54 @@ configureApplication = do
                        -- Note: I'll need to do additional parsing here to deal with this.
                        Just (Number n) -> Just $ Typ $ Just n
                        _ -> Nothing
-  
+
                --- depth <- depthF
                let depthF' =
                      case depthF of
                         -- Note: I'll need to do additional parsing here.
                         Just (Number n) -> Just $ Typ n
                         _ -> Nothing
-             
+
                -- verbose <- verboseF
                let verboseF' =
                      case verboseF of
                        Just (Bool b) -> Just $ Typ b
                        _ -> Nothing
-             
+
                -- nocolor <- nocolorF
                let nocolorF' =
                      case nocolorF of
                        Just (Bool b) -> Just $ Typ b
                        _ -> Nothing
-             
+
                -- json <- jsonF
                let jsonF' =
                      case jsonF of
                        Just (Bool b) -> Just $ Typ b
                        _ -> Nothing
-             
+
                -- server <- serverF
-               let serverF' = 
+               let serverF' =
                      case serverF of
                        Just (Bool b) -> Just $ Typ b
                        _ -> Nothing
-             
+
                -- bedelibryMode <- bedelibryModeF
                let bedelibryModeF' =
                      case bedelibryModeF of
                        Just (String s) -> Just $ Typ s
                        _ -> Nothing
-             
+
                let portF' =
                      case portF of
                        -- Note: I need to do additional parsing here.
-                       Just (Number n') -> 
+                       Just (Number n') ->
                          case floatingOrInteger n' of
                            Right n -> Just $ Typ $ Just (n :: Int)
                            Left _  -> error "Bad port number format in config file."
                        Nothing -> Just $ Typ $ (Nothing :: Maybe Int)
                        _ -> Nothing
-             
+
                let promptF' =
                      case promptF of
                        Just (Bool b) -> Just $ Typ $ b
@@ -629,8 +632,8 @@ configureApplication = do
                       Just (Bool b) -> Just $ Typ $ b
                       _ -> Nothing
 
-               let multiErrorsF' = 
-                    case multiErrorsF of 
+               let multiErrorsF' =
+                    case multiErrorsF of
                       Just (Bool b) -> Just $ Typ b
                       _ -> Nothing
 
@@ -652,13 +655,13 @@ configureApplication = do
                          ("bedelibryMode",bedelibryModeF'),
                          ("port",portF'),("prompt",promptF'),("burl",burlF'),
                          ("fuzzySuggest", fuzzySuggestF'),
-                         ("https", httpsF'), 
+                         ("https", httpsF'),
                          ("multiErrors", multiErrorsF'),("remote",remoteF')]
                -- Extracts all the "Just" entries, removing the "Nothing"s
           let fromJust (Just x) = x
           let newRecordFields = mapMaybe id $ fromJust $ maybeFields
           let yamlRecord = Map.fromList newRecordFields
-  
+
           -- Return the final user configuration.
           case fromRecord $ yamlRecord #> opts of
              Just record ->

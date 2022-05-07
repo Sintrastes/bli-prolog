@@ -31,8 +31,8 @@ forkBli app = do
 main = do
   result <- configureApplication
   -- Make sure version loaded from file successfully.
-  case result of 
-    Left err -> do 
+  case result of
+    Left err -> do
       putStrLn $ (red True) "Error loading command line options. Aborting."
       putStrLn err
     Right opts -> do
@@ -43,21 +43,21 @@ main = do
         "" -> return $ Right []
         p  -> error "TODO: Implement this using out new code."
         -- _  -> clausesFromFile $ program opts
-      -- If Schema file not specified, start with an empty schema. 
+      -- If Schema file not specified, start with an empty schema.
       s <- case schema opts of
         "" -> return $ Right []
         _  -> error "TODO: Implement this using new code." -- schemaFromFile $ schema opts
       -- Handle parse errors for prolog and schema files.
-      case (p,s) of 
-        (Left (err :: String),_) -> 
-          do putStrLn ((red colorOpts "Error") ++ " parsing prolog file:") 
+      case (p,s) of
+        (Left (err :: String),_) ->
+          do putStrLn ((red colorOpts "Error") ++ " parsing prolog file:")
              putStrLn $ foldr1 (\x -> \y -> x ++ "\n" ++ y) $
-                               (map (\x -> "  " ++ x)) $ 
+                               (map (\x -> "  " ++ x)) $
                                (splitOn "\n" $ show err)
         (_,Left (err :: String)) ->
-          do putStrLn ((red colorOpts "Error")++" parsing schema file:") 
+          do putStrLn ((red colorOpts "Error")++" parsing schema file:")
              putStrLn $ foldr1 (\x -> \y -> x ++ "\n" ++ y) $
-                               (map (\x -> "  " ++ x)) $ 
+                               (map (\x -> "  " ++ x)) $
                                (splitOn "\n" $ show err)
         -- If all files parse sucessfully...
         (Right clauses, Right schema) ->
@@ -68,10 +68,10 @@ main = do
                 Just n -> do
                     putStrLn "Warning: Need to load files here."
                     case prompt opts of
-                      True -> do 
+                      True -> do
                         -- Print the main banner if options set to verbose.
-                        if (verbose opts) 
-                          then putStrLn $ serverReplBanner versionStr colorOpts 
+                        if (verbose opts)
+                          then putStrLn $ serverReplBanner versionStr colorOpts
                           else return ()
                         initBli opts (do forkBli (newServer n)
                                          repl)
@@ -92,7 +92,7 @@ main = do
                        -- Print the main banner if options set to verbose.
                        if (verbose opts) then putStrLn $ replBanner versionStr colorOpts else return ()
                        -- Run a bli prolog REPL with the user configuration.
-                       putStrLn "Warning: Need to handle getting data from files here."
+                       putStrLn "Repl. Warning: Need to handle getting data from files here."
                        initBli opts repl
                     -- If the user supplies a non-empty goal-string, run a single
                     -- command rather than starting the REPL.

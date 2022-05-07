@@ -107,9 +107,9 @@ library
     , mmorph
     , either
     , pretty
-    , convert
     , servant
     , process
+    , exceptions
     , fuzzyset
     , data-default
     , witherable

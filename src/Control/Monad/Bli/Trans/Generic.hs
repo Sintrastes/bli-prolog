@@ -77,7 +77,6 @@ import Control.Monad.Bli.Common
 import Control.Empty
 import Data.Map (Map)
 import qualified Data.Map as Map
-import System.Console.Haskeline.MonadException
 import Control.Lens
 import Data.Map.Lens
 import Control.Monad.Trans.State.Strict
@@ -90,6 +89,7 @@ import Control.Monad.Trans.Reader
 import Control.Monad.Trans.Compose
 import Control.Monad.Trans.IO
 import Data.IORef
+import Control.Monad.Catch
 
 -- For dealing with user-defined "proc" types.
 import Data.Dynamic
@@ -97,24 +97,27 @@ import Type.Reflection
 
 import Control.Monad.Bli.Trans.Generic.Internal
 
-instance MonadException m => MonadException (IOT m) where
-    controlIO f = fromIO $ join $ runIOT <$> f (RunIO (return))
+-- instance MonadException m => MonadException (IOT m) where
+--    controlIO f = fromIO $ join $ runIOT <$> f (RunIO (return))
 
-instance (Monad (t2 m), MonadException (t (t2 m)), MonadIO (t (t2 m)), Monad m) => MonadException (ComposeT t t2 m) where
-    controlIO f = do 
-        ComposeT x <- liftIO $ f (RunIO return)
-        ComposeT x
+-- instance (Monad (t2 m), MonadException (t (t2 m)), MonadIO (t (t2 m)), Monad m) => MonadException (ComposeT t t2 m) where
+--    controlIO f = do
+--        ComposeT x <- liftIO $ f (RunIO return)
+--        ComposeT x
 
 -- Note: To get this to work, we need this to be a newtype.
-deriving instance MonadException m => MonadException (StateBliT t1 t2 t3 t4 alias m)
-deriving instance MonadException m => MonadException (MVarBliT t1 t2 t3 t4 alias m)
-deriving instance MonadException m => MonadException (IORefBliT t1 t2 t3 t4 alias m)
+-- deriving instance MonadException m => MonadException (StateBliT t1 t2 t3 t4 alias m)
+-- deriving instance MonadException m => MonadException (MVarBliT t1 t2 t3 t4 alias m)
+
+deriving instance MonadThrow m => MonadThrow (IORefBliT t1 t2 t3 t4 alias m)
+deriving instance MonadCatch m => MonadCatch (IORefBliT t1 t2 t3 t4 alias m)
+deriving instance MonadMask m => MonadMask (IORefBliT t1 t2 t3 t4 alias m)
 
 newtype StateBliT t1 t2 t3 t4 alias m a =  StateBliT { runBliT :: StateT (BliStore t1 t2 t3 t4 alias) m a }
 
-instance Monad m => BliWrapper StateBliT m where 
+instance Monad m => BliWrapper StateBliT m where
   getStore    = StateBliT $ get
-  modifyStore f = StateBliT $ (modify f) 
+  modifyStore f = StateBliT $ (modify f)
   evalBliT (StateBliT app) initialState = evalStateT app initialState
 
 newtype MVarBliT t1 t2 t3 t4 alias m a = MVarBliT { runMVarBliT :: (ComposeT IOT (ReaderT (MVar (BliStore t1 t2 t3 t4 alias))) ) m a }
@@ -138,7 +141,7 @@ getIORefOfStore = IORefBliT ask
 instance BliWrapper IORefBliT IO where
   getStore      = IORefBliT $ ReaderT $ \ioRef -> readIORef ioRef
   modifyStore f = IORefBliT $ ReaderT $ \ioRef -> modifyIORef ioRef f
-  evalBliT app state = do 
+  evalBliT app state = do
     ioRef <- newIORef state
     unwrap app ioRef
 
@@ -251,7 +254,7 @@ lookupPrimaryID id = do
     Just x  -> return $ Just $ x
     Nothing -> return $ getPID aliases id
 
-data NewAliasResult = 
+data NewAliasResult =
    SuccessfullyAdded
  | AliasAlreadyInStore
  | DoesNotHavePrimaryIDOrAlias
@@ -270,10 +273,10 @@ newAlias id1 id2 = do
         Just primaryId1 -> do
           setAliases $ insertNewAlias' aliases (id2, primaryId1)
           return SuccessfullyAdded
-        Nothing -> do 
+        Nothing -> do
           lookupResult <- lookupPrimaryID id2
           case lookupResult of
-            Just primaryId2 -> do 
+            Just primaryId2 -> do
               setAliases $ insertNewAlias' aliases (id1, primaryId2)
               return SuccessfullyAdded
             Nothing -> return DoesNotHavePrimaryIDOrAlias
@@ -293,7 +296,7 @@ newType typeName = do
 newTypes :: (BliWrapper t m, Monad (t t1 t2 t3 t2 alias m), Monad m, BliSet t1, BliSet t2, BliSet t3, Alias alias)
  => [String] ->  t t1 t2 t3 t2 alias m Bool
 newTypes typeNames = do
-  results <- mapM newType typeNames 
+  results <- mapM newType typeNames
   return $ foldr (&&) True results
 
 -- | Attempts to add a new entity to the store. Returns a boolean flag to indicate success or failure.
@@ -311,7 +314,7 @@ newEntity name entityType = do
 newEntities :: (BliWrapper t m, Monad (t t1 t2 t3 t4 alias m), Monad m, BliSet t1, BliSet t2, BliSet t3, BliSet t4, Alias alias)
  => [(String, String)] -> t t1 t2 t3 t4 alias m Bool
 newEntities entityPairs = do
-  results <- mapM (uncurry newEntity) entityPairs 
+  results <- mapM (uncurry newEntity) entityPairs
   return $ foldr (&&) True results
 
 -- | Attempts to add a new relation to the store. Returns a boolean flag to indicate success or failure.
@@ -334,12 +337,12 @@ newRelations relDecs = do
 
 -- | Builtin types.
 initialTypes :: BliSet t4 => t4 TypeDecl
-initialTypes = 
-  let Right result = 
+initialTypes =
+  let Right result =
         tryInsert "string" empty >>=
         tryInsert "int" >>=
         tryInsert "float" >>=
-        tryInsert "date" >>= 
+        tryInsert "date" >>=
         tryInsert "time" >>=
         tryInsert "type" >>=
         tryInsert "entity" >>=
@@ -351,7 +354,7 @@ initialTypes =
 
 -- | Builtin procs.
 initialProcs :: BliSet t2 => t2 ProcContainer
-initialProcs = 
+initialProcs =
   let Right result =
         tryInsert (ProcContainer ("putStrLn",
                                   [StringLitT],
@@ -362,7 +365,7 @@ initialProcs =
 -- | Run a Bli computation with some initial application configuration data.
 initBli :: (BliWrapper t m, Monad (t t1 t2 t3 t4 alias m), Monad m, BliSet t1, BliSet t2, BliSet t3, BliSet t4, Alias alias)
  => AppConfig -> t t1 t2 t3 t4 alias m a -> m a
-initBli config app = evalBliT app 
+initBli config app = evalBliT app
   (BliStore {
     config = config,
     facts  = empty,
@@ -415,7 +418,7 @@ newConstr constr typeName = do
   -- If type has been declared as a datatype...
   case lookup (==typeName) dataTypes of
     Nothing -> return $ False
-    Just _  -> do 
+    Just _  -> do
        case tryInsert (constr, typeName) dataConstrs of
          Left _ -> return $ False
          Right result -> do
@@ -425,8 +428,8 @@ newConstr constr typeName = do
 -- | Attemps to add a collection of new constructors to the store if everything
 --   typechecks. Returns a boolean result to indicate success/failure.
 newConstrs :: (BliWrapper t m, Monad (t t1 t2 t3 t4 alias m), Monad m, BliSet t1, BliSet t2, BliSet t3, BliSet t4, Alias alias)
- -- Constructor name, constructor argument types, constructor type. 
- => [((String, [String]), String)] 
+ -- Constructor name, constructor argument types, constructor type.
+ => [((String, [String]), String)]
  -> t t1 t2 t3 t4 alias m Bool
 newConstrs constrDecs = do
   results <- mapM (uncurry newConstr) constrDecs
@@ -444,10 +447,10 @@ newDataType (typeName, constrs) = do
     Left _ -> return False
     Right newDataTypes -> do
       setDataTypes newDataTypes
-      newConstrs $ map (\constr -> 
+      newConstrs $ map (\constr ->
                            (constr, typeName))
                         constrs
-      
+
 -- | Helper function to lookup the type of a data constructor
 --   from the store.
 --   Note: If we allow for ambigious data constructors, this should return a list.

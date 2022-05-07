@@ -1,4 +1,6 @@
 *~
 /.stack-work
 /dist
+/dist-newstyle
+*/.DS_store
 /pure-prolog.cabal

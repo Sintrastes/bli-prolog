@@ -1,11 +1,10 @@
 
 --
 -- | Logic for the command line interface of bli-prolog
--- 
+--
 
 module Bli.App.Cli where
 
-import Data.Convert
 import Control.Monad.Bli.Conversions (liftIORefFromPure)
 import Control.Monad.Bli.IORef
 import Control.Monad
@@ -81,7 +80,7 @@ processBliCommandRemote :: String -> Bli ()
 processBliCommandRemote input = do
   opts <- getConfig
   let Just address = remote opts
-  -- Make an http request to the configured server, and 
+  -- Make an http request to the configured server, and
   -- print the results
   response <- liftIO $ Wreq.get $ address ++ "/?query=" ++ input
   let Just result = read <$> toString <$> (response ^? responseBody) :: Maybe BliResult
@@ -126,9 +125,9 @@ displayResult result = do
       printResponse $ (red colorOpts "Failure.") ++
         " Query unsuccessful.\n" ++ displayFailure failureType
     AssertionFail failureType -> do
-      printResponse $ (red colorOpts "Failure.") ++ 
+      printResponse $ (red colorOpts "Failure.") ++
         " Assertion unsuccessful.\n" ++ displayFailure failureType
-    AssertionSuccess (AddedEntityLocally entityName entityType) -> do 
+    AssertionSuccess (AddedEntityLocally entityName entityType) -> do
       printResponse $ (green colorOpts "Ok. ")++"Added "++entityName++" to the list of entities of type "++entityType++"."
     AssertionSuccess (AddedEntityBedelibry entityName entityType) -> do
       printResponse $ (green colorOpts "Ok.") ++ "\n" ++
@@ -150,12 +149,12 @@ displayResult result = do
         _  -> do
           case json opts of
             True  -> liftIO $ mapM_ (putStrLn . solutionToJson) solutions
-            False -> liftIO $ mapM_ print solutions 
+            False -> liftIO $ mapM_ print solutions
 
 -- | Helper function to process bli-prolog commands in a running application.
 processCliInput :: String -> Bli ()
 -- The REPL should not produce any output for empty input.
-processCliInput "" = return () 
+processCliInput "" = return ()
 processCliInput input = do
   -- Get schema, clauses, and options from context.
   types     <- getTypes
@@ -171,13 +170,13 @@ processCliInput input = do
   case parserOutput of
     Left err -> do printResponse $ ((red colorOpts "Error")++" parsing query string:")
                    printResponse $ foldr1 (\x -> \y -> x ++ "\n" ++ y) $
-                                          (map (\x -> "  " ++ x)) $ 
+                                          (map (\x -> "  " ++ x)) $
                                           (splitOn "\n" $ show err)
-                   printResponse $ 
+                   printResponse $
                      (yellow colorOpts
                         "All bli prolog commands end with either a '.' or an '!'.")
     Right command -> do
-      processBliCommandRemote input
+      processBliCommandRepl command
 
 processThinClientInput :: String -> Bli ()
 processThinClientInput "" = return ()
@@ -196,9 +195,9 @@ processThinClientInput input = do
   case parserOutput of
     Left err -> do printResponse $ ((red colorOpts "Error")++" parsing query string:")
                    printResponse $ foldr1 (\x -> \y -> x ++ "\n" ++ y) $
-                                          (map (\x -> "  " ++ x)) $ 
+                                          (map (\x -> "  " ++ x)) $
                                           (splitOn "\n" $ show err)
-                   printResponse $ 
+                   printResponse $
                      (yellow colorOpts
                         "All bli prolog commands end with either a '.' or an '!'.")
     Right command -> do
@@ -207,7 +206,7 @@ processThinClientInput input = do
 -- | Function used for tab completion in the REPL.
 {-
 completionFunction :: String -> IO [String]
-completionFunction x = 
+completionFunction x =
    if any (\y -> isPrefixOf x y) commandStrings
    then return $ filter (isPrefixOf x) commandStrings
    else return []
@@ -232,8 +231,8 @@ repl = runInputT defaultSettings loop
             Just line -> do
               -- Add the user's input to the command line history.
               -- liftIO $ addHistory line
-              case parseBliReplCommand line of 
-                ParseError err -> do 
+              case parseBliReplCommand line of
+                ParseError err -> do
                     printResponse $ (red colorOpts "Error") ++ ": " ++ show err
                     loop
                 DoneParsing blicmd -> do
@@ -247,29 +246,29 @@ repl = runInputT defaultSettings loop
                   -- Handle typo suggestions
                   if ( line /= "" && head line == ':')
                     then do
-                      if line == ":" 
-                        then do 
-                          printResponse $ (red colorOpts "Error")++": \":\" must be followed by a valid command." 
+                      if line == ":"
+                        then do
+                          printResponse $ (red colorOpts "Error")++": \":\" must be followed by a valid command."
                           loop
                         else do
                           let fuzzySet = fromList $ map Text.pack commandStringsAll :: FuzzySet
                           case getOne fuzzySet $ Text.pack (tail line) of
-                            Just suggestion -> do 
+                            Just suggestion -> do
                               printResponse $ (red colorOpts "Error")++
                                 ": Command \""++tail line++"\" not found. Did you mean \""++
                                 (tail $ Text.unpack suggestion)++"\"?"
-                            Nothing -> do 
+                            Nothing -> do
                               printResponse $ (red colorOpts "Error")++": Command \""++tail line++"\" not found."
                           loop
-                    else do 
+                    else do
                       lift $ processCliInput line
                       loop
 
 -- | Run the application as a thin client connecting to
 --   a remote Bedelibry Prolog server.
 thinClient :: Bli ()
-thinClient = do 
-  -- Handle connection to the server and exception handling... 
+thinClient = do
+  -- Handle connection to the server and exception handling...
 
   -- Start the client
   runInputT defaultSettings loop
@@ -288,8 +287,8 @@ thinClient = do
             Just line -> do
               -- Add the user's input to the command line history.
               -- liftIO $ addHistory line
-              case parseBliReplCommand line of 
-                ParseError err -> do 
+              case parseBliReplCommand line of
+                ParseError err -> do
                     printResponse $ (red colorOpts "Error") ++ ": " ++ show err
                     loop
                 DoneParsing blicmd -> do
@@ -303,21 +302,21 @@ thinClient = do
                   -- Handle typo suggestions
                   if ( line /= "" && head line == ':')
                    then do
-                     if line == ":" 
-                       then do 
-                         printResponse $ (red colorOpts "Error")++": \":\" must be followed by a valid command." 
+                     if line == ":"
+                       then do
+                         printResponse $ (red colorOpts "Error")++": \":\" must be followed by a valid command."
                          loop
                        else do
                          let fuzzySet = fromList $ map Text.pack commandStringsAll :: FuzzySet
                          case getOne fuzzySet $ Text.pack (tail line) of
-                           Just suggestion -> do 
+                           Just suggestion -> do
                              printResponse $ (red colorOpts "Error")++
                                ": Command \""++tail line++"\" not found. Did you mean \""++
                                (tail $ Text.unpack suggestion)++"\"?"
-                           Nothing -> do 
+                           Nothing -> do
                              printResponse $ (red colorOpts "Error")++": Command \""++tail line++"\" not found."
                              loop
-                    else do 
+                    else do
                       lift $ processThinClientInput line
                       loop
 
@@ -325,7 +324,7 @@ handleThinClientCommand :: BliReplCommand -> Bli Bool
 handleThinClientCommand command = do
   printResponse "Not implemented."
   return False
-          
+
 handleBliReplCommand :: BliReplCommand -> Bli Bool
 handleBliReplCommand blicmd = do
   let repl = return True
@@ -368,7 +367,7 @@ handleBliReplCommand blicmd = do
         if  (entities  == empty
           && relations == empty
           && types     == empty)
-        then do 
+        then do
           printResponse $ yellow colorOpts "Schema is empty."
           repl
         else do
@@ -376,7 +375,7 @@ handleBliReplCommand blicmd = do
           repl
       ListRelations ->
         if relations == empty
-        then do 
+        then do
           printResponse $ yellow colorOpts "No relations in store."
           repl
         else do
@@ -384,7 +383,7 @@ handleBliReplCommand blicmd = do
           repl
       ListTypes ->
         if types == empty
-        then do 
+        then do
           printResponse $ yellow colorOpts "No types in store."
           repl
         else do
@@ -409,9 +408,9 @@ handleBliReplCommand blicmd = do
       ListAliases -> do
         ifEnabledThenElse Aliases
           (do if aliases == empty
-              then do 
+              then do
                 printResponse $ yellow colorOpts "No aliases in store."
-              else do 
+              else do
                 -- Note: To make this work, I probably need a "to list" function
                 -- for aliases, so that I can get this to print properly.
                 mapM_ printResponse $ map (\(id1, id2) -> "alias " ++ id1 ++ " " ++ id2 ++ ".")  $ toKVList aliases)
@@ -484,7 +483,7 @@ handleBliReplCommand blicmd = do
          -- io $ putStrLn $ yellow colorOpts "Export command not implemented."
          repl
       Alias arg1 arg2 -> do
-          -- Note: First should check here that 
+          -- Note: First should check here that
           -- the arguments parse properly as bli identifiers.
           addedSuccessfully <- newAlias arg1 arg2
           case addedSuccessfully of
@@ -501,10 +500,10 @@ handleBliReplCommand blicmd = do
       GetTypeOf input -> do
         parseResult <- liftFromPure $ parseBli atomP input
         case parseResult of
-          Left e -> do 
+          Left e -> do
             printResponse $ show e
             repl
-          Right atom -> do 
+          Right atom -> do
             response <- typeOfAtom atom
             case response of
               Nothing -> printResponse "Did not typecheck"
