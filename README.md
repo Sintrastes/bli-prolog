@@ -1,7 +1,7 @@
 What Is It?
 ===========
 
-An implementation of a dialect of pure prolog, called *bedelibry prolog* (or bli prolog), based on the [pure-prolog](https://github.com/kfl/pure-prolog) implementation by Ken Friis Larsen. Created for use in [bedelibry](https://github.com/Chinchillord/Bedellibrary).
+An implementation of a dialect of pure prolog, called *bedelibry prolog* (or bli prolog), based on the [pure-prolog](https://github.com/kfl/pure-prolog) implementation by Ken Friis Larsen. Created for use in [bedelibry](https://github.com/Sintrastes/bedelibry).
 
 WARNING: The following readme is not meant to be documentation for bedelibry prolog at this stage in its development. This is merely meant to be an overview of what the language might look like once it is more fully implemented. Bedelibry is still in pre-release, and the API (either as presented below, or in the software itself) is liable to change as development progresses.
 
