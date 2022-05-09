@@ -22,15 +22,15 @@ Bli-prolog requires that you have the relevant version of the Haskell platform i
 ~~~
   $ sudo apt install ghc cabal-install
   $ sudo add-apt-repository -y ppa:hvr/ghc
-  $ sudo apt install ghc-8.4.4
+  $ sudo apt install ghc-8.10.7
 ~~~ 
 
-as bli-prolog is currently built and tested with ghc 8.4.4. And then, to finish the installation, you can run: 
+as bli-prolog is currently built and tested with ghc 8.10.7. And then, to finish the installation, you can run: 
 
 ~~~
   $ git clone https://github.com/Sintrastes/bli-prolog
   $ cd bli-prolog
-  $ cabal install --with-ghc=ghc-8.4.4
+  $ cabal install --with-ghc=ghc-8.10.7
 ~~~
 
 Alternatively, if `stack` is installed, bli-prolog may be installed simply by running:
